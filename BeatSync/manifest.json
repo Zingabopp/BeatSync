@@ -1,0 +1,14 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/nike4613/ModSaber-MetadataFileSchema/master/Schema.json",
+  "author": "",
+  "description": "",
+  "gameVersion": "0.13.2",
+  "id": "BeatSync",
+  "name": "BeatSync",
+  "version": "0.0.1-alpha",
+  "dependsOn": {
+    "BSIPA": "^3.12.14",
+    "CustomUI": "^1.5.6"
+  },
+  "features": []
+}
