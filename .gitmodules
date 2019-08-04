@@ -1,0 +1,3 @@
+[submodule "Libs/BeatSaberDataProvider"]
+	path = Libs/BeatSaberDataProvider
+	url = https://github.com/Zingabopp/BeatSaberDataProvider
