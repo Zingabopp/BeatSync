@@ -81,6 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeatSync.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="PluginConfig.cs" />
@@ -93,6 +94,16 @@
   <ItemGroup>
     <None Include="CreateJunctions.bat" />
     <None Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\BeatSaberDataProvider\BeatSaberDataProvider.csproj">
+      <Project>{bf407c11-03e3-41ce-9fc8-a885904f14d9}</Project>
+      <Name>BeatSaberDataProvider</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
+      <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
+      <Name>WebUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

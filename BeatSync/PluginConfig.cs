@@ -2,13 +2,22 @@
 {
     internal class PluginConfig
     {
-        public bool RegenerateConfig = true;
-        public bool ExampleBoolSetting = false;
-        public int ExampleIntSetting = 5;
-        public float[] ExampleColorSetting = { 0, 0, 1, 1 };
-        public int ExampleTextSegment = 0; // Index from the string array
-        public string ExampleStringSetting = "example";
-        public float ExampleSliderSetting = 2f;
-        public float ExampleListSetting = 3f;
+        public bool RegenerateConfig { get; set; }
+        public string BeastSaberUsername { get; set; }
+        public bool SyncCuratorRecommendedFeed { get; set; }
+        public bool SyncBookmarksFeed { get; set; }
+        public bool SyncFollowingsFeed { get; set; }
+        public bool SyncTopPPFeed { get; set; }
+        public bool SyncFavoriteMappersFeed { get; set; }
+        public int MaxCuratorRecommendedPages { get; set; }
+        public int MaxBookmarksPages { get; set; }
+        public int MaxFollowingsPages { get; set; }
+        public int MaxScoreSaberSongs { get; set; }
+        public int MaxBeatSaverPages { get; set; }
+        // public bool DeleteOldVersions { get; set; } not yet supported
+        // public bool DeleteDuplicateSongs { get; set; }
+        public int DownloadTimeout { get; set; }
+        public int MaxConcurrentDownloads { get; set; }
+        public int MaxConcurrentPageChecks { get; set; }
     }
 }

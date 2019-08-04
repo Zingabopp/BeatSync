@@ -18,82 +18,7 @@ namespace BeatSync
         private bool customUIExists = false;
 
         #region Setting Properties
-        public static bool ExampleBoolSetting
-        {
-            get { return config.Value.ExampleBoolSetting; }
-            set
-            {
-                config.Value.ExampleBoolSetting = value;
-                configProvider.Store(config.Value);
-            }
-        }
-
-        public static int ExampleIntSetting
-        {
-            get { return config.Value.ExampleIntSetting; }
-            set
-            {
-                config.Value.ExampleIntSetting = value;
-                configProvider.Store(config.Value);
-            }
-        }
-        public static Color ExampleColorSetting
-        {
-            get { return config.Value.ExampleColorSetting.ToColor(); }
-            set
-            {
-                // ExampleColorSetting is stored as a float array in the json config file.
-                config.Value.ExampleColorSetting = value.ToFloatAry();
-                configProvider.Store(config.Value);
-            }
-        }
-        public static int ExampleTextSegment
-        {
-            get { return config.Value.ExampleTextSegment; }
-            set
-            {
-                config.Value.ExampleTextSegment = value;
-                configProvider.Store(config.Value);
-            }
-        }
-        public static string ExampleStringSetting
-        {
-            get { return config.Value.ExampleStringSetting; }
-            set
-            {
-                config.Value.ExampleStringSetting = value;
-                configProvider.Store(config.Value);
-
-            }
-        }
-        public static float ExampleSliderSetting
-        {
-            get { return config.Value.ExampleSliderSetting; }
-            set
-            {
-                config.Value.ExampleSliderSetting = value;
-                configProvider.Store(config.Value);
-            }
-        }
-        public static float ExampleListSetting
-        {
-            get { return config.Value.ExampleListSetting; }
-            set
-            {
-                config.Value.ExampleListSetting = value;
-                configProvider.Store(config.Value);
-            }
-        }
-
-        private static float _exampleGameplayListSetting = 0;
-        public static float ExampleGameplayListSetting
-        {
-            get { return _exampleGameplayListSetting; }
-            set
-            {
-                _exampleGameplayListSetting = value;
-            }
-        }
+        
         #endregion
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
@@ -113,14 +38,7 @@ namespace BeatSync
                     p.Store(v.Value = new PluginConfig()
                     {
                         // Set your default settings here.
-                        RegenerateConfig = false,
-                        ExampleBoolSetting = false,
-                        ExampleIntSetting = 5,
-                        ExampleColorSetting = UnityEngine.Color.blue.ToFloatAry(),
-                        ExampleTextSegment = 0,
-                        ExampleStringSetting = "example",
-                        ExampleSliderSetting = 2,
-                        ExampleListSetting = 3f
+                        
                     });
                 }
                 config = v;
