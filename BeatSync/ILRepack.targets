@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="ILRepacker" AfterTargets="Build">
+
+    <ItemGroup>
+      <InputAssemblies Include="$(OutputPath)BeatSync.dll" />
+      <InputAssemblies Include="$(OutputPath)SongFeedReaders.dll" />
+      <InputAssemblies Include="$(OutputPath)WebUtilities.dll" />
+      <InputAssemblies Include="$(OutputPath)System.Threading.Tasks.Dataflow.dll" />
+      <InputAssemblies Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Must be a fully qualified name -->
+      <!--<DoNotInternalizeAssemblies Include="ExampleAssemblyToMerge3" /> -->
+    </ItemGroup>
+
+    <ILRepack
+        Parallel="true"
+        Internalize="true"
+        InternalizeExclude="@(DoNotInternalizeAssemblies)"
+        InputAssemblies="@(InputAssemblies)"
+        TargetKind="Dll"
+        OutputFile="$(OutputPath)$(AssemblyName).dll"
+        Verbose="true"
+        LibraryPath="$(ProjectDir)\References\Managed"
+        DebugInfo="true"
+    />
+
+  </Target>
+</Project>
+<!-- /ILRepack -->
