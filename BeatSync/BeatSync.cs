@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using SongFeedReaders;
 
 namespace BeatSync
 {
@@ -17,7 +18,10 @@ namespace BeatSync
                 GameObject.DestroyImmediate(this);
             Instance = this;
         }
-        public void Start() { }
+        public void Start()
+        {
+
+        }
 
 
     }

@@ -5,27 +5,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BeatSync
+namespace BeatSync.Playlists
 {
-    public class PlaylistSong
+    public class PlaylistSong : IEquatable<PlaylistSong>
     {
         public PlaylistSong() { }
-        public PlaylistSong(string _hash, string _songIndex, string _songName)
+        public PlaylistSong(string hash, string songName, string songKey = "")
         {
-            if (string.IsNullOrEmpty(_hash))
-                throw new ArgumentNullException(nameof(_hash), "Hash cannot be null for a PlaylistSong.");
-            Hash = _hash;
-            Key = _songIndex;
-            Name = _songName;
+            if (string.IsNullOrEmpty(hash))
+                throw new ArgumentNullException(nameof(hash), "Hash cannot be null for a PlaylistSong.");
+            Hash = hash;
+            Name = songName;
+            Key = songKey;
         }
 
         [JsonProperty("key")]
         public string Key { get; set; }
 
         [JsonProperty("hash")]
-        public string Hash { get; set; }
+        public string Hash
+        {
+            get { return _hash; }
+            set
+            {
+                _hash = value?.ToUpper();
+            }
+        }
 
         [JsonProperty("songName")]
         public string Name { get; set; }
+
+        [JsonIgnore]
+        private string _hash;
+
+        public bool Equals(PlaylistSong other)
+        {
+            if (other == null)
+                return false;
+            return Hash == other?.Hash;
+        }
     }
 }

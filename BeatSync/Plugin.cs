@@ -8,6 +8,7 @@ using IPA.Utilities;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
+using BeatSync.Logging;
 
 namespace BeatSync
 {
@@ -26,7 +27,6 @@ namespace BeatSync
             IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.All;
             Logger.log = logger;
             Logger.log.Debug("Logger initialied.");
-
             configProvider = cfgProvider;
 
             config = configProvider.MakeLink<PluginConfig>((p, v) =>
@@ -48,6 +48,7 @@ namespace BeatSync
         public void OnApplicationStart()
         {
             Logger.log.Debug("OnApplicationStart");
+            SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
             // Check if CustomUI is installed.
             customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
             // If Custom UI is installed, create the UI
