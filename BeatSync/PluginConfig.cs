@@ -19,5 +19,6 @@
         public int DownloadTimeout { get; set; }
         public int MaxConcurrentDownloads { get; set; }
         public int MaxConcurrentPageChecks { get; set; }
+        public bool CreateMapperPlaylists { get; set; }
     }
 }
