@@ -11,6 +11,7 @@ namespace BeatSync
     public class BeatSync : MonoBehaviour
     {
         public static BeatSync Instance { get; set; }
+        public static bool PauseWork { get; set; }
 
         public void Awake()
         {

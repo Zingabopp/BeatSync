@@ -33,7 +33,7 @@ namespace BeatSync.Playlists
             return false;
         }
 
-        public bool TryAdd(string songHash, string songName, string songKey = "")
+        public bool TryAdd(string songHash, string songName, string songKey = null)
         {
             if (!Songs.Exists(s => !string.IsNullOrEmpty(s.Hash) && s.Hash.ToUpper() == songHash.ToUpper()))
             {

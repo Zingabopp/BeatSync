@@ -19,6 +19,7 @@
         public int DownloadTimeout { get; set; }
         public int MaxConcurrentDownloads { get; set; }
         public int MaxConcurrentPageChecks { get; set; }
+        public int RecentPlaylistDays { get; set; } // Remember to change SyncSaberService to add date to playlist entry
         public bool CreateMapperPlaylists { get; set; }
     }
 }

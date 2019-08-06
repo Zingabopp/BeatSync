@@ -54,14 +54,7 @@ namespace BeatSync
             customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
             // If Custom UI is installed, create the UI
             //if (customUIExists)
-            //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
-            Logger.log.Critical("Trying HttpClient reference");
-            SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
-            SongFeedReaders.Utilities.Logger = new BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
-            Logger.log.Critical("Initialized WebUtils successfully");
-            var song = SongFeedReaders.BeatSaverReader.GetSongByKey("b");
-            Logger.log.Critical($"{song.SongName} by {song.MapperName}, hash: {song.Hash}");
-            
+            //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;            
             
         }
 
