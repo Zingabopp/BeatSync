@@ -1,18 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="ILRepacker" AfterTargets="Build">
+  <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
 
     <ItemGroup>
       <InputAssemblies Include="$(OutputPath)BeatSync.dll" />
       <InputAssemblies Include="$(OutputPath)SongFeedReaders.dll" />
       <InputAssemblies Include="$(OutputPath)WebUtilities.dll" />
-      <InputAssemblies Include="$(OutputPath)System.Threading.Tasks.Dataflow.dll" />
-      <InputAssemblies Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <LibraryPaths Include="$(ProjectDir)\References\Managed" />
+      <LibraryPaths Include="$(ProjectDir)\References\Libs" />
+      <LibraryPaths Include="$(ProjectDir)\References\Plugins" />
     </ItemGroup>
 
     <ItemGroup>
       <!-- Must be a fully qualified name -->
-      <!--<DoNotInternalizeAssemblies Include="ExampleAssemblyToMerge3" /> -->
+      <!-- <DoNotInternalizeAssemblies Include="System.Threading.Tasks.Dataflow.dll" /> -->
     </ItemGroup>
 
     <ILRepack
@@ -23,8 +26,9 @@
         TargetKind="Dll"
         OutputFile="$(OutputPath)$(AssemblyName).dll"
         Verbose="true"
-        LibraryPath="$(ProjectDir)\References\Managed"
+        LibraryPath="@(LibraryPaths)"
         DebugInfo="true"
+        TargetPlatformVersion="v4"
     />
 
   </Target>

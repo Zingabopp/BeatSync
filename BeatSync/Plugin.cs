@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
 using BeatSync.Logging;
+using SongFeedReaders;
 
 namespace BeatSync
 {
@@ -48,14 +49,24 @@ namespace BeatSync
         public void OnApplicationStart()
         {
             Logger.log.Debug("OnApplicationStart");
-            SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
+            //SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
             // Check if CustomUI is installed.
             customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
             // If Custom UI is installed, create the UI
-            if (customUIExists)
-                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
-
+            //if (customUIExists)
+            //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+            Logger.log.Critical("Trying HttpClient reference");
+            SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            Logger.log.Critical("Initialized WebUtils successfully");
+            //SongFeedReaders.BeastSaberReader.TestCreateActionBlock();
+            Logger.log.Critical("Created ActionBlock successfully");
+            var song = SongFeedReaders.BeatSaverReader.GetSongByKey("b");
+            Logger.log.Critical($"{song.SongName} by {song.MapperName}, hash: {song.Hash}");
+            
+            
         }
+
+        
 
         public void OnApplicationQuit()
         {
@@ -85,7 +96,11 @@ namespace BeatSync
         /// <param name="nextScene">The scene you are transitioning to.</param>
         public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
         {
-
+            if(nextScene.name == "HealthWarning")
+            {
+                var thing = new GameObject().AddComponent<BeatSync>();
+                GameObject.DontDestroyOnLoad(thing);
+            }
         }
 
         /// <summary>
@@ -98,6 +113,7 @@ namespace BeatSync
                 Logger.log.Debug("Creating plugin's UI");
                 UI.BeatSync_UI.CreateUI();
             }
+
         }
         /// <summary>
         /// Called when the a scene's assets are loaded.
@@ -106,7 +122,7 @@ namespace BeatSync
         /// <param name="sceneMode"></param>
         public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
         {
-
+            
 
 
         }
