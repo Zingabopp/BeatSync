@@ -57,9 +57,8 @@ namespace BeatSync
             //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
             Logger.log.Critical("Trying HttpClient reference");
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            SongFeedReaders.Utilities.Logger = new BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             Logger.log.Critical("Initialized WebUtils successfully");
-            //SongFeedReaders.BeastSaberReader.TestCreateActionBlock();
-            Logger.log.Critical("Created ActionBlock successfully");
             var song = SongFeedReaders.BeatSaverReader.GetSongByKey("b");
             Logger.log.Critical($"{song.SongName} by {song.MapperName}, hash: {song.Hash}");
             
