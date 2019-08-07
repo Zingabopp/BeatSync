@@ -10,7 +10,7 @@ namespace BeatSync.Logging
 {
     public class BeatSyncFeedReaderLogger : FeedReaderLoggerBase
     {
-        public BeatSyncFeedReaderLogger()
+        private BeatSyncFeedReaderLogger()
         {
             LoggerName = "BeatSync";
         }

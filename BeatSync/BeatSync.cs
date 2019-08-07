@@ -22,21 +22,23 @@ namespace BeatSync
         }
         public void Start()
         {
-            Logger.log.Warn("BeatSync Start()");
-            StartCoroutine(GetSongsCoRoutine());
+            Logger.log.Debug("BeatSync Start()");
+            StartCoroutine(ScrapeSongsCoroutine());
         }
 
-        public IEnumerator<WaitForSeconds> GetSongsCoRoutine()
+        public IEnumerator<WaitForSeconds> ScrapeSongsCoroutine()
         {
-            Logger.log.Warn("Starting GetSongsCoRoutine");
+            yield return null;
+            Logger.log.Debug("Starting ScrapeSongsCoroutine");
             var beatSaverReader = new SongFeedReaders.BeatSaverReader();
-            var beatSaverTask = Task.Run(() => beatSaverReader.GetSongsFromFeedAsync(new BeatSaverFeedSettings((int)BeatSaverFeed.Hot) { MaxSongs = 70 }));
             var bsaberReader = new BeastSaberReader("Zingabopp", 5);
-            var bsaberTask = Task.Run(() => bsaberReader.GetSongsFromFeedAsync(new BeastSaberFeedSettings(0) { MaxSongs = 70 }));
             var scoreSaberReader = new ScoreSaberReader();
+            Logger.log.Warn($"BS: {beatSaverReader != null}, BSa: {bsaberReader != null}, SS: {scoreSaberReader != null}");
+            var beatSaverTask = Task.Run(() => beatSaverReader.GetSongsFromFeedAsync(new BeatSaverFeedSettings((int)BeatSaverFeed.Hot) { MaxSongs = 70 }));
+            var bsaberTask = Task.Run(() => bsaberReader.GetSongsFromFeedAsync(new BeastSaberFeedSettings(0) { MaxSongs = 70 }));
             var scoreSaberTask = Task.Run(() => scoreSaberReader.GetSongsFromFeedAsync(new ScoreSaberFeedSettings(0) { MaxSongs = 70 }));
             Logger.log.Warn("Entering loop");
-            while (!(beatSaverTask.IsCompleted && bsaberTask.IsCompleted && scoreSaberTask.IsCompleted))
+            while (!((beatSaverTask?.IsCompleted ?? true) && (bsaberTask?.IsCompleted ?? true) && (scoreSaberTask?.IsCompleted ?? true)))
             {
                 Logger.log.Info($"{beatSaverTask.Status.ToString()}");
                 yield return new WaitForSeconds(2);

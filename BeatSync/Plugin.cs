@@ -9,12 +9,18 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
 using BeatSync.Logging;
-using SongFeedReaders;
+using System.IO;
 
 namespace BeatSync
 {
     public class Plugin : IBeatSaberPlugin
     {
+        // From SongCore
+        internal static readonly string CachedHashDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"..\LocalLow\Hyperbolic Magnetism\Beat Saber\SongHashData.dat");
+        internal const string PlaylistsPath = "Playlists";
+        internal const string CustomLevelsPath = @"Beat Saber_Data\CustomLevels";
+        internal const string UserDataPath = "UserData";
+
         internal static Ref<PluginConfig> config;
         internal static IConfigProvider configProvider;
         private bool customUIExists = false;
@@ -46,6 +52,8 @@ namespace BeatSync
             });
         }
 
+
+
         public void OnApplicationStart()
         {
             Logger.log.Debug("OnApplicationStart");
@@ -54,8 +62,18 @@ namespace BeatSync
             customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
             // If Custom UI is installed, create the UI
             //if (customUIExists)
-            //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;            
-            
+            //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+
+            // Called to set the WebClient SongFeedReaders uses
+            SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+
+            // Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
+            var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
+            SongFeedReaders.BeastSaberReader.Logger = readerLogger;
+            SongFeedReaders.BeatSaverReader.Logger = readerLogger;
+            SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
+            SongFeedReaders.Utilities.Logger = readerLogger;
+            SongFeedReaders.WebUtils.Logger = readerLogger;
         }
 
         
