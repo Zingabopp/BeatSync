@@ -4,6 +4,10 @@ namespace BeatSync
 {
     internal class PluginConfig
     {
+        // Change to have the options nested?
+        // Source
+        //    Feed
+        //       Feed Settings
         public bool RegenerateConfig { get; set; }
         public string BeastSaberUsername { get; set; }
         public bool SyncCuratorRecommendedFeed { get; set; }
