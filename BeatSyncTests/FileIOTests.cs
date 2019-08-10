@@ -11,7 +11,7 @@ namespace BeatSyncTests
         [TestMethod]
         public void GetFilePath_Test()
         {
-            var test = FileIO.GetFilePath("asdfasdf");
+            var test = FileIO.GetPlaylistFilePath("asdfasdf");
         }
     }
 }

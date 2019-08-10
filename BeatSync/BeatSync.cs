@@ -37,40 +37,8 @@ namespace BeatSync
             var beatSaverTask = Task.Run(() => beatSaverReader.GetSongsFromFeedAsync(new BeatSaverFeedSettings((int)BeatSaverFeed.Hot) { MaxSongs = 70 }));
             var bsaberTask = Task.Run(() => bsaberReader.GetSongsFromFeedAsync(new BeastSaberFeedSettings(0) { MaxSongs = 70 }));
             var scoreSaberTask = Task.Run(() => scoreSaberReader.GetSongsFromFeedAsync(new ScoreSaberFeedSettings(0) { MaxSongs = 70 }));
-            Logger.log.Warn("Entering loop");
-            while (!((beatSaverTask?.IsCompleted ?? true) && (bsaberTask?.IsCompleted ?? true) && (scoreSaberTask?.IsCompleted ?? true)))
-            {
-                Logger.log.Info($"{beatSaverTask.Status.ToString()}");
-                yield return new WaitForSeconds(2);
-                try
-                {
-                    if (beatSaverTask.IsCompleted)
-                        PrintSongs("BeatSaver", beatSaverTask.Result.Values);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log.Error(ex);
-                }
-                try
-                {
-                    if (bsaberTask.IsCompleted)
-                        PrintSongs("BeastSaber", bsaberTask.Result.Values);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log.Error(ex);
-                }
-                try
-                {
-                    if (scoreSaberTask.IsCompleted)
-                        PrintSongs("ScoreSaber", scoreSaberTask.Result.Values);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log.Error(ex);
-                }
-                Logger.log.Warn("Continuing loop");
-            }
+            TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
+
         }
 
         public void PrintSongs(string source, IEnumerable<ScrapedSong> songs)
@@ -81,5 +49,42 @@ namespace BeatSync
             }
         }
 
+        public async Task TestPrintReaderResults(Task<Dictionary<string, ScrapedSong>> beatSaverTask,
+            Task<Dictionary<string, ScrapedSong>> bsaberTask,
+            Task<Dictionary<string, ScrapedSong>> scoreSaberTask)
+        {
+            await Task.WhenAll(beatSaverTask, bsaberTask, scoreSaberTask).ConfigureAwait(false);
+
+
+            Logger.log.Info($"{beatSaverTask.Status.ToString()}");
+            try
+            {
+                if (beatSaverTask.IsCompleted)
+                    PrintSongs("BeatSaver", (await beatSaverTask).Values);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error(ex);
+            }
+            try
+            {
+                if (bsaberTask.IsCompleted)
+                    PrintSongs("BeastSaber", (await beatSaverTask).Values);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error(ex);
+            }
+            try
+            {
+                if (scoreSaberTask.IsCompleted)
+                    PrintSongs("ScoreSaber", (await beatSaverTask).Values);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error(ex);
+            }
+            Logger.log.Warn("Continuing loop");
+        }
     }
 }
