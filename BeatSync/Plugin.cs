@@ -10,6 +10,7 @@ using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
 using BeatSync.Logging;
 using System.IO;
+using BeatSync.Configs;
 
 namespace BeatSync
 {
@@ -26,7 +27,7 @@ namespace BeatSync
         private bool customUIExists = false;
 
         #region Setting Properties
-        
+
         #endregion
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
@@ -35,18 +36,12 @@ namespace BeatSync
             Logger.log = logger;
             Logger.log.Debug("Logger initialied.");
             configProvider = cfgProvider;
-
             config = configProvider.MakeLink<PluginConfig>((p, v) =>
             {
                 // Build new config file if it doesn't exist or RegenerateConfig is true
                 if (v.Value == null || v.Value.RegenerateConfig)
                 {
-                    Logger.log.Debug("Regenerating PluginConfig");
-                    p.Store(v.Value = new PluginConfig()
-                    {
-                        // Set your default settings here.
-                        
-                    });
+                    p.Store(v.Value = new PluginConfig().SetDefaults());
                 }
                 config = v;
             });
@@ -76,7 +71,7 @@ namespace BeatSync
             SongFeedReaders.WebUtils.Logger = readerLogger;
         }
 
-        
+
 
         public void OnApplicationQuit()
         {
@@ -106,7 +101,7 @@ namespace BeatSync
         /// <param name="nextScene">The scene you are transitioning to.</param>
         public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
         {
-            if(nextScene.name == "HealthWarning")
+            if (nextScene.name == "HealthWarning")
             {
                 var thing = new GameObject().AddComponent<BeatSync>();
                 GameObject.DontDestroyOnLoad(thing);
@@ -132,7 +127,7 @@ namespace BeatSync
         /// <param name="sceneMode"></param>
         public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
         {
-            
+
 
 
         }

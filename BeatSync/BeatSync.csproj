@@ -175,6 +175,12 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BeatSync.cs" />
+    <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
+    <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
+    <Compile Include="Configs\ConfigBases.cs" />
+    <Compile Include="Configs\FavoriteMappers.cs" />
+    <Compile Include="Configs\ScoreSaberConfigs.cs" />
+    <Compile Include="Configs\SourceConfigs.cs" />
     <Compile Include="FileIO.cs" />
     <Compile Include="Logging\BeatSyncFeedReaderLogger.cs" />
     <Compile Include="Playlists\Playlist.cs" />
@@ -182,7 +188,7 @@
     <Compile Include="Playlists\PlaylistSong.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Logging\Logger.cs" />
-    <Compile Include="PluginConfig.cs" />
+    <Compile Include="Configs\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\BeatSync_UI.cs" />
     <Compile Include="UI\FloatingText.cs" />

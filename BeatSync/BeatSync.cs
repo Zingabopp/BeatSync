@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using SongFeedReaders;
+using BeatSync.Configs;
 
 namespace BeatSync
 {
@@ -34,10 +35,10 @@ namespace BeatSync
             var bsaberReader = new BeastSaberReader("Zingabopp", 5);
             var scoreSaberReader = new ScoreSaberReader();
             Logger.log.Warn($"BS: {beatSaverReader != null}, BSa: {bsaberReader != null}, SS: {scoreSaberReader != null}");
-            var beatSaverTask = Task.Run(() => beatSaverReader.GetSongsFromFeedAsync(new BeatSaverFeedSettings((int)BeatSaverFeed.Hot) { MaxSongs = 70 }));
-            var bsaberTask = Task.Run(() => bsaberReader.GetSongsFromFeedAsync(new BeastSaberFeedSettings(0) { MaxSongs = 70 }));
-            var scoreSaberTask = Task.Run(() => scoreSaberReader.GetSongsFromFeedAsync(new ScoreSaberFeedSettings(0) { MaxSongs = 70 }));
-            TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
+            //var beatSaverTask = Task.Run(() => beatSaverReader.GetSongsFromFeedAsync(new BeatSaverFeedSettings((int)BeatSaverFeed.Hot) { MaxSongs = 70 }));
+            //var bsaberTask = Task.Run(() => bsaberReader.GetSongsFromFeedAsync(new BeastSaberFeedSettings(0) { MaxSongs = 70 }));
+            //var scoreSaberTask = Task.Run(() => scoreSaberReader.GetSongsFromFeedAsync(new ScoreSaberFeedSettings(0) { MaxSongs = 70 }));
+            //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
 
         }
 
@@ -84,7 +85,6 @@ namespace BeatSync
             {
                 Logger.log.Error(ex);
             }
-            Logger.log.Warn("Continuing loop");
         }
     }
 }
