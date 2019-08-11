@@ -10,14 +10,40 @@ namespace BeatSync.Configs
     {
         [JsonIgnore]
         private bool _regenerateConfig = true;
+        [JsonIgnore]
+        private int _maxConcurrentDownloads = 3;
+        [JsonIgnore]
+        private int _recentPlaylistDays = 7;
+
         [JsonProperty(Order = -100)]
         public bool RegenerateConfig { get { return _regenerateConfig; } set { _regenerateConfig = value; } }
         [JsonProperty(Order = -90)]
         public int DownloadTimeout { get; set; }
         [JsonProperty(Order = -80)]
-        public int MaxConcurrentDownloads { get; set; }
+        public int MaxConcurrentDownloads
+        {
+            get { return _maxConcurrentDownloads; }
+            set
+            {
+                if (value < 1)
+                    _maxConcurrentDownloads = 1;
+                else if (value > 10)
+                    _maxConcurrentDownloads = 10;
+                else
+                    _maxConcurrentDownloads = value;
+            }
+        }
         [JsonProperty(Order = -70)]
-        public int RecentPlaylistDays { get; set; } // Remember to change SyncSaberService to add date to playlist entry
+        public int RecentPlaylistDays {
+            get { return _recentPlaylistDays; }
+            set
+            {
+                if (value < 0)
+                    _recentPlaylistDays = 0;
+                else
+                    _recentPlaylistDays = value;
+            }
+        } // Remember to change SyncSaberService to add date to playlist entry
         [JsonProperty(Order = -60)]
         public BeastSaberConfig BeastSaber { get; set; }
         [JsonProperty(Order = -50)]
@@ -25,12 +51,13 @@ namespace BeatSync.Configs
         [JsonProperty(Order = -40)]
         public ScoreSaberConfig ScoreSaber { get; set; }
 
-        
+
 
         public PluginConfig SetDefaults()
         {
             RegenerateConfig = false;
             DownloadTimeout = 30;
+            MaxConcurrentDownloads = 3;
             RecentPlaylistDays = 7;
 
             BeatSaver = new BeatSaverConfig()
