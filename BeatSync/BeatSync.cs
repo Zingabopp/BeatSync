@@ -122,9 +122,20 @@ namespace BeatSync
             Logger.log.Debug("Finished adding cached song hashes to the dictionary");
         }
 
-        public KeyValuePair<string, SongHashData> HashDirectory(string directory)
+        private async Task AddMissingHashes()
         {
+            var songDir = new DirectoryInfo(Plugin.CustomLevelsPath);
 
+
+            return;
+        }
+
+        private async Task AddMissingHash(string songDirectory)
+        {
+            var directoryHash = await Task.Run(() => Utilities.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
+            string hash = await Task.Run(() => Utilities.GenerateHash(songDirectory)).ConfigureAwait(false);
+            
+            var songHashData = new SongHashData(directoryHash, hash);
         }
     }
 }

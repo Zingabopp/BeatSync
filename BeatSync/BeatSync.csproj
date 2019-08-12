@@ -134,28 +134,19 @@
       <HintPath>References\Managed\UnityEngine.VRModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SongFeedReaders, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Debug\net45\SongFeedReaders.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="WebUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Debug\net45\WebUtilities.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
+  <!--
   <Choose>
     <When Condition="'$(Configuration)' == 'Release'">
       <ItemGroup>
-        <Reference Include="SongFeedReaders, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+        <Reference Include="SongFeedReaders">
           <SpecificVersion>False</SpecificVersion>
           <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Release\net45\SongFeedReaders.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="WebUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+        <Reference Include="WebUtilities">
           <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Release\net45\WebUtilities.dll</HintPath>
+          <HintPath>..\Libs\BeatSaberDataProvider\WebUtilities\bin\Release\net45\WebUtilities.dll</HintPath>
           <Private>True</Private>
         </Reference>
       </ItemGroup>
@@ -164,19 +155,20 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <ItemGroup>
-        <Reference Include="SongFeedReaders, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+        <Reference Include="SongFeedReaders">
           <SpecificVersion>False</SpecificVersion>
           <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Debug\net45\SongFeedReaders.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="WebUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+        <Reference Include="WebUtilities">
           <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Debug\net45\WebUtilities.dll</HintPath>
+          <HintPath>..\Libs\BeatSaberDataProvider\WebUtilities\bin\Debug\net45\WebUtilities.dll</HintPath>
           <Private>True</Private>
         </Reference>
       </ItemGroup>
     </When>
   </Choose>
+  -->
   <ItemGroup>
     <Compile Include="BeatSync.cs" />
     <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
@@ -214,7 +206,16 @@
       <Version>12.0.2</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj">
+      <Project>{460a61bc-c89a-433d-a9e2-37447694d76c}</Project>
+      <Name>SongFeedReaders</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
+      <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
+      <Name>WebUtilities</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyToPlugins" AfterTargets="ILRepacker">
     <Message Text="Copying $(OutputPath)$(AssemblyName).dll to Plugins folder" Importance="high" />
