@@ -11,6 +11,8 @@ using IPALogger = IPA.Logging.Logger;
 using BeatSync.Logging;
 using System.IO;
 using BeatSync.Configs;
+using SongCore;
+using Newtonsoft.Json;
 
 namespace BeatSync
 {
@@ -69,6 +71,7 @@ namespace BeatSync
             SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
             SongFeedReaders.Utilities.Logger = readerLogger;
             SongFeedReaders.WebUtils.Logger = readerLogger;
+            
         }
 
 
@@ -103,8 +106,15 @@ namespace BeatSync
         {
             if (nextScene.name == "HealthWarning")
             {
-                var thing = new GameObject().AddComponent<BeatSync>();
-                GameObject.DontDestroyOnLoad(thing);
+                var beatSync = new GameObject().AddComponent<BeatSync>();
+                GameObject.DontDestroyOnLoad(beatSync);
+                
+                var hashList = JsonConvert.DeserializeObject<Dictionary<string, SongCore.Data.SongHashData>>(File.ReadAllText(CachedHashDataPath));
+                var thing = hashList.Values.Where(h => h.songHash.Equals("CC2250FDB1C2020DAD112BAF54FC25A52FA56822")).ToList();
+                if (thing.Count > 0)
+                    Logger.log.Critical($"---------------Found {thing.FirstOrDefault()}-------------");
+                else
+                    Logger.log.Critical($"----------Couldn't find song------------------");
             }
         }
 

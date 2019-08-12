@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using UnityEngine;
 using SongFeedReaders;
 using BeatSync.Configs;
+using Newtonsoft.Json;
+using SongCore.Data;
+using System.Collections.Concurrent;
+using System.IO;
 
 namespace BeatSync
 {
@@ -13,6 +17,7 @@ namespace BeatSync
     {
         public static BeatSync Instance { get; set; }
         public static bool PauseWork { get; set; }
+        private ConcurrentDictionary<string, SongHashData> HashDictionary;
 
         public void Awake()
         {
@@ -20,10 +25,12 @@ namespace BeatSync
                 GameObject.DestroyImmediate(this);
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
+            HashDictionary = new ConcurrentDictionary<string, SongHashData>();
         }
         public void Start()
         {
             Logger.log.Debug("BeatSync Start()");
+            LoadCachedSongHashesAsync(Plugin.CachedHashDataPath);
             StartCoroutine(ScrapeSongsCoroutine());
         }
 
@@ -85,6 +92,39 @@ namespace BeatSync
             {
                 Logger.log.Error(ex);
             }
+        }
+
+        public void LoadCachedSongHashesAsync(string cachedHashPath)
+        {
+            if(!File.Exists(cachedHashPath))
+            {
+                Logger.log.Warn($"Couldn't find cached songs at {cachedHashPath}");
+                return;
+            }
+            try
+            {
+                using (var fs = File.OpenText(cachedHashPath))
+                using (var js = new JsonTextReader(fs))
+                {
+                    var ser = new JsonSerializer();
+                    var songHashes = ser.Deserialize<Dictionary<string, SongHashData>>(js);
+                    foreach (var songHash in songHashes)
+                    {
+                        var success = HashDictionary.TryAdd(songHash.Key, songHash.Value);
+                        if (!success)
+                            Logger.log.Warn($"Couldn't add {songHash.Key} to the HashDictionary");
+                    }
+                }
+            }catch(Exception ex)
+            {
+                Logger.log.Error(ex);
+            }
+            Logger.log.Debug("Finished adding cached song hashes to the dictionary");
+        }
+
+        public KeyValuePair<string, SongHashData> HashDirectory(string directory)
+        {
+
         }
     }
 }
