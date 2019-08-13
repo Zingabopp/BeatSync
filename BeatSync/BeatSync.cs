@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using SongCore.Data;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Diagnostics;
 
 namespace BeatSync
 {
@@ -26,11 +27,22 @@ namespace BeatSync
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
+            
+            FinishedHashing += OnHashFinished;
+
         }
         public void Start()
         {
             Logger.log.Debug("BeatSync Start()");
             LoadCachedSongHashesAsync(Plugin.CachedHashDataPath);
+            Logger.log.Critical($"Read {HashDictionary.Count} cached songs.");
+            var hashTask = Task.Run(() => AddMissingHashes());
+        }
+
+        public void OnHashFinished()
+        {
+            Logger.log.Info("Hashing finished.");
+            Logger.log.Critical($"HashDictionary has {HashDictionary.Count} songs.");
             StartCoroutine(ScrapeSongsCoroutine());
         }
 
@@ -122,20 +134,39 @@ namespace BeatSync
             Logger.log.Debug("Finished adding cached song hashes to the dictionary");
         }
 
-        private async Task AddMissingHashes()
+        private void AddMissingHashes()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var songDir = new DirectoryInfo(Plugin.CustomLevelsPath);
-
-
-            return;
+            songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().AsParallel().ForAll(d =>
+            {
+                var data = GetSongHashData(d.FullName).Result;
+                if (HashFinished)
+                    Logger.log.Warn("wtf, still hashing after HashFinished");
+                if(!HashDictionary.TryAdd(d.FullName, data))
+                {
+                    Logger.log.Warn($"Couldn't add {d.FullName} to HashDictionary");
+                }
+                else
+                {
+                    //Logger.log.Info($"Added {d.Name} to the HashDictionary.");
+                }
+            });
+            sw.Stop();
+            Logger.log.Warn($"Finished hashing in {sw.ElapsedMilliseconds}ms, Triggering FinishedHashing");
+            HashFinished = true;
+            FinishedHashing?.Invoke();
         }
-
-        private async Task AddMissingHash(string songDirectory)
+        private static bool HashFinished = false;
+        private async Task<SongHashData> GetSongHashData(string songDirectory)
         {
             var directoryHash = await Task.Run(() => Utilities.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
             string hash = await Task.Run(() => Utilities.GenerateHash(songDirectory)).ConfigureAwait(false);
-            
-            var songHashData = new SongHashData(directoryHash, hash);
+
+            return new SongHashData(directoryHash, hash);
         }
+
+        public event Action FinishedHashing;
     }
 }
