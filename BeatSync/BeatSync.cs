@@ -142,8 +142,8 @@ namespace BeatSync
             songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().AsParallel().ForAll(d =>
             {
                 var data = GetSongHashData(d.FullName).Result;
-                if (HashFinished)
-                    Logger.log.Warn("wtf, still hashing after HashFinished");
+                //if (HashDictionary[d.FullName].songHash != data.songHash)
+                //    Logger.log.Warn($"Hash doesn't match for {d.Name}");
                 if(!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log.Warn($"Couldn't add {d.FullName} to HashDictionary");
