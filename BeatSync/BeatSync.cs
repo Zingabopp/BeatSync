@@ -11,6 +11,7 @@ using SongCore.Data;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Diagnostics;
+using BeatSync.Playlists;
 
 namespace BeatSync
 {
@@ -27,7 +28,7 @@ namespace BeatSync
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
-            
+
             FinishedHashing += OnHashFinished;
 
         }
@@ -108,7 +109,7 @@ namespace BeatSync
 
         public void LoadCachedSongHashesAsync(string cachedHashPath)
         {
-            if(!File.Exists(cachedHashPath))
+            if (!File.Exists(cachedHashPath))
             {
                 Logger.log.Warn($"Couldn't find cached songs at {cachedHashPath}");
                 return;
@@ -127,7 +128,8 @@ namespace BeatSync
                             Logger.log.Warn($"Couldn't add {songHash.Key} to the HashDictionary");
                     }
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logger.log.Error(ex);
             }
@@ -144,7 +146,7 @@ namespace BeatSync
                 var data = GetSongHashData(d.FullName).Result;
                 //if (HashDictionary[d.FullName].songHash != data.songHash)
                 //    Logger.log.Warn($"Hash doesn't match for {d.Name}");
-                if(!HashDictionary.TryAdd(d.FullName, data))
+                if (!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log.Warn($"Couldn't add {d.FullName} to HashDictionary");
                 }
@@ -168,5 +170,39 @@ namespace BeatSync
         }
 
         public event Action FinishedHashing;
+
+        private void RunReaders()
+        {
+            List<Task<Dictionary<string, ScrapedSong>>> readerTasks = new List<Task<Dictionary<string, ScrapedSong>>>();
+            var config = Plugin.config.Value;
+            var beatSyncPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
+            if (config.BeastSaber.Enabled)
+            {
+                var reader = new BeastSaberReader(config.BeastSaber.Username);
+                if (config.BeastSaber.Bookmarks.Enabled)
+                {
+                    var playlist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
+                    var playlists = new Playlist[] { beatSyncPlaylist, playlist };
+                    readerTasks.Add(RunReader(reader, config.BeastSaber.Bookmarks.ToFeedSettings(), playlists));
+                }
+
+            }
+        }
+
+        private async Task<Dictionary<string, ScrapedSong>> RunReader(IFeedReader reader, IFeedSettings settings, Playlist[] playlists)
+        {
+            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false);
+            foreach (var scrapedSong in songs)
+            {
+
+                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName);
+                foreach (var playlist in playlists)
+                {
+                    playlist.TryAdd(song);
+                }
+            }
+
+            return songs;
+        }
     }
 }

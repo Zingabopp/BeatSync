@@ -14,10 +14,18 @@ namespace BeatSync.Playlists
     {
         static PlaylistManager()
         {
-            MasterList = new ConcurrentDictionary<string, PlaylistSong>();
+            AvailablePlaylists = new ConcurrentDictionary<string, Playlist>();
+            AvailablePlaylists.TryAdd("BeatSyncPlaylist", null);
+            AvailablePlaylists.TryAdd("BeatSyncBSaberBookmarks", null);
+            AvailablePlaylists.TryAdd("BeatSyncBSaberFollows", null);
+            AvailablePlaylists.TryAdd("BeatSyncBSaberCuratorRecommended", null);
+            AvailablePlaylists.TryAdd("BeatSyncScoreSaberTopRanked", null);
+            AvailablePlaylists.TryAdd("BeatSyncFavoriteMappers", null);
+            AvailablePlaylists.TryAdd("BeatSyncRecent", null);
         }
         private const string PlaylistPath = @"Playlists";
-        public static ConcurrentDictionary<string, PlaylistSong> MasterList { get; }
+
+        private static ConcurrentDictionary<string, Playlist> AvailablePlaylists;
 
         public static Dictionary<string, Playlist> DefaultPlaylists = new Dictionary<string, Playlist>()
         {
@@ -39,12 +47,35 @@ namespace BeatSync.Playlists
             { 4, new Playlist("ScoreSaberTopRanked", "ScoreSaber Top Ranked", "SyncSaber", "1") }
         };
 
-        public static Dictionary<string, Playlist> AvailablePlaylists = new Dictionary<string, Playlist>();
 
-        public static string GetPlaylistId(BuiltInPlaylist builtInPlaylist)
+        /// <summary>
+        /// Retrieves the specified playlist. If the playlist doesn't exist, creates one using the default.
+        /// </summary>
+        /// <param name="builtInPlaylist"></param>
+        /// <returns></returns>
+        public static Playlist GetPlaylist(BuiltInPlaylist builtInPlaylist)
         {
-            return DefaultPlaylists.Keys.ElementAt((int)builtInPlaylist);
+            Playlist playlist = null;
+            var key = AvailablePlaylists.Keys.ElementAt((int)builtInPlaylist);
+            if (AvailablePlaylists.TryGetValue(key, out playlist))
+            {
+                if (playlist == null)
+                {
+                    var path = FileIO.GetPlaylistFilePath(key);
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        var defPlaylist = DefaultPlaylists[key];
+                        AvailablePlaylists.TryUpdate(key, defPlaylist, null);
+                        return defPlaylist;
+                    }
+                    else
+                        playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
+                }
+            }
+            return playlist;
         }
+
+
 
         public static void ConvertLegacyPlaylists()
         {
@@ -56,14 +87,14 @@ namespace BeatSync.Playlists
                 {
                     var newPlaylist = DefaultPlaylists.Values.ElementAt(playlistPair.Key);
                     newPlaylist.Songs = newPlaylist.Songs.Union(legPlaylist.Songs).ToList();
-                    foreach(var song in newPlaylist.Songs)
+                    foreach (var song in newPlaylist.Songs)
                     {
                         song.AddPlaylist(newPlaylist);
-                        MasterList.AddOrUpdate(song.Hash, song, (hash, existingSong) =>
-                        {
-                            existingSong.AddPlaylist(newPlaylist);
-                            return existingSong;
-                        });
+                        //MasterList.AddOrUpdate(song.Hash, song, (hash, existingSong) =>
+                        //{
+                        //    existingSong.AddPlaylist(newPlaylist);
+                        //    return existingSong;
+                        //});
                     }
                     FileIO.WritePlaylist(DefaultPlaylists.Values.ElementAt(playlistPair.Key));
                 }
