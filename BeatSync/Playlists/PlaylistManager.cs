@@ -16,17 +16,23 @@ namespace BeatSync.Playlists
         static PlaylistManager()
         {
             AvailablePlaylists = new ConcurrentDictionary<string, Playlist>();
-            AvailablePlaylists.TryAdd("BeatSyncPlaylist", null);
-            AvailablePlaylists.TryAdd("BeatSyncBSaberBookmarks", null);
-            AvailablePlaylists.TryAdd("BeatSyncBSaberFollows", null);
-            AvailablePlaylists.TryAdd("BeatSyncBSaberCuratorRecommended", null);
-            AvailablePlaylists.TryAdd("BeatSyncScoreSaberTopRanked", null);
-            AvailablePlaylists.TryAdd("BeatSyncFavoriteMappers", null);
-            AvailablePlaylists.TryAdd("BeatSyncRecent", null);
+
+            //AvailablePlaylists.TryAdd("BeatSyncPlaylist", null);
+            //AvailablePlaylists.TryAdd("BeatSyncBSaberBookmarks", null);
+            //AvailablePlaylists.TryAdd("BeatSyncBSaberFollows", null);
+            //AvailablePlaylists.TryAdd("BeatSyncBSaberCuratorRecommended", null);
+            //AvailablePlaylists.TryAdd("BeatSyncScoreSaberTopRanked", null);
+            //AvailablePlaylists.TryAdd("BeatSyncFavoriteMappers", null);
+            //AvailablePlaylists.TryAdd("BeatSyncRecent", null);
+            foreach (var key in DefaultPlaylists.Keys)
+            {
+                AvailablePlaylists.TryAdd(key, null);
+            }
+            
         }
         private const string PlaylistPath = @"Playlists";
 
-        private static ConcurrentDictionary<string, Playlist> AvailablePlaylists;
+        private static ConcurrentDictionary<string, Playlist> AvailablePlaylists; // Doesn't need to be concurrent, basically readonly
 
         public static Dictionary<string, Playlist> DefaultPlaylists = new Dictionary<string, Playlist>()
         {
@@ -57,7 +63,8 @@ namespace BeatSync.Playlists
         public static Playlist GetPlaylist(BuiltInPlaylist builtInPlaylist)
         {
             Playlist playlist = null;
-            var key = AvailablePlaylists.Keys.ElementAt((int)builtInPlaylist);
+            var key = DefaultPlaylists.Keys.ElementAt((int)builtInPlaylist);
+            Logger.log.Critical($"Got {key} for {builtInPlaylist.ToString()}");
             if (AvailablePlaylists.TryGetValue(key, out playlist))
             {
                 if (playlist == null)
@@ -67,12 +74,13 @@ namespace BeatSync.Playlists
                     {
                         var defPlaylist = DefaultPlaylists[key];
                         AvailablePlaylists.TryUpdate(key, defPlaylist, null);
-                        return defPlaylist;
+                        playlist = defPlaylist;
                     }
                     else
                         playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
                 }
             }
+            Logger.log.Critical($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()}");
             return playlist;
         }
 

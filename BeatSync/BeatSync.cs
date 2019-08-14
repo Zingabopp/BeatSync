@@ -237,8 +237,10 @@ namespace BeatSync
                 Logger.log.Info("Getting songs from BeastSaber Bookmarks feed.");
                 try
                 {
-                    var playlists = new Playlist[] { allPlaylist, PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks) };
+                    var feedPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
+                    var playlists = new Playlist[] { allPlaylist, feedPlaylist };
                     var bookmarks = await RunReader(reader, config.BeastSaber.Bookmarks.ToFeedSettings(), playlists).ConfigureAwait(false);
+                    FileIO.WritePlaylist(feedPlaylist);
                     beastSaberSongs.Merge(bookmarks);
                     var pages = bookmarks.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     Logger.log.Info($"Found {bookmarks.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Bookmarks feed.");
@@ -323,6 +325,7 @@ namespace BeatSync
                 {
                     playlist.TryAdd(song);
                 }
+                
             }
 
             return songs;

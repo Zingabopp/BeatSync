@@ -43,7 +43,7 @@ namespace BeatSync.Utilities
 
         public static void WritePlaylist(Playlist playlist)
         {
-            var path = Path.Combine(PlaylistPath, playlist.FileName);
+            var path = Path.Combine(PlaylistPath, playlist.FileName + ".bplist");
             if (File.Exists(path))
             {
                 File.Copy(path, path + ".bak", true);
