@@ -9,7 +9,7 @@ namespace BeatSync.Configs
 {
     public static class FavoriteMappers
     {
-        private static readonly string FilePath = Path.GetFullPath(@"UserData\FavoriteMappers.ini");
+        private static readonly string FilePath = Path.GetFullPath(Path.Combine("UserData", "FavoriteMappers.ini"));
         private static string[] _mappers;
         public static string[] Mappers
         {
@@ -30,10 +30,14 @@ namespace BeatSync.Configs
         {
             var mapperList = new List<string>();
             if (!File.Exists(FilePath))
+            {
+                Logger.log.Debug($"Couldn't find FavoriteMappers.ini in the UserData folder, skipping");
                 return mapperList;
+            }
             try
             {
                 mapperList.AddRange(File.ReadAllLines(FilePath));
+                Logger.log.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");
             }
             catch (Exception ex)
             {

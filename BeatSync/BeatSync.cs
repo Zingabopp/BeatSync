@@ -39,6 +39,7 @@ namespace BeatSync
             LoadCachedSongHashesAsync(Plugin.CachedHashDataPath);
             Logger.log.Critical($"Read {HashDictionary.Count} cached songs.");
             var hashTask = Task.Run(() => AddMissingHashes());
+            FavoriteMappers.Initialize();
         }
 
         public void OnHashFinished()
@@ -48,17 +49,12 @@ namespace BeatSync
             StartCoroutine(ScrapeSongsCoroutine());
         }
 
-        public IEnumerator<WaitForSeconds> ScrapeSongsCoroutine()
+        public IEnumerator<WaitUntil> ScrapeSongsCoroutine()
         {
-            yield return null;
             Logger.log.Debug("Starting ScrapeSongsCoroutine");
-            var beatSaverReader = new SongFeedReaders.BeatSaverReader();
-            var bsaberReader = new BeastSaberReader("Zingabopp", 5);
-            var scoreSaberReader = new ScoreSaberReader();
-            Logger.log.Warn($"BS: {beatSaverReader != null}, BSa: {bsaberReader != null}, SS: {scoreSaberReader != null}");
-            //var beatSaverTask = Task.Run(() => beatSaverReader.GetSongsFromFeedAsync(new BeatSaverFeedSettings((int)BeatSaverFeed.Hot) { MaxSongs = 70 }));
-            //var bsaberTask = Task.Run(() => bsaberReader.GetSongsFromFeedAsync(new BeastSaberFeedSettings(0) { MaxSongs = 70 }));
-            //var scoreSaberTask = Task.Run(() => scoreSaberReader.GetSongsFromFeedAsync(new ScoreSaberFeedSettings(0) { MaxSongs = 70 }));
+            var readTask = RunReaders();
+            yield return new WaitUntil(() => readTask.IsCompleted);
+
             //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
 
         }
@@ -164,7 +160,7 @@ namespace BeatSync
         private static bool HashFinished = false;
         private async Task<SongHashData> GetSongHashData(string songDirectory)
         {
-            
+
             var directoryHash = await Task.Run(() => Util.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
             string hash = await Task.Run(() => Util.GenerateHash(songDirectory)).ConfigureAwait(false);
 
@@ -173,27 +169,141 @@ namespace BeatSync
 
         public event Action FinishedHashing;
 
-        private void RunReaders()
+        private async Task RunReaders()
         {
             List<Task<Dictionary<string, ScrapedSong>>> readerTasks = new List<Task<Dictionary<string, ScrapedSong>>>();
             var config = Plugin.config.Value;
             var beatSyncPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
             if (config.BeastSaber.Enabled)
             {
-                var reader = new BeastSaberReader(config.BeastSaber.Username);
-                if (config.BeastSaber.Bookmarks.Enabled)
+                readerTasks.Add(ReadBeastSaber(beatSyncPlaylist));
+            }
+            if (config.BeatSaver.Enabled)
+            {
+                readerTasks.Add(Task<Dictionary<string, ScrapedSong>>.Run(async () =>
                 {
-                    var playlist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
-                    var playlists = new Playlist[] { beatSyncPlaylist, playlist };
-                    readerTasks.Add(RunReader(reader, config.BeastSaber.Bookmarks.ToFeedSettings(), playlists));
-                }
+                    throw new Exception("lol");
+                    return new Dictionary<string, ScrapedSong>();
+                }));
+            }
+            if (config.ScoreSaber.Enabled)
+            {
+                //readerTasks.Add(ReadBeastSaber(beatSyncPlaylist));
+            }
+            Dictionary<string, ScrapedSong>[] results = null;
+            try
+            {
+                results = await Task.WhenAll(readerTasks).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error($"Error in reading feeds.\n{ex.Message}\n{ex.StackTrace}");
+            }
 
+            Logger.log.Info($"Finished reading feeds.");
+            var songsToDownload = new Dictionary<string, ScrapedSong>();
+            foreach (var readTask in readerTasks)
+            {
+                if (!readTask.IsCompletedSuccessfully)
+                {
+                    Logger.log.Warn("Task not successful, skipping.");
+                    continue;
+                }
+                Logger.log.Warn($"Queuing songs from task.");
+                songsToDownload.Merge(await readTask);
             }
         }
 
+        private async Task<Dictionary<string, ScrapedSong>> ReadBeastSaber(Playlist allPlaylist = null)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            Logger.log.Info("Starting BeastSaber reading");
+
+            var config = Plugin.config.Value;
+            BeastSaberReader reader = null;
+            try
+            {
+                reader = new BeastSaberReader(config.BeastSaber.Username, config.BeastSaber.MaxConcurrentPageChecks);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error(ex);
+                return null;
+            }
+            var beastSaberSongs = new Dictionary<string, ScrapedSong>();
+            if (config.BeastSaber.Bookmarks.Enabled)
+            {
+                Logger.log.Info("Getting songs from BeastSaber Bookmarks feed.");
+                try
+                {
+                    var playlists = new Playlist[] { allPlaylist, PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks) };
+                    var bookmarks = await RunReader(reader, config.BeastSaber.Bookmarks.ToFeedSettings(), playlists).ConfigureAwait(false);
+                    beastSaberSongs.Merge(bookmarks);
+                    var pages = bookmarks.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    Logger.log.Info($"Found {bookmarks.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Bookmarks feed.");
+
+                }
+                catch (ArgumentException ex)
+                {
+                    //Logger.log.Critical("Exception in BeastSaber Bookmarks: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Logger.log.Error(ex);
+                }
+
+
+            }
+            if (config.BeastSaber.Followings.Enabled)
+            {
+
+                Logger.log.Info("Getting songs from BeastSaber Followings feed.");
+                try
+                {
+                    var playlists = new Playlist[] { allPlaylist, PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberFollows) };
+                    var follows = await RunReader(reader, config.BeastSaber.Followings.ToFeedSettings(), playlists).ConfigureAwait(false);
+                    beastSaberSongs.Merge(follows);
+                    var pages = follows.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    Logger.log.Info($"Found {follows.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Followings feed.");
+
+                }
+                catch (ArgumentException ex)
+                {
+                    Logger.log.Critical("Exception in BeastSaber Followings: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Logger.log.Error(ex);
+                }
+            }
+            if (config.BeastSaber.CuratorRecommended.Enabled)
+            {
+                Logger.log.Info("Getting songs from BeastSaber Curator Recommended feed.");
+                var playlists = new Playlist[] { allPlaylist, PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator) };
+                var curator = await RunReader(reader, config.BeastSaber.CuratorRecommended.ToFeedSettings(), playlists).ConfigureAwait(false);
+                beastSaberSongs.Merge(curator);
+                var pages = curator.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                Logger.log.Info($"Found {curator.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Curator Recommended feed.");
+                try
+                {
+                }
+                catch (Exception ex)
+                {
+                    Logger.log.Error(ex);
+                }
+            }
+            sw.Stop();
+            var totalPages = beastSaberSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+            Logger.log.Info($"Found {beastSaberSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} from {reader.Name} in {sw.Elapsed.ToString()}");
+            return beastSaberSongs;
+        }
+
+
         private async Task<Dictionary<string, ScrapedSong>> RunReader(IFeedReader reader, IFeedSettings settings, Playlist[] playlists)
         {
-            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false);
+
+            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
             foreach (var scrapedSong in songs)
             {
                 if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))

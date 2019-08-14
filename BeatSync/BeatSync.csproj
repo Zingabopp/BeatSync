@@ -177,6 +177,7 @@
     <Compile Include="Configs\FavoriteMappers.cs" />
     <Compile Include="Configs\ScoreSaberConfigs.cs" />
     <Compile Include="Configs\SourceConfigs.cs" />
+    <Compile Include="Utilities\DictionaryExtensions.cs" />
     <Compile Include="Utilities\FileIO.cs" />
     <Compile Include="Logging\BeatSyncFeedReaderLogger.cs" />
     <Compile Include="Playlists\Playlist.cs" />
