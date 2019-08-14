@@ -10,7 +10,7 @@ using BeatSync.Logging;
 using System.Threading;
 using System.IO.Compression;
 
-namespace BeatSync
+namespace BeatSync.Utilities
 {
     public static class FileIO
     {

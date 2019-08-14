@@ -10,9 +10,9 @@ using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 using SongCore;
 
-namespace BeatSync
+namespace BeatSync.Utilities
 {
-    public static class Utilities
+    public static class Util
     {
         /// <summary>
         /// Attempts to find a resource of type TResource with the given name. An action can be provided to execute when the object is found.

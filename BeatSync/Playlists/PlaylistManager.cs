@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using BeatSync;
 using System.Collections.Concurrent;
+using BeatSync.Utilities;
 
 namespace BeatSync.Playlists
 {

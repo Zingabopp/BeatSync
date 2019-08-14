@@ -177,7 +177,7 @@
     <Compile Include="Configs\FavoriteMappers.cs" />
     <Compile Include="Configs\ScoreSaberConfigs.cs" />
     <Compile Include="Configs\SourceConfigs.cs" />
-    <Compile Include="FileIO.cs" />
+    <Compile Include="Utilities\FileIO.cs" />
     <Compile Include="Logging\BeatSyncFeedReaderLogger.cs" />
     <Compile Include="Playlists\Playlist.cs" />
     <Compile Include="Playlists\PlaylistManager.cs" />
@@ -188,7 +188,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\BeatSync_UI.cs" />
     <Compile Include="UI\FloatingText.cs" />
-    <Compile Include="Utilities.cs" />
+    <Compile Include="Utilities\Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="manifest.json" />

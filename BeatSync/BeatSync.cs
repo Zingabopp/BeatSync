@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Diagnostics;
 using BeatSync.Playlists;
+using BeatSync.Utilities;
 
 namespace BeatSync
 {
@@ -163,8 +164,9 @@ namespace BeatSync
         private static bool HashFinished = false;
         private async Task<SongHashData> GetSongHashData(string songDirectory)
         {
-            var directoryHash = await Task.Run(() => Utilities.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
-            string hash = await Task.Run(() => Utilities.GenerateHash(songDirectory)).ConfigureAwait(false);
+            
+            var directoryHash = await Task.Run(() => Util.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
+            string hash = await Task.Run(() => Util.GenerateHash(songDirectory)).ConfigureAwait(false);
 
             return new SongHashData(directoryHash, hash);
         }
@@ -194,8 +196,19 @@ namespace BeatSync
             var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false);
             foreach (var scrapedSong in songs)
             {
-
-                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName);
+                if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
+                {
+                    try
+                    {
+                        // ScrapedSong doesn't have a Beat Saver key associated with it, probably scraped from ScoreSaber
+                        scrapedSong.Value.UpdateFrom(await BeatSaverReader.GetSongByHashAsync(scrapedSong.Key), false);
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        Logger.log.Warn($"Unable to find {scrapedSong.Value?.SongName} by {scrapedSong.Value?.MapperName} on Beat Saver ({scrapedSong.Key})");
+                    }
+                }
+                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName, scrapedSong.Value.SongKey);
                 foreach (var playlist in playlists)
                 {
                     playlist.TryAdd(song);

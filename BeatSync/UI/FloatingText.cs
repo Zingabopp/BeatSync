@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
 using CustomUI.BeatSaber;
+using BeatSync.Utilities;
 
 namespace BeatSync.UI
 {
@@ -32,7 +33,7 @@ namespace BeatSync.UI
 
         public void Awake()
         {
-            StartCoroutine(Utilities.WaitForResource<TMP_FontAsset>(FontName, font =>
+            StartCoroutine(Util.WaitForResource<TMP_FontAsset>(FontName, font =>
             {
                 TMP_Font = UnityEngine.Object.Instantiate<TMP_FontAsset>(font);
                 CreateText();
