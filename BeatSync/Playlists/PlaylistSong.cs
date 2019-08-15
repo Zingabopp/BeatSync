@@ -24,10 +24,10 @@ namespace BeatSync.Playlists
             DateAdded = DateTime.Now;
         }
 
-        [JsonProperty("key")]
+        [JsonProperty("key", Order = -10)]
         public string Key { get; set; }
 
-        [JsonProperty("hash")]
+        [JsonProperty("hash", Order = -9)]
         public string Hash
         {
             get { return _hash; }
@@ -37,10 +37,10 @@ namespace BeatSync.Playlists
             }
         }
 
-        [JsonProperty("songName")]
+        [JsonProperty("songName", Order = -8)]
         public string Name { get; set; }
 
-        [JsonProperty("dateAdded")]
+        [JsonProperty("dateAdded", Order = -7)]
         public DateTime? DateAdded { get; set; }
 
         [JsonIgnore]

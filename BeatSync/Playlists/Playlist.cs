@@ -87,11 +87,11 @@ namespace BeatSync.Playlists
             return retVal;
         }
 
-        [JsonProperty("playlistTitle")]
+        [JsonProperty("playlistTitle", Order = -10)]
         public string Title { get; set; }
-        [JsonProperty("playlistAuthor")]
+        [JsonProperty("playlistAuthor", Order = -5)]
         public string Author { get; set; }
-        [JsonProperty("image")]
+        [JsonProperty("image", Order = 10)]
         public string Image { get; set; }
 
         [JsonProperty("songs")]
