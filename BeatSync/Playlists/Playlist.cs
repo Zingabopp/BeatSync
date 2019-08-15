@@ -66,6 +66,7 @@ namespace BeatSync.Playlists
 
         public bool TryWriteFile(out Exception exception)
         {
+            Logger.log.Error($"Writing {FileName} to file.");
             exception = null;
             try
             {

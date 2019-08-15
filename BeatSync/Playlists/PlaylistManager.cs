@@ -15,7 +15,7 @@ namespace BeatSync.Playlists
     {
         static PlaylistManager()
         {
-            AvailablePlaylists = new ConcurrentDictionary<string, Playlist>();
+            AvailablePlaylists = new Dictionary<BuiltInPlaylist, Playlist>();
 
             //AvailablePlaylists.TryAdd("BeatSyncPlaylist", null);
             //AvailablePlaylists.TryAdd("BeatSyncBSaberBookmarks", null);
@@ -26,23 +26,30 @@ namespace BeatSync.Playlists
             //AvailablePlaylists.TryAdd("BeatSyncRecent", null);
             foreach (var key in DefaultPlaylists.Keys)
             {
-                AvailablePlaylists.TryAdd(key, null);
+                AvailablePlaylists.Add(key, null);
             }
-            
+
         }
         private const string PlaylistPath = @"Playlists";
 
-        private static ConcurrentDictionary<string, Playlist> AvailablePlaylists; // Doesn't need to be concurrent, basically readonly
+        private static Dictionary<BuiltInPlaylist, Playlist> AvailablePlaylists; // Doesn't need to be concurrent, basically readonly
 
-        public static Dictionary<string, Playlist> DefaultPlaylists = new Dictionary<string, Playlist>()
+        public static Dictionary<BuiltInPlaylist, Playlist> DefaultPlaylists = new Dictionary<BuiltInPlaylist, Playlist>()
         {
-            {"BeatSyncPlaylist", new Playlist("BeatSyncPlaylist", "BeatSync Playlist", "BeatSync", "1") },
-            {"BeatSyncBSaberBookmarks", new Playlist("BeatSyncBSaberBookmarks", "BeastSaber Bookmarks", "BeatSync", "1") },
-            {"BeatSyncBSaberFollows", new Playlist("BeatSyncBSaberFollows", "BeastSaber Follows", "BeatSync", "1") },
-            {"BeatSyncBSaberCuratorRecommended", new Playlist("BeatSyncBSaberCuratorRecommended", "Curator Recommended", "BeatSync", "1") },
-            {"BeatSyncScoreSaberTopRanked", new Playlist("BeatSyncScoreSaberTopRanked", "ScoreSaber Top Ranked", "BeatSync", "1") },
-            {"BeatSyncFavoriteMappers", new Playlist("BeatSyncFavoriteMappers", "Favorite Mappers", "BeatSync", "1") },
-            {"BeatSyncRecent", new Playlist("BeatSyncRecent", "BeatSync Recent Songs", "BeatSync", "1") }
+            {BuiltInPlaylist.BeatSyncAll, new Playlist("BeatSyncPlaylist", "BeatSync Playlist", "BeatSync", "1") },
+            {BuiltInPlaylist.BeastSaberBookmarks, new Playlist("BeatSyncBSaberBookmarks", "BeastSaber Bookmarks", "BeatSync", "1") },
+            {BuiltInPlaylist.BeastSaberFollows, new Playlist("BeatSyncBSaberFollows", "BeastSaber Follows", "BeatSync", "1") },
+            {BuiltInPlaylist.BeastSaberCurator, new Playlist("BeatSyncBSaberCuratorRecommended", "Curator Recommended", "BeatSync", "1") },
+            {BuiltInPlaylist.ScoreSaberTopRanked, new Playlist("BeatSyncScoreSaberTopRanked", "ScoreSaber Top Ranked", "BeatSync", "1") },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, new Playlist("BeatSyncScoreSaberLatestRanked", "ScoreSaber Latest Ranked", "BeatSync", "1") },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, new Playlist("BeatSyncScoreSaberTopPlayed", "ScoreSaber Top Played", "BeatSync", "1") },
+            {BuiltInPlaylist.ScoreSaberTrending, new Playlist("BeatSyncScoreSaberTrending", "ScoreSaber Trending", "BeatSync", "1") },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, new Playlist("BeatSyncFavoriteMappers", "Favorite Mappers", "BeatSync", "1") },
+            {BuiltInPlaylist.BeatSaverLatest, new Playlist("BeatSyncBeatSaverLatest", "BeatSaver Latest", "BeatSync", "1") },
+            {BuiltInPlaylist.BeatSaverHot, new Playlist("BeatSyncBeatSaverHot", "Beat Saver Hot", "BeatSync", "1") },
+            {BuiltInPlaylist.BeatSaverPlays, new Playlist("BeatSyncBeatSaverPlays", "Beat Saver Plays", "BeatSync", "1") },
+            {BuiltInPlaylist.BeatSaverDownloads, new Playlist("BeatSyncBeatSaverDownloads", "Beat Saver Downloads", "BeatSync", "1") },
+            {BuiltInPlaylist.BeatSyncRecent, new Playlist("BeatSyncRecent", "BeatSync Recent Songs", "BeatSync", "1") }
         };
 
         public static Dictionary<int, Playlist> LegacyPlaylists = new Dictionary<int, Playlist>()
@@ -63,21 +70,24 @@ namespace BeatSync.Playlists
         public static Playlist GetPlaylist(BuiltInPlaylist builtInPlaylist)
         {
             Playlist playlist = null;
-            var key = DefaultPlaylists.Keys.ElementAt((int)builtInPlaylist);
-            Logger.log.Critical($"Got {key} for {builtInPlaylist.ToString()}");
-            if (AvailablePlaylists.TryGetValue(key, out playlist))
+            if (AvailablePlaylists.TryGetValue(builtInPlaylist, out playlist))
             {
                 if (playlist == null)
                 {
-                    var path = FileIO.GetPlaylistFilePath(key);
-                    if (string.IsNullOrEmpty(path))
+                    var defPlaylist = DefaultPlaylists[builtInPlaylist];
+                    var path = FileIO.GetPlaylistFilePath(defPlaylist.FileName);
+                    if (string.IsNullOrEmpty(path)) // If GetPlaylistFilePath returned null, the file doesn't exist
                     {
-                        var defPlaylist = DefaultPlaylists[key];
-                        AvailablePlaylists.TryUpdate(key, defPlaylist, null);
+                        if (AvailablePlaylists[builtInPlaylist] == null)
+                            AvailablePlaylists[builtInPlaylist] = defPlaylist;
                         playlist = defPlaylist;
                     }
                     else
+                    {
                         playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
+                        playlist.FileName = path;
+                        Logger.log.Critical($"Playlist FileName is {playlist.FileName}");
+                    }
                 }
             }
             Logger.log.Critical($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()}");
@@ -118,7 +128,14 @@ namespace BeatSync.Playlists
         BeastSaberFollows = 2,
         BeastSaberCurator = 3,
         ScoreSaberTopRanked = 4,
-        FavoriteMappers = 5,
-        BeatSyncRecent = 6
+        ScoreSaberLatestRanked = 5,
+        ScoreSaberTopPlayed = 6,
+        ScoreSaberTrending = 7,
+        BeatSaverFavoriteMappers = 8,
+        BeatSaverLatest = 9,
+        BeatSaverHot = 10,
+        BeatSaverPlays = 11,
+        BeatSaverDownloads = 12,
+        BeatSyncRecent = 13
     }
 }

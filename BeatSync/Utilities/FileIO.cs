@@ -43,7 +43,7 @@ namespace BeatSync.Utilities
 
         public static void WritePlaylist(Playlist playlist)
         {
-            var path = Path.Combine(PlaylistPath, playlist.FileName + ".bplist");
+            var path = Path.Combine(PlaylistPath, playlist.FileName + (playlist.FileName.ToLower().EndsWith(".bplist") ? "" : ".bplist"));
             if (File.Exists(path))
             {
                 File.Copy(path, path + ".bak", true);
@@ -104,7 +104,13 @@ namespace BeatSync.Utilities
             if (File.Exists(fileName))
                 return Path.GetFullPath(fileName);
             var match = Directory.EnumerateFiles(PlaylistPath, fileName + "*");
+            Logger.log.Error($"{match.Count()} file matches for {fileName}");
+            foreach (var item in match)
+            {
+                Logger.log.Critical($"   {item}");
+            }
             var path = match.FirstOrDefault();
+            Logger.log.Error($"Returning {path}");
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return null;
             return path;
