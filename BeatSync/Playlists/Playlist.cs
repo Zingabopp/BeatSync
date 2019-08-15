@@ -70,6 +70,7 @@ namespace BeatSync.Playlists
             exception = null;
             try
             {
+                Songs = Songs.OrderByDescending(s => s.DateAdded).ToList();
                 FileIO.WritePlaylist(this);
                 return true;
             } catch(Exception ex)
