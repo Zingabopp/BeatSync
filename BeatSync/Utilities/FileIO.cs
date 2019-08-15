@@ -51,7 +51,7 @@ namespace BeatSync.Utilities
             }
             using (var sw = File.CreateText(path))
             {
-                var serializer = new JsonSerializer();
+                var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
                 serializer.Serialize(sw, playlist);
             }
             File.Delete(path + ".bak");
