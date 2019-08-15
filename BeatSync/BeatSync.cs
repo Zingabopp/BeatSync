@@ -204,8 +204,8 @@ namespace BeatSync
             var songsToDownload = new Dictionary<string, ScrapedSong>();
             foreach (var readTask in readerTasks)
             {
-                if (!readTask.IsCompletedSuccessfully)
-                {
+                if (!readTask.DidCompleteSuccessfully())
+                { 
                     Logger.log.Warn("Task not successful, skipping.");
                     continue;
                 }
@@ -213,7 +213,36 @@ namespace BeatSync
                 songsToDownload.Merge(await readTask);
             }
         }
+        private async Task<Dictionary<string, ScrapedSong>> RunReader(IFeedReader reader, IFeedSettings settings, Playlist[] playlists)
+        {
 
+            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
+            foreach (var scrapedSong in songs)
+            {
+                if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
+                {
+                    try
+                    {
+                        // ScrapedSong doesn't have a Beat Saver key associated with it, probably scraped from ScoreSaber
+                        scrapedSong.Value.UpdateFrom(await BeatSaverReader.GetSongByHashAsync(scrapedSong.Key), false);
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        Logger.log.Warn($"Unable to find {scrapedSong.Value?.SongName} by {scrapedSong.Value?.MapperName} on Beat Saver ({scrapedSong.Key})");
+                    }
+                }
+                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName, scrapedSong.Value.SongKey);
+                foreach (var playlist in playlists)
+                {
+                    playlist.TryAdd(song);
+                }
+
+            }
+
+            return songs;
+        }
+
+        #region Feed Read Functions
         private async Task<Dictionary<string, ScrapedSong>> ReadBeastSaber(Playlist allPlaylist = null)
         {
             Stopwatch sw = new Stopwatch();
@@ -240,7 +269,7 @@ namespace BeatSync
                     var feedPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
                     var playlists = new Playlist[] { allPlaylist, feedPlaylist };
                     var bookmarks = await RunReader(reader, config.BeastSaber.Bookmarks.ToFeedSettings(), playlists).ConfigureAwait(false);
-                    FileIO.WritePlaylist(feedPlaylist);
+                    feedPlaylist.TryWriteFile();
                     beastSaberSongs.Merge(bookmarks);
                     var pages = bookmarks.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     Logger.log.Info($"Found {bookmarks.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Bookmarks feed.");
@@ -280,7 +309,7 @@ namespace BeatSync
                 }
             }
             if (config.BeastSaber.CuratorRecommended.Enabled)
-            {
+            { 
                 Logger.log.Info("Getting songs from BeastSaber Curator Recommended feed.");
                 var playlists = new Playlist[] { allPlaylist, PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator) };
                 var curator = await RunReader(reader, config.BeastSaber.CuratorRecommended.ToFeedSettings(), playlists).ConfigureAwait(false);
@@ -301,34 +330,6 @@ namespace BeatSync
             return beastSaberSongs;
         }
 
-
-        private async Task<Dictionary<string, ScrapedSong>> RunReader(IFeedReader reader, IFeedSettings settings, Playlist[] playlists)
-        {
-
-            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
-            foreach (var scrapedSong in songs)
-            {
-                if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
-                {
-                    try
-                    {
-                        // ScrapedSong doesn't have a Beat Saver key associated with it, probably scraped from ScoreSaber
-                        scrapedSong.Value.UpdateFrom(await BeatSaverReader.GetSongByHashAsync(scrapedSong.Key), false);
-                    }
-                    catch (ArgumentNullException)
-                    {
-                        Logger.log.Warn($"Unable to find {scrapedSong.Value?.SongName} by {scrapedSong.Value?.MapperName} on Beat Saver ({scrapedSong.Key})");
-                    }
-                }
-                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName, scrapedSong.Value.SongKey);
-                foreach (var playlist in playlists)
-                {
-                    playlist.TryAdd(song);
-                }
-                
-            }
-
-            return songs;
+        #endregion
         }
-    }
 }

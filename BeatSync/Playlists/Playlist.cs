@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using BeatSync;
+using BeatSync.Utilities;
 
 namespace BeatSync.Playlists
 {
@@ -61,6 +62,28 @@ namespace BeatSync.Playlists
             {
                 Songs.Remove(song);
             }
+        }
+
+        public bool TryWriteFile(out Exception exception)
+        {
+            exception = null;
+            try
+            {
+                FileIO.WritePlaylist(this);
+                return true;
+            } catch(Exception ex)
+            {
+                exception = ex;
+                return false;
+            }
+        }
+
+        public bool TryWriteFile()
+        {
+            var retVal = TryWriteFile(out var ex);
+            if (ex != null)
+                Logger.log.Error(ex);
+            return retVal;
         }
 
         [JsonProperty("playlistTitle")]

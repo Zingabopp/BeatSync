@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSync;
 using BeatSync.Playlists;
 using System.IO;
+using BeatSync.Utilities;
 
 namespace BeatSyncTests
 {
