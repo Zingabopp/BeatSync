@@ -228,9 +228,10 @@ namespace BeatSync
 
         }
 
-        private async Task<Dictionary<string, ScrapedSong>> RunReader(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist)
+        private async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist = null)
         {
-
+            var feedName = reader.GetFeedName(settings);
+            Logger.log.Info($"Getting songs from {feedName} feed.");
             var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
             foreach (var scrapedSong in songs)
             {
@@ -250,7 +251,9 @@ namespace BeatSync
 
                 feedPlaylist?.TryAdd(song);
             }
-
+            feedPlaylist?.TryWriteFile();
+            var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+            Logger.log.Info($"Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the {feedName} feed.");
             return songs;
         }
 
@@ -261,11 +264,11 @@ namespace BeatSync
             sw.Start();
             Logger.log.Info("Starting BeastSaber reading");
 
-            var config = Plugin.config.Value;
+            var config = Plugin.config.Value.BeastSaber;
             BeastSaberReader reader = null;
             try
             {
-                reader = new BeastSaberReader(config.BeastSaber.Username, config.BeastSaber.MaxConcurrentPageChecks);
+                reader = new BeastSaberReader(config.Username, config.MaxConcurrentPageChecks);
             }
             catch (Exception ex)
             {
@@ -273,19 +276,14 @@ namespace BeatSync
                 return null;
             }
             var beastSaberSongs = new Dictionary<string, ScrapedSong>();
-            if (config.BeastSaber.Bookmarks.Enabled)
+            if (config.Bookmarks.Enabled)
             {
                 try
                 {
-                    Logger.log.Info("Getting songs from BeastSaber Bookmarks feed.");
-
-                    var feedPlaylist = config.BeastSaber.Bookmarks.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks) : null;
-                    var bookmarks = await RunReader(reader, config.BeastSaber.Bookmarks.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
-                    feedPlaylist?.TryWriteFile();
-                    beastSaberSongs.Merge(bookmarks);
-                    var pages = bookmarks.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
-                    Logger.log.Info($"Found {bookmarks.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Bookmarks feed.");
-
+                    var feedSettings = config.Bookmarks.ToFeedSettings();
+                    var feedPlaylist = config.Bookmarks.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks) : null;
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    beastSaberSongs.Merge(songs);
                 }
                 catch (ArgumentException ex)
                 {
@@ -298,41 +296,32 @@ namespace BeatSync
 
 
             }
-            if (config.BeastSaber.Followings.Enabled)
+            if (config.Follows.Enabled)
             {
                 try
                 {
-                    Logger.log.Info("Getting songs from BeastSaber Followings feed.");
-
-                    var feedPlaylist = config.BeastSaber.Followings.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberFollows) : null;
-                    var follows = await RunReader(reader, config.BeastSaber.Followings.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
-                    feedPlaylist?.TryWriteFile();
-                    beastSaberSongs.Merge(follows);
-                    var pages = follows.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
-                    Logger.log.Info($"Found {follows.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Followings feed.");
-
+                    var feedSettings = config.Follows.ToFeedSettings();
+                    var feedPlaylist = config.Follows.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberFollows) : null;
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    beastSaberSongs.Merge(songs);
                 }
                 catch (ArgumentException ex)
                 {
-                    Logger.log.Critical("Exception in BeastSaber Followings: " + ex.Message);
+                    Logger.log.Critical("Exception in BeastSaber Follows: " + ex.Message);
                 }
                 catch (Exception ex)
                 {
                     Logger.log.Error(ex);
                 }
             }
-            if (config.BeastSaber.CuratorRecommended.Enabled)
+            if (config.CuratorRecommended.Enabled)
             {
                 try
                 {
-                    Logger.log.Info("Getting songs from BeastSaber Curator Recommended feed.");
-                    var feedPlaylist = config.BeastSaber.CuratorRecommended.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator) : null;
-                    var curator = await RunReader(reader, config.BeastSaber.CuratorRecommended.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
-                    feedPlaylist?.TryWriteFile();
-                    beastSaberSongs.Merge(curator);
-                    var pages = curator.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
-                    Logger.log.Info($"Found {curator.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeastSaber Curator Recommended feed.");
-
+                    var feedSettings = config.CuratorRecommended.ToFeedSettings();
+                    var feedPlaylist = config.CuratorRecommended.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator) : null;
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    beastSaberSongs.Merge(songs);
                 }
                 catch (Exception ex)
                 {
@@ -351,7 +340,7 @@ namespace BeatSync
             sw.Start();
             Logger.log.Info("Starting BeatSaver reading");
 
-            var config = Plugin.config.Value;
+            var config = Plugin.config.Value.BeatSaver;
             BeatSaverReader reader = null;
             try
             {
@@ -372,7 +361,7 @@ namespace BeatSync
                     if (settings.Authors.Length > 0)
                     {
                         var feedPlaylist = config.BeatSaver.FavoriteMappers.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSaverFavoriteMappers) : null;
-                        var favMappers = await RunReader(reader, config.BeatSaver.FavoriteMappers.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
+                        var favMappers = await ReadFeed(reader, config.BeatSaver.FavoriteMappers.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
                         feedPlaylist?.TryWriteFile();
                         beatSaverSongs.Merge(favMappers);
                         var pages = favMappers.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
@@ -402,7 +391,7 @@ namespace BeatSync
                 try
                 {
                     var feedPlaylist = config.BeatSaver.Hot.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSaverHot) : null;
-                    var hot = await RunReader(reader, config.BeatSaver.Hot.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
+                    var hot = await ReadFeed(reader, config.BeatSaver.Hot.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
                     feedPlaylist?.TryWriteFile();
                     beatSaverSongs.Merge(hot);
                     var pages = hot.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
@@ -424,7 +413,7 @@ namespace BeatSync
                 try
                 {
                     var feedPlaylist = config.BeatSaver.Downloads.CreatePlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSaverDownloads) : null;
-                    var songs = await RunReader(reader, config.BeatSaver.Downloads.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, config.BeatSaver.Downloads.ToFeedSettings(), feedPlaylist).ConfigureAwait(false);
                     feedPlaylist?.TryWriteFile();
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     Logger.log.Info($"Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")} in the BeatSaver Downloads feed.");

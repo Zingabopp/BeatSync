@@ -75,7 +75,7 @@ namespace BeatSync.Configs
                 MaxConcurrentPageChecks = 5,
                 Username = "",
                 Bookmarks = new BeastSaberBookmarks() { Enabled = true, MaxSongs = 0, CreatePlaylist = true },
-                Followings = new BeastSaberFollowings() { Enabled = true, MaxSongs = 0, CreatePlaylist = true },
+                Follows = new BeastSaberFollowings() { Enabled = true, MaxSongs = 0, CreatePlaylist = true },
                 CuratorRecommended = new BeastSaberCuratorRecommended() { Enabled = true, MaxSongs = 20, CreatePlaylist = true }
             };
 

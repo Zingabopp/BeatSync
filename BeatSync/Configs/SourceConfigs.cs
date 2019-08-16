@@ -29,7 +29,7 @@ namespace BeatSync.Configs
         [JsonProperty(Order = -40)]
         public BeastSaberBookmarks Bookmarks { get; set; }
         [JsonProperty(Order = -30)]
-        public BeastSaberFollowings Followings { get; set; }
+        public BeastSaberFollowings Follows { get; set; }
         [JsonProperty(Order = -20)]
         public BeastSaberCuratorRecommended CuratorRecommended { get; set; }
     }
