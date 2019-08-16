@@ -8,7 +8,10 @@ namespace BeatSync.Configs
 {
     public class ScoreSaberTrending : FeedConfigBase
     {
-
+        public ScoreSaberTrending()
+        {
+            FeedPlaylist = Playlists.BuiltInPlaylist.ScoreSaberTrending;
+        }
         public bool RankedOnly { get; set; }
 
         public SongFeedReaders.ScoreSaberFeedSettings ToFeedSettings()
@@ -24,6 +27,10 @@ namespace BeatSync.Configs
 
     public class ScoreSaberLatestRanked : FeedConfigBase
     {
+        public ScoreSaberLatestRanked()
+        {
+            FeedPlaylist = Playlists.BuiltInPlaylist.ScoreSaberLatestRanked;
+        }
         public SongFeedReaders.ScoreSaberFeedSettings ToFeedSettings()
         {
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.LatestRanked)
@@ -36,6 +43,11 @@ namespace BeatSync.Configs
 
     public class ScoreSaberTopPlayed : FeedConfigBase
     {
+        public ScoreSaberTopPlayed()
+        {
+            FeedPlaylist = Playlists.BuiltInPlaylist.ScoreSaberTopPlayed;
+        }
+
         public bool RankedOnly { get; set; }
 
         public SongFeedReaders.ScoreSaberFeedSettings ToFeedSettings()
@@ -51,6 +63,10 @@ namespace BeatSync.Configs
 
     public class ScoreSaberTopRanked : FeedConfigBase
     {
+        public ScoreSaberTopRanked()
+        {
+            FeedPlaylist = Playlists.BuiltInPlaylist.ScoreSaberTopRanked;
+        }
         public SongFeedReaders.ScoreSaberFeedSettings ToFeedSettings()
         {
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.TopRanked)

@@ -16,7 +16,9 @@ namespace BeatSync.Configs
         public int MaxSongs { get; set; }
         [JsonProperty(Order = -80)]
         public bool CreatePlaylist { get; set; }
+        [JsonIgnore]
+        public Playlists.BuiltInPlaylist FeedPlaylist { get; protected set; }
     }
 
-    
+
 }
