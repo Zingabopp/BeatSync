@@ -56,85 +56,90 @@
     <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Managed\0Harmony.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="BeatSaberCustomUI, Version=1.5.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\BeatSaberCustomUI.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\SongCore.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Core">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.Compression">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression.FileSystem">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Managed\System.Web.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Data">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml">
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>References\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="IPA.Loader">
       <HintPath>References\Managed\IPA.Loader.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>References\Managed\Unity.TextMeshPro.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>References\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>References\Managed\UnityEngine.CoreModule.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>References\Managed\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
       <HintPath>References\Managed\UnityEngine.UIElementsModule.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>References\Managed\UnityEngine.UIModule.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestWWWModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.VRModule">
       <HintPath>References\Managed\UnityEngine.VRModule.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <!--

@@ -13,7 +13,7 @@ namespace BeatSyncTests
         [TestMethod]
         public void GetFilePath_Test()
         {
-            var test = FileIO.GetPlaylistFilePath("asdfasdf");
+            var test = FileIO.GetPlaylistFilePath("BeatSyncBSaberBookmarks");
             var sep = Path.DirectorySeparatorChar;
             var alt = Path.AltDirectorySeparatorChar;
         }

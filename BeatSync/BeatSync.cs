@@ -29,7 +29,7 @@ namespace BeatSync
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
-            FinishedHashing += OnHashFinished;
+            FinishedHashing += OnHashingFinished;
 
         }
         public void Start()
@@ -38,10 +38,12 @@ namespace BeatSync
             LoadCachedSongHashesAsync(Plugin.CachedHashDataPath);
             Logger.log.Critical($"Read {HashDictionary.Count} cached songs.");
             var hashTask = Task.Run(() => AddMissingHashes());
+            Logger.log.Info("Converting legacy playlists.");
+            PlaylistManager.ConvertLegacyPlaylists();
             FavoriteMappers.Initialize();
         }
 
-        public void OnHashFinished()
+        public void OnHashingFinished()
         {
             Logger.log.Info("Hashing finished.");
             Logger.log.Critical($"HashDictionary has {HashDictionary.Count} songs.");
@@ -87,6 +89,7 @@ namespace BeatSync
                         if (!success)
                             Logger.log.Warn($"Couldn't add {songHash.Key} to the HashDictionary");
                     }
+                    Logger.log.Info($"Added {HashDictionary.Count} song hashes from SongCore's cache.");
                 }
             }
             catch (Exception ex)

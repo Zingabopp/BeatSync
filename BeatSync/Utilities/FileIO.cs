@@ -14,8 +14,8 @@ namespace BeatSync.Utilities
 {
     public static class FileIO
     {
-        private const string PlaylistPath = @"Playlists";
-        private static readonly string[] PlaylistExtensions = new string[] { ".bplist", ".json" };
+        //private const string PlaylistPath = @"Playlists";
+
         public static string LoadStringFromFile(string path)
         {
             string text = string.Empty;
@@ -43,7 +43,8 @@ namespace BeatSync.Utilities
 
         public static void WritePlaylist(Playlist playlist)
         {
-            var path = Path.Combine(PlaylistPath, playlist.FileName + (playlist.FileName.ToLower().EndsWith(".bplist") ? "" : ".bplist"));
+            var path = Path.Combine(PlaylistManager.PlaylistPath,
+                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".bplist") ? "" : ".bplist"));
             if (File.Exists(path))
             {
                 File.Copy(path, path + ".bak", true);
@@ -59,8 +60,7 @@ namespace BeatSync.Utilities
 
         public static Playlist ReadPlaylist(Playlist playlist)
         {
-            var match = Directory.EnumerateFiles(PlaylistPath, playlist.FileName + ".*");
-            var path = match.FirstOrDefault();
+            var path = GetPlaylistFilePath(playlist.FileName);
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return playlist;
             JsonConvert.PopulateObject(FileIO.LoadStringFromFile(path), playlist);
@@ -93,7 +93,7 @@ namespace BeatSync.Utilities
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public static string GetPlaylistFilePath(string fileName)
+        public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
         {
 
             //if (PlaylistExtensions.Any(e => fileName.EndsWith(e)))
@@ -103,15 +103,11 @@ namespace BeatSync.Utilities
             //}
             if (File.Exists(fileName))
                 return Path.GetFullPath(fileName);
-            var match = Directory.EnumerateFiles(PlaylistPath, fileName + "*");
-            Logger.log.Error($"{match.Count()} file matches for {fileName}");
-            foreach (var item in match)
-            {
-                Logger.log.Critical($"   {item}");
-            }
-            var path = match.FirstOrDefault();
-            Logger.log.Error($"Returning {path}");
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            else if (!getDisabled)
+                return null;
+
+            var path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
+            if (string.IsNullOrEmpty(path))
                 return null;
             return path;
 

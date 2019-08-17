@@ -44,6 +44,9 @@ namespace BeatSync.Configs
                     _recentPlaylistDays = value;
             }
         } // Remember to change SyncSaberService to add date to playlist entry
+
+        [JsonProperty(Order = -60)]
+        public bool AllBeatSyncSongsPlaylist { get; set; }
         [JsonProperty(Order = -60)]
         public BeastSaberConfig BeastSaber { get; set; }
         [JsonProperty(Order = -50)]
@@ -58,6 +61,7 @@ namespace BeatSync.Configs
             RegenerateConfig = false;
             DownloadTimeout = 30;
             MaxConcurrentDownloads = 3;
+            AllBeatSyncSongsPlaylist = false;
             RecentPlaylistDays = 7;
 
             BeatSaver = new BeatSaverConfig()
