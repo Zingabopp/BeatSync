@@ -83,7 +83,7 @@ namespace BeatSync.Utilities
                 playlist = (Playlist)serializer.Deserialize(sr, typeof(Playlist));
             }
             playlist.FileName = fileName;
-            Logger.log?.Info($"Found Playlist {playlist.Title}");
+            //Logger.log?.Info($"Found Playlist {playlist.Title}");
 
             return playlist;
         }

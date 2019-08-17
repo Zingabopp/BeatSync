@@ -21,6 +21,7 @@ namespace BeatSync
         public static BeatSync Instance { get; set; }
         public static bool PauseWork { get; set; }
         private ConcurrentDictionary<string, SongHashData> HashDictionary;
+        private ConcurrentQueue<PlaylistSong> DownloadQueue;
 
         public void Awake()
         {
@@ -29,7 +30,9 @@ namespace BeatSync
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
+            DownloadQueue = new ConcurrentQueue<PlaylistSong>();
             FinishedHashing += OnHashingFinished;
+
 
         }
         public void Start()
@@ -200,7 +203,7 @@ namespace BeatSync
             var feedName = reader.GetFeedName(settings);
             Logger.log.Info($"Getting songs from {feedName} feed.");
             var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
-            foreach (var scrapedSong in songs)
+            foreach (var scrapedSong in songs.Reverse()) // Reverse so the last songs have the oldest DateTime
             {
                 if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
                 {

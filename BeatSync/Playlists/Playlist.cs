@@ -24,6 +24,11 @@ namespace BeatSync.Playlists
             Songs = new List<PlaylistSong>();
         }
 
+        /// <summary>
+        /// Adds a PlaylistSong to the list if a song with the same hash doesn't already exist.
+        /// </summary>
+        /// <param name="song"></param>
+        /// <returns>True if the song was added.</returns>
         public bool TryAdd(PlaylistSong song)
         {
             if (!Songs.Contains(song))
@@ -34,17 +39,21 @@ namespace BeatSync.Playlists
             return false;
         }
 
+        /// <summary>
+        /// Adds a new PlaylistSong to the list if a song with the same hash doesn't already exist.
+        /// </summary>
+        /// <param name="songHash"></param>
+        /// <param name="songName"></param>
+        /// <param name="songKey"></param>
+        /// <returns>True if the song was added.</returns>
         public bool TryAdd(string songHash, string songName, string songKey = null)
         {
-            if (!Songs.Exists(s => !string.IsNullOrEmpty(s.Hash) && s.Hash.ToUpper() == songHash.ToUpper()))
-            {
-                Songs.Add(new PlaylistSong(songHash, songName, songKey));
-                return true;
-                // Remove any duplicate song that doesn't have a hash
-            }
-            return false;
+            return TryAdd(new PlaylistSong(songHash, songName, songKey));
         }
 
+        /// <summary>
+        /// Removes songs with the same hash from the Songs list.
+        /// </summary>
         public void RemoveDuplicates()
         {
             //var oldSongs = Songs.Where(s => string.IsNullOrEmpty(s.Hash) && !string.IsNullOrEmpty(s.Key) && s.Key.ToLower() == songKey.ToLower()).ToArray();
@@ -55,6 +64,9 @@ namespace BeatSync.Playlists
             Songs = Songs.Distinct().ToList();
         }
 
+        /// <summary>
+        /// Removes songs that don't have a Hash from the playlist.
+        /// </summary>
         public void RemoveInvalidSongs()
         {
             var oldSongs = Songs.Where(s => string.IsNullOrEmpty(s.Hash));
@@ -64,9 +76,15 @@ namespace BeatSync.Playlists
             }
         }
 
+        /// <summary>
+        /// Tries to write the playlist to a file. Before the file is written, the songs are ordered by DateAdded in descending order.
+        /// If the write fails, returns false and provides the exception in the out parameter.
+        /// </summary>
+        /// <param name="exception">The exception that is thrown if there's an error.</param>
+        /// <returns></returns>
         public bool TryWriteFile(out Exception exception)
         {
-            Logger.log.Error($"Writing {FileName} to file.");
+            //Logger.log.Error($"Writing {FileName} to file.");
             exception = null;
             try
             {
@@ -80,11 +98,15 @@ namespace BeatSync.Playlists
             }
         }
 
+        /// <summary>
+        /// Tries to write the Playlist to a file. Returns false if it was unsuccessful.
+        /// </summary>
+        /// <returns></returns>
         public bool TryWriteFile()
         {
             var retVal = TryWriteFile(out var ex);
-            if (ex != null)
-                Logger.log.Error(ex);
+            //if (ex != null)
+                //Logger.log.Error(ex);
             return retVal;
         }
 
