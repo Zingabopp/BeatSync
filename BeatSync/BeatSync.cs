@@ -29,7 +29,6 @@ namespace BeatSync
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
-
             FinishedHashing += OnHashFinished;
 
         }
@@ -67,42 +66,6 @@ namespace BeatSync
             }
         }
 
-        public async Task TestPrintReaderResults(Task<Dictionary<string, ScrapedSong>> beatSaverTask,
-            Task<Dictionary<string, ScrapedSong>> bsaberTask,
-            Task<Dictionary<string, ScrapedSong>> scoreSaberTask)
-        {
-            await Task.WhenAll(beatSaverTask, bsaberTask, scoreSaberTask).ConfigureAwait(false);
-
-
-            Logger.log.Info($"{beatSaverTask.Status.ToString()}");
-            try
-            {
-                if (beatSaverTask.IsCompleted)
-                    PrintSongs("BeatSaver", (await beatSaverTask).Values);
-            }
-            catch (Exception ex)
-            {
-                Logger.log.Error(ex);
-            }
-            try
-            {
-                if (bsaberTask.IsCompleted)
-                    PrintSongs("BeastSaber", (await beatSaverTask).Values);
-            }
-            catch (Exception ex)
-            {
-                Logger.log.Error(ex);
-            }
-            try
-            {
-                if (scoreSaberTask.IsCompleted)
-                    PrintSongs("ScoreSaber", (await beatSaverTask).Values);
-            }
-            catch (Exception ex)
-            {
-                Logger.log.Error(ex);
-            }
-        }
 
         public void LoadCachedSongHashesAsync(string cachedHashPath)
         {
@@ -128,6 +91,7 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
+                Logger.log.Error("Exception in LoadCachedSongHashesAsync");
                 Logger.log.Error(ex);
             }
             Logger.log.Debug("Finished adding cached song hashes to the dictionary");
@@ -208,6 +172,7 @@ namespace BeatSync
                 Logger.log.Warn($"Queuing songs from task.");
                 songsToDownload.Merge(await readTask);
             }
+            Logger.log.Info($"Found {songsToDownload.Count} unique songs.");
             var allPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
             var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
             foreach (var scrapedSong in songsToDownload.Values)
@@ -220,7 +185,6 @@ namespace BeatSync
             if (recentPlaylist != null && config.RecentPlaylistDays > 0)
             {
                 var minDate = DateTime.Now - new TimeSpan(config.RecentPlaylistDays, 0, 0, 0);
-                recentPlaylist.Songs.ForEach(s => Console.WriteLine(s.DateAdded.ToString()));
                 int removedCount = recentPlaylist.Songs.RemoveAll(s => s.DateAdded < minDate);
                 Logger.log.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
                 recentPlaylist.TryWriteFile();
@@ -293,6 +257,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadBeastSaber, Bookmarks.");
                     Logger.log.Error(ex);
                 }
 
@@ -315,6 +280,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadBeastSaber, Follows.");
                     Logger.log.Error(ex);
                 }
             }
@@ -331,6 +297,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadBeastSaber, Curator Recommended.");
                     Logger.log.Error(ex);
                 }
             }
@@ -354,6 +321,7 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
+                Logger.log.Error("Exception creating BeatSaverReader in ReadBeatSaver.");
                 Logger.log.Error(ex);
                 return null;
             }
@@ -370,12 +338,17 @@ namespace BeatSync
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
-                catch (ArgumentException ex)
+                catch (InvalidCastException ex)
                 {
-                    Logger.log.Critical("Exception in BeatSaver Bookmarks: " + ex.Message); // Check what exceptions FavoriteMappers can throw.
+                    Logger.log.Error($"This should never happen in ReadBeatSaver.\n{ex.Message}");
+                }
+                catch (ArgumentNullException ex)
+                {
+                    Logger.log.Critical("Exception in ReadBeatSaver, FavoriteMappers: " + ex.Message);
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadBeatSaver, FavoriteMappers.");
                     Logger.log.Error(ex);
                 }
 
@@ -392,12 +365,17 @@ namespace BeatSync
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
-                catch (ArgumentException ex)
+                catch (InvalidCastException ex)
                 {
-                    Logger.log.Critical("Exception in BeastSaber Follows: " + ex.Message);
+                    Logger.log.Error($"This should never happen in ReadBeatSaver.\n{ex.Message}");
+                }
+                catch (ArgumentNullException ex)
+                {
+                    Logger.log.Critical("Exception in ReadBeatSaver, Hot: " + ex.Message);
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadBeatSaver, Hot.");
                     Logger.log.Error(ex);
                 }
             }
@@ -412,8 +390,17 @@ namespace BeatSync
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
+                catch (InvalidCastException ex)
+                {
+                    Logger.log.Error($"This should never happen in ReadBeatSaver.\n{ex.Message}");
+                }
+                catch (ArgumentNullException ex)
+                {
+                    Logger.log.Critical("Exception in ReadBeatSaver, Downloads: " + ex.Message);
+                }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadBeatSaver, Downloads.");
                     Logger.log.Error(ex);
                 }
             }
@@ -455,6 +442,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadScoreSaber, Top Ranked.");
                     Logger.log.Error(ex);
                 }
             }
@@ -472,6 +460,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadScoreSaber, Trending.");
                     Logger.log.Error(ex);
                 }
             }
@@ -489,6 +478,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadScoreSaber, Top Played.");
                     Logger.log.Error(ex);
                 }
             }
@@ -506,6 +496,7 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
+                    Logger.log.Error("Exception in ReadScoreSaber, Latest Ranked.");
                     Logger.log.Error(ex);
                 }
             }
@@ -518,3 +509,4 @@ namespace BeatSync
         #endregion
     }
 }
+

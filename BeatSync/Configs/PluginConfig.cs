@@ -90,9 +90,4 @@ namespace BeatSync.Configs
             return this;
         }
     }
-
-
-
-
-
 }
