@@ -58,19 +58,19 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Playlists\ScoreSaberTopRanked.json">
+    <None Include="Data\Playlists\ScoreSaberTopRanked.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Playlists\SyncSaberBookmarksPlaylist.json">
+    <None Include="Data\Playlists\SyncSaberBookmarksPlaylist.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Playlists\SyncSaberCuratorRecommendedPlaylist.json">
+    <None Include="Data\Playlists\SyncSaberCuratorRecommendedPlaylist.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Playlists\SyncSaberFollowingsPlaylist.json">
+    <None Include="Data\Playlists\SyncSaberFollowingsPlaylist.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Playlists\SyncSaberPlaylist.json">
+    <None Include="Data\Playlists\SyncSaberPlaylist.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
