@@ -226,9 +226,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="CopyToPlugins" AfterTargets="ILRepacker">
+  <Target Name="CopyToPlugins" AfterTargets="ILRepacker" Condition="'$(NCrunch)' != '1'">
     <Message Text="Copying $(OutputPath)$(AssemblyName).dll to Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(ProjectDir)\References\Plugins" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName)-merged.dll" DestinationFiles="$(ProjectDir)\References\Plugins\$(AssemblyName).dll" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="ILRepacker" AfterTargets="Build"  >
+  <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(NCrunch)' != '1'" >
     <!--Condition="'$(Configuration)' == 'Release'">-->
 
     <ItemGroup>
@@ -25,7 +25,7 @@
         InternalizeExclude="@(DoNotInternalizeAssemblies)"
         InputAssemblies="@(InputAssemblies)"
         TargetKind="Dll"
-        OutputFile="$(OutputPath)$(AssemblyName).dll"
+        OutputFile="$(OutputPath)$(AssemblyName)-merged.dll"
         Verbose="true"
         LibraryPath="@(LibraryPaths)"
         DebugInfo="true"
