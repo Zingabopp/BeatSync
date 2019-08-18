@@ -15,7 +15,7 @@ namespace BeatSync.Utilities
     public static class FileIO
     {
         //private const string PlaylistPath = @"Playlists";
-
+        public const int MaxFileSystemPathLength = 259;
         public static string LoadStringFromFile(string path)
         {
             string text = string.Empty;
@@ -152,7 +152,7 @@ namespace BeatSync.Utilities
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown when zipPath or extractDirectory are null or empty.</exception>
         /// <exception cref="ArgumentException">Thrown when the file at zipPath doesn't exist.</exception>
-        public static async Task<string[]> ExtractZipAsync(string zipPath, string extractDirectory, bool deleteZip = true, bool overwriteTarget = true)
+        public static async Task<string> ExtractZipAsync(string zipPath, string extractDirectory, string shortDirPath, bool deleteZip = true, bool overwriteTarget = true)
         {
             if (string.IsNullOrEmpty(zipPath))
                 throw new ArgumentNullException(nameof(zipPath));
@@ -161,48 +161,20 @@ namespace BeatSync.Utilities
             FileInfo zipFile = new FileInfo(zipPath);
             if (!zipFile.Exists)
                 throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
+            //Logger.log.Info($"Starting ExtractZipAsync for {zipPath}");
             //var extractedFiles = await ExtractAsync(zipFile.FullName, extDir.FullName, overwriteTarget).ConfigureAwait(true);
-            List<string> extractedFiles = new List<string>();
-            var success = await SongFeedReaders.Utilities.WaitUntil(() =>
+            //List<string> extractedFiles = new List<string>();
+            bool success = false;
+            try
             {
-                try
-                {
-                    if (!overwriteTarget && Directory.Exists(extractDirectory))
-                    {
-                        int pathNum = 1;
-                        while (Directory.Exists(extractDirectory + $" ({pathNum})")) ++pathNum;
-                        extractDirectory += $" ({pathNum})";
-                        Directory.CreateDirectory(extractDirectory);
-                    }
-                    else
-                        Directory.CreateDirectory(extractDirectory);
+                success = await Task.Run(() => ExtractTask(zipPath, extractDirectory, shortDirPath, false)).ConfigureAwait(false);
 
-                    using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
-                    using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
-                    {
-                        foreach (var entry in zipArchive.Entries)
-                        {
-                            var entryPath = Path.Combine(extractDirectory, entry.Name);
-                            var fileExists = File.Exists(entryPath);
-                            if (overwriteTarget || !fileExists)
-                            {
-                                entry.ExtractToFile(entryPath, overwriteTarget);
-                                if (!fileExists) // Don't add duplicates to returned list.
-                                    extractedFiles.Add(entry.Name);
-                            }
-                        }
-                    }
-                    return true;
-#pragma warning disable CA1031 // Do not catch general exception types
-                }
-                catch (Exception)
-#pragma warning restore CA1031 // Do not catch general exception types
-                {
-                    return false;
-                }
-
-            }, 25, 3000).ConfigureAwait(false);
-
+            }
+            catch (Exception ex)
+            {
+                //Logger.log.Error("Error waiting for ExtractTask");
+                //Logger.log.Error(ex);
+            }
             if (deleteZip)
             {
                 try
@@ -214,7 +186,97 @@ namespace BeatSync.Utilities
                     //Logger.log.Warn($"Unable to delete file {zipFile.FullName}.\n{ex.Message}\n{ex.StackTrace}");
                 }
             }
-            return extractedFiles.ToArray();
+            //Logger.log.Info($"Finished extraction, {success}");
+            return extractDirectory;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="extractDirectory"></param>
+        /// <param name="longestEntryName"></param>
+        /// <returns></returns>
+        public static string GetValidPath(string extractDirectory, int longestEntryName, int buffer = 0)
+        {
+            var extLength = extractDirectory.Length;
+            var dir = new DirectoryInfo(extractDirectory);
+            var dirName = dir.Name;
+            var diff = MaxFileSystemPathLength - extLength - longestEntryName - buffer;
+            if (diff < 0)
+            {
+
+                if (dirName.Length + diff > 0)
+                {
+                    //Logger.log.Warn($"{extractDirectory} is too long, attempting to shorten.");
+                    extractDirectory = extractDirectory.Substring(0, dirName.Length + diff);
+                }
+                else
+                {
+                    //Logger.log.Error($"{extractDirectory} is too long, couldn't shorten enough.");
+                    throw new PathTooLongException(extractDirectory);
+                }
+            }
+            return extractDirectory;
+        }
+
+        private static bool ExtractTask(string zipPath, string extractDirectory, string shortDirName, bool overwriteTarget = true)
+        {
+            try
+            {
+
+                //Logger.log.Info($"ExtractDirectory is {extractDirectory}");
+                using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+                using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
+                {
+                    //Logger.log.Info("Zip opened");
+                    //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
+                    var longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
+                    extractDirectory = GetValidPath(extractDirectory, longestEntryName, 3);
+                    if (!overwriteTarget && Directory.Exists(extractDirectory))
+                    {
+                        int pathNum = 1;
+                        string finalPath;
+                        do
+                        {
+                            var append = $" ({pathNum})";
+                            finalPath = GetValidPath(extractDirectory + append, longestEntryName, append.Length);
+                            pathNum++;
+                        } while (Directory.Exists(finalPath));
+                        extractDirectory = finalPath;
+                    }
+                    Directory.CreateDirectory(extractDirectory);
+                    foreach (var entry in zipArchive.Entries)
+                    {
+                        var entryPath = Path.Combine(extractDirectory, entry.Name);
+                        var fileExists = File.Exists(entryPath);
+                        if (overwriteTarget || !fileExists)
+                        {
+                            try
+                            {
+                                //if (file.FullName.Length > 240)
+                                //throw new PathTooLongException($"Path too long for {file.FullName}");
+                                entry.ExtractToFile(entryPath, overwriteTarget);
+                            }
+                            catch (Exception ex)
+                            {
+                                //Logger.log.Error($"Error extracting {extractDirectory}");
+                                Logger.log.Error(ex);
+                            }
+                            //if (!fileExists) // Don't add duplicates to returned list.
+                            //extractedFiles.Add(entry.Name);
+                        }
+                    }
+                }
+                return true;
+#pragma warning disable CA1031 // Do not catch general exception types
+            }
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                //Logger.log.Error($"Error extracting {extractDirectory}");
+                //Logger.log.Error(ex);
+                return false;
+            }
         }
 
         public static string GetSafeDirectoryPath(string directory)
