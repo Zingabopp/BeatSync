@@ -24,6 +24,7 @@ namespace BeatSync
         public static bool PauseWork { get; set; }
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private ConcurrentDictionary<string, SongHashData> HashDictionary;
+        private ConcurrentDictionary<string, string> ExistingSongs;
         private ConcurrentQueue<PlaylistSong> DownloadQueue;
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private TransformBlock<PlaylistSong, PlaylistSong> DownloadBatch;
@@ -35,8 +36,9 @@ namespace BeatSync
             Instance = this;
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
+            ExistingSongs = new ConcurrentDictionary<string, string>();
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
-            DownloadBatch = new TransformBlock<PlaylistSong, PlaylistSong>(DownloadJob);
+
             FinishedHashing += OnHashingFinished;
 
 
@@ -47,10 +49,13 @@ namespace BeatSync
 
             bool directoryCreated = false;
             string tempFile = null;
+            bool overwrite = true;
+            string extractDirectory = null;
             try
             {
-                var songDirPath = Path.Combine(CustomLevelPathHelper.customLevelsDirectoryPath, song.DirectoryName);
+                var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelPathHelper.customLevelsDirectoryPath, song.DirectoryName));
                 directoryCreated = !Directory.Exists(songDirPath);
+                // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting, incrementing folder name
                 if (HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
                 {
                     var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
@@ -58,11 +63,17 @@ namespace BeatSync
                     tempFile = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
                     if (!string.IsNullOrEmpty(tempFile))
                     {
-                        var files = await FileIO.ExtractZipAsync(tempFile, songDirPath, true, true);
+                        extractDirectory = Path.GetFullPath(await FileIO.ExtractZipAsync(tempFile, songDirPath, song.Key, true, overwrite));
+                        if (!overwrite && !songDirPath.Equals(extractDirectory))
+                        {
+                            Logger.log.Debug($"songDirPath {songDirPath} != {extractDirectory}, updating dictionary.");
+                            directoryCreated = true;
+                            ExistingSongs[song.Hash] = extractDirectory;
+                        }
                     }
 
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -84,7 +95,7 @@ namespace BeatSync
             LoadCachedSongHashesAsync(Plugin.CachedHashDataPath);
             Logger.log.Critical($"Read {HashDictionary.Count} cached songs.");
             var hashTask = Task.Run(() => AddMissingHashes());
-            Logger.log.Info("Converting legacy playlists.");
+            //Logger.log.Info("Converting legacy playlists.");
             //PlaylistManager.ConvertLegacyPlaylists();
             FavoriteMappers.Initialize();
         }
@@ -100,8 +111,37 @@ namespace BeatSync
         {
             Logger.log.Debug("Starting ScrapeSongsCoroutine");
             var readTask = RunReaders();
-            yield return new WaitUntil(() => readTask.IsCompleted);
+            var readWait = new WaitUntil(() => readTask.IsCompleted);
+            yield return readWait;
+            DownloadBatch = new TransformBlock<PlaylistSong, PlaylistSong>(DownloadJob, new ExecutionDataflowBlockOptions()
+            {
+                BoundedCapacity = DownloadQueue.Count + 100,
+                MaxDegreeOfParallelism = Plugin.config.Value.MaxConcurrentDownloads,
+                EnsureOrdered = false
+            });
+            Logger.log.Info($"Starting downloader.");
+            var downloadTask = Task.Run(async () =>
+            {
+                var downloadedSongs = new List<string>();
+                while (DownloadQueue.TryDequeue(out var song))
+                {
+                    if (DownloadBatch.TryReceiveAll(out var songsCompleted))
+                    {
+                        downloadedSongs.AddRange(songsCompleted.Select(s => s.Hash));
+                    }
+                    await DownloadBatch.SendAsync(song).ConfigureAwait(false);
+                }
+                DownloadBatch.Complete();
+                await DownloadBatch.Completion().ConfigureAwait(false);
 
+                if (DownloadBatch.TryReceiveAll(out var songs))
+                {
+                    downloadedSongs.AddRange(songs.Select(s => s.Hash));
+                }
+                return downloadedSongs;
+            });
+            var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
+            yield return downloadWait;
             //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
 
         }
@@ -132,6 +172,7 @@ namespace BeatSync
                     foreach (var songHash in songHashes)
                     {
                         var success = HashDictionary.TryAdd(songHash.Key, songHash.Value);
+                        ExistingSongs.TryAdd(songHash.Value.songHash, songHash.Key);
                         if (!success)
                             Logger.log.Warn($"Couldn't add {songHash.Key} to the HashDictionary");
                     }
@@ -148,14 +189,34 @@ namespace BeatSync
 
         private void AddMissingHashes()
         {
+            Logger.log.Info("Starting AddMissingHashes");
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var songDir = new DirectoryInfo(Plugin.CustomLevelsPath);
+            Logger.log.Info($"SongDir is {songDir.FullName}");
             songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().AsParallel().ForAll(d =>
             {
                 var data = GetSongHashData(d.FullName).Result;
+                if (data == null)
+                {
+                    Logger.log.Warn($"GetSongHashData({d.FullName}) returned null");
+                    return;
+                }
+                else if (string.IsNullOrEmpty(data.songHash))
+                {
+                    Logger.log.Warn($"GetSongHashData({d.FullName}) returned a null string for hash.");
+                    return;
+                }
                 //if (HashDictionary[d.FullName].songHash != data.songHash)
                 //    Logger.log.Warn($"Hash doesn't match for {d.Name}");
+                try
+                {
+                    ExistingSongs.TryAdd(data.songHash, d.FullName);
+                }
+                catch (Exception ex)
+                {
+                    Logger.log.Error($"Exception in AddMissingHashes.\n{ex.Message}\n{ex.StackTrace}");
+                }
                 if (!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log.Warn($"Couldn't add {d.FullName} to HashDictionary");
@@ -167,10 +228,9 @@ namespace BeatSync
             });
             sw.Stop();
             Logger.log.Warn($"Finished hashing in {sw.ElapsedMilliseconds}ms, Triggering FinishedHashing");
-            HashFinished = true;
             FinishedHashing?.Invoke();
         }
-        private static bool HashFinished = false;
+
         private async Task<SongHashData> GetSongHashData(string songDirectory)
         {
 
@@ -226,8 +286,13 @@ namespace BeatSync
             var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
             foreach (var scrapedSong in songsToDownload.Values)
             {
-
                 var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
+                if (ExistingSongs.TryAdd(scrapedSong.Hash, ""))
+                {
+                    Logger.log.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongKey} by {scrapedSong.MapperName}");
+                    DownloadQueue.Enqueue(playlistSong);
+                }
+
                 allPlaylist?.TryAdd(playlistSong);
                 recentPlaylist?.TryAdd(playlistSong);
             }
@@ -239,6 +304,7 @@ namespace BeatSync
                 Logger.log.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
                 recentPlaylist.TryWriteFile();
             }
+
 
         }
 
