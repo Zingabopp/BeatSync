@@ -13,6 +13,8 @@ using System.IO;
 using System.Diagnostics;
 using BeatSync.Playlists;
 using BeatSync.Utilities;
+using SongFeedReaders.DataflowAlternative;
+using System.IO.Compression;
 
 namespace BeatSync
 {
@@ -20,8 +22,11 @@ namespace BeatSync
     {
         public static BeatSync Instance { get; set; }
         public static bool PauseWork { get; set; }
+        private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private ConcurrentDictionary<string, SongHashData> HashDictionary;
         private ConcurrentQueue<PlaylistSong> DownloadQueue;
+        private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
+        private TransformBlock<PlaylistSong, PlaylistSong> DownloadBatch;
 
         public void Awake()
         {
@@ -31,10 +36,48 @@ namespace BeatSync
             Logger.log.Warn("BeatSync Awake");
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
+            DownloadBatch = new TransformBlock<PlaylistSong, PlaylistSong>(DownloadJob);
             FinishedHashing += OnHashingFinished;
 
 
         }
+
+        private async Task<PlaylistSong> DownloadJob(PlaylistSong song)
+        {
+
+            bool directoryCreated = false;
+            string tempFile = null;
+            try
+            {
+                var songDirPath = Path.Combine(CustomLevelPathHelper.customLevelsDirectoryPath, song.DirectoryName);
+                directoryCreated = !Directory.Exists(songDirPath);
+                if (HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
+                {
+                    var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
+                    var downloadTarget = Path.Combine(SongTempPath, song.Key);
+                    tempFile = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
+                    if (!string.IsNullOrEmpty(tempFile))
+                    {
+                        var files = await FileIO.ExtractZipAsync(tempFile, songDirPath, true, true);
+                    }
+
+                }
+                
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                if (File.Exists(tempFile))
+                    await FileIO.TryDeleteAsync(tempFile).ConfigureAwait(false);
+            }
+
+
+            return song;
+        }
+
         public void Start()
         {
             Logger.log.Debug("BeatSync Start()");
@@ -42,7 +85,7 @@ namespace BeatSync
             Logger.log.Critical($"Read {HashDictionary.Count} cached songs.");
             var hashTask = Task.Run(() => AddMissingHashes());
             Logger.log.Info("Converting legacy playlists.");
-            PlaylistManager.ConvertLegacyPlaylists();
+            //PlaylistManager.ConvertLegacyPlaylists();
             FavoriteMappers.Initialize();
         }
 
@@ -183,7 +226,8 @@ namespace BeatSync
             var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
             foreach (var scrapedSong in songsToDownload.Values)
             {
-                var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey);
+
+                var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
                 allPlaylist?.TryAdd(playlistSong);
                 recentPlaylist?.TryAdd(playlistSong);
             }
@@ -217,7 +261,7 @@ namespace BeatSync
                         Logger.log.Warn($"Unable to find {scrapedSong.Value?.SongName} by {scrapedSong.Value?.MapperName} on Beat Saver ({scrapedSong.Key})");
                     }
                 }
-                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName, scrapedSong.Value.SongKey);
+                var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName, scrapedSong.Value.SongKey, scrapedSong.Value.MapperName);
 
                 feedPlaylist?.TryAdd(song);
             }
@@ -251,8 +295,8 @@ namespace BeatSync
                 try
                 {
                     var feedSettings = config.Bookmarks.ToFeedSettings();
-                    var feedPlaylist = config.Bookmarks.CreatePlaylist 
-                        ? PlaylistManager.GetPlaylist(config.Bookmarks.FeedPlaylist) 
+                    var feedPlaylist = config.Bookmarks.CreatePlaylist
+                        ? PlaylistManager.GetPlaylist(config.Bookmarks.FeedPlaylist)
                         : null;
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
@@ -274,8 +318,8 @@ namespace BeatSync
                 try
                 {
                     var feedSettings = config.Follows.ToFeedSettings();
-                    var feedPlaylist = config.Follows.CreatePlaylist 
-                        ? PlaylistManager.GetPlaylist(config.Follows.FeedPlaylist) 
+                    var feedPlaylist = config.Follows.CreatePlaylist
+                        ? PlaylistManager.GetPlaylist(config.Follows.FeedPlaylist)
                         : null;
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
@@ -295,8 +339,8 @@ namespace BeatSync
                 try
                 {
                     var feedSettings = config.CuratorRecommended.ToFeedSettings();
-                    var feedPlaylist = config.CuratorRecommended.CreatePlaylist 
-                        ? PlaylistManager.GetPlaylist(config.CuratorRecommended.FeedPlaylist) 
+                    var feedPlaylist = config.CuratorRecommended.CreatePlaylist
+                        ? PlaylistManager.GetPlaylist(config.CuratorRecommended.FeedPlaylist)
                         : null;
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
@@ -338,8 +382,8 @@ namespace BeatSync
                 try
                 {
                     var feedSettings = config.FavoriteMappers.ToFeedSettings();
-                    var feedPlaylist = config.FavoriteMappers.CreatePlaylist 
-                        ? PlaylistManager.GetPlaylist(config.FavoriteMappers.FeedPlaylist) 
+                    var feedPlaylist = config.FavoriteMappers.CreatePlaylist
+                        ? PlaylistManager.GetPlaylist(config.FavoriteMappers.FeedPlaylist)
                         : null;
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
@@ -365,8 +409,8 @@ namespace BeatSync
                 try
                 {
                     var feedSettings = config.Hot.ToFeedSettings();
-                    var feedPlaylist = config.Hot.CreatePlaylist 
-                        ? PlaylistManager.GetPlaylist(config.Hot.FeedPlaylist) 
+                    var feedPlaylist = config.Hot.CreatePlaylist
+                        ? PlaylistManager.GetPlaylist(config.Hot.FeedPlaylist)
                         : null;
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
@@ -390,8 +434,8 @@ namespace BeatSync
                 try
                 {
                     var feedSettings = config.Downloads.ToFeedSettings();
-                    var feedPlaylist = config.Downloads.CreatePlaylist 
-                        ? PlaylistManager.GetPlaylist(config.Downloads.FeedPlaylist) 
+                    var feedPlaylist = config.Downloads.CreatePlaylist
+                        ? PlaylistManager.GetPlaylist(config.Downloads.FeedPlaylist)
                         : null;
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);

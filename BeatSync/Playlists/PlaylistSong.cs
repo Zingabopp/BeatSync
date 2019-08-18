@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace BeatSync.Playlists
         {
             _associatedPlaylists = new List<Playlist>();
         }
-        public PlaylistSong(string hash, string songName, string songKey = "")
+        public PlaylistSong(string hash, string songName, string songKey, string mapper)
             : this()
         {
             if (string.IsNullOrEmpty(hash))
@@ -21,6 +22,7 @@ namespace BeatSync.Playlists
             Hash = hash;
             Name = songName;
             Key = songKey;
+            LevelAuthorName = mapper;
             DateAdded = DateTime.Now;
         }
 
@@ -37,11 +39,33 @@ namespace BeatSync.Playlists
             }
         }
 
+        [JsonProperty("levelAuthorName")]
+        public string LevelAuthorName { get; set; }
+
         [JsonProperty("songName", Order = -8)]
         public string Name { get; set; }
 
         [JsonProperty("dateAdded", Order = -7)]
         public DateTime? DateAdded { get; set; }
+
+        [JsonIgnore]
+        private string _directoryName;
+
+        [JsonIgnore]
+        public string DirectoryName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_directoryName))
+                {
+                    // BeatSaverDownloader's method of naming the directory.
+                    string basePath = Key + " (" + Name + " - " + LevelAuthorName + ")";
+                    basePath = string.Join("", basePath.Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
+                    _directoryName = basePath;
+                }
+                return _directoryName;
+            }
+        }
 
         [JsonIgnore]
         public IReadOnlyList<Playlist> AssociatedPlaylists { get { return _associatedPlaylists.AsReadOnly(); } }

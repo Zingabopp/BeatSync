@@ -114,7 +114,7 @@ namespace BeatSync.Utilities
         }
 
         /// <summary>
-        /// Downloads a file from the specified URI to the specified path (path include file name).
+        /// Downloads a file from the specified URI to the specified path (path includes file name).
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="path"></param>
@@ -122,11 +122,22 @@ namespace BeatSync.Utilities
         public static async Task<string> DownloadFileAsync(Uri uri, string path, bool overwrite = true)
         {
             string actualPath = path;
+            if (!overwrite && File.Exists(path))
+                return null;
             using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri).ConfigureAwait(false))
             {
                 if (!response.IsSuccessStatusCode)
                     return null;
-                actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
+                try
+                {
+                    Directory.GetParent(path).Create();
+
+                    actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             }
             return actualPath;
         }
@@ -139,26 +150,48 @@ namespace BeatSync.Utilities
         /// <param name="deleteZip">If true, deletes zip file after extraction</param>
         /// <param name="overwriteTarget">If true, overwrites existing files with the zip's contents</param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown when zipPath or extractDirectory are null or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown when the file at zipPath doesn't exist.</exception>
         public static async Task<string[]> ExtractZipAsync(string zipPath, string extractDirectory, bool deleteZip = true, bool overwriteTarget = true)
         {
             if (string.IsNullOrEmpty(zipPath))
                 throw new ArgumentNullException(nameof(zipPath));
             if (string.IsNullOrEmpty(extractDirectory))
                 throw new ArgumentNullException(nameof(extractDirectory));
-
             FileInfo zipFile = new FileInfo(zipPath);
-            DirectoryInfo extDir = new DirectoryInfo(extractDirectory);
             if (!zipFile.Exists)
                 throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
-            extDir.Create();
             //var extractedFiles = await ExtractAsync(zipFile.FullName, extDir.FullName, overwriteTarget).ConfigureAwait(true);
-            string[] extractedFiles = null;
-            if (await SongFeedReaders.Utilities.WaitUntil(() =>
+            List<string> extractedFiles = new List<string>();
+            var success = await SongFeedReaders.Utilities.WaitUntil(() =>
             {
                 try
                 {
-                    using (ZipArchive zipArchive = ZipFile.OpenRead(zipPath))
-                        zipArchive.ExtractToDirectory(extDir.FullName);
+                    if (!overwriteTarget && Directory.Exists(extractDirectory))
+                    {
+                        int pathNum = 1;
+                        while (Directory.Exists(extractDirectory + $" ({pathNum})")) ++pathNum;
+                        extractDirectory += $" ({pathNum})";
+                        Directory.CreateDirectory(extractDirectory);
+                    }
+                    else
+                        Directory.CreateDirectory(extractDirectory);
+
+                    using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+                    using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
+                    {
+                        foreach (var entry in zipArchive.Entries)
+                        {
+                            var entryPath = Path.Combine(extractDirectory, entry.Name);
+                            var fileExists = File.Exists(entryPath);
+                            if (overwriteTarget || !fileExists)
+                            {
+                                entry.ExtractToFile(entryPath, overwriteTarget);
+                                if (!fileExists) // Don't add duplicates to returned list.
+                                    extractedFiles.Add(entry.Name);
+                            }
+                        }
+                    }
                     return true;
 #pragma warning disable CA1031 // Do not catch general exception types
                 }
@@ -168,10 +201,8 @@ namespace BeatSync.Utilities
                     return false;
                 }
 
-            }, 25, 3000).ConfigureAwait(false))
-            {
+            }, 25, 3000).ConfigureAwait(false);
 
-            }
             if (deleteZip)
             {
                 try
@@ -180,10 +211,10 @@ namespace BeatSync.Utilities
                 }
                 catch (IOException ex)
                 {
-                    Logger.log.Warn($"Unable to delete file {zipFile.FullName}.\n{ex.Message}\n{ex.StackTrace}");
+                    //Logger.log.Warn($"Unable to delete file {zipFile.FullName}.\n{ex.Message}\n{ex.StackTrace}");
                 }
             }
-            return extractedFiles;
+            return extractedFiles.ToArray();
         }
 
         public static string GetSafeDirectoryPath(string directory)
@@ -206,7 +237,7 @@ namespace BeatSync.Utilities
             return retStr.ToString();
         }
 
-        private static Task<bool> TryDeleteAsync(string filePath)
+        public static Task<bool> TryDeleteAsync(string filePath)
         {
             var timeoutSource = new CancellationTokenSource(3000);
             var timeoutToken = timeoutSource.Token;

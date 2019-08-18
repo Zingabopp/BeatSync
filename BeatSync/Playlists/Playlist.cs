@@ -46,9 +46,9 @@ namespace BeatSync.Playlists
         /// <param name="songName"></param>
         /// <param name="songKey"></param>
         /// <returns>True if the song was added.</returns>
-        public bool TryAdd(string songHash, string songName, string songKey = null)
+        public bool TryAdd(string songHash, string songName, string songKey, string mapper)
         {
-            return TryAdd(new PlaylistSong(songHash, songName, songKey));
+            return TryAdd(new PlaylistSong(songHash, songName, songKey, mapper));
         }
 
         /// <summary>
