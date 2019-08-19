@@ -35,6 +35,13 @@ namespace BeatSync
         /// </summary>
         private static ConcurrentDictionary<string, string> SongHistory;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="songHash"></param>
+        /// <param name="songInfo"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         public static bool TryAdd(string songHash, string songInfo)
         {
             if (!IsInitialized)
@@ -45,6 +52,12 @@ namespace BeatSync
             return SongHistory.TryAdd(songHash.ToUpper(), songInfo);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="song"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         public static bool TryAdd(Playlists.PlaylistSong song)
         {
             if (!IsInitialized)
@@ -53,7 +66,12 @@ namespace BeatSync
                 return false;
             return SongHistory.TryAdd(song.Hash, $"({song.Key}) {song.Name} by {song.LevelAuthorName}");
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="songHash"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         public static bool ContainsKey(string songHash)
         {
             if (!IsInitialized)
@@ -62,7 +80,13 @@ namespace BeatSync
                 return false; // May not need this.
             return SongHistory.ContainsKey(songHash.ToUpper());
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="songHash"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         public static bool TryGetValue(string songHash, out string value)
         {
             if (!IsInitialized)
@@ -93,6 +117,10 @@ namespace BeatSync
             IsInitialized = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         public static void WriteToDisk()
         {
             if (!IsInitialized)
