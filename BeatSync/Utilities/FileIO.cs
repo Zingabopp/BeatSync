@@ -16,11 +16,17 @@ namespace BeatSync.Utilities
     {
         //private const string PlaylistPath = @"Playlists";
         public const int MaxFileSystemPathLength = 259;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        /// <exception cref="IOException"></exception>
         public static string LoadStringFromFile(string path)
         {
-            string text = string.Empty;
+            string text;
             var bakFile = new FileInfo(path + ".bak");
-            var file = new FileInfo(path);
             if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
             {
                 bakFile.CopyTo(path, true);
@@ -30,6 +36,12 @@ namespace BeatSync.Utilities
             return text;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="text"></param>
+        /// <exception cref="IOException">Thrown when there's a problem writing to the file.</exception>
         public static void WriteStringToFile(string path, string text)
         {
             if (File.Exists(path))
@@ -41,10 +53,18 @@ namespace BeatSync.Utilities
             File.Delete(path + ".bak");
         }
 
-        public static void WritePlaylist(Playlist playlist)
+        /// <summary>
+        /// Writes a playlist to a file.
+        /// </summary>
+        /// <param name="playlist"></param>
+        /// <returns></returns>
+        /// <exception cref="IOException">Thrown when there's a problem writing to the file.</exception>
+        public static string WritePlaylist(Playlist playlist)
         {
             var path = Path.Combine(PlaylistManager.PlaylistPath,
-                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".bplist") ? "" : ".bplist"));
+                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".bplist")
+                || playlist.FileName.ToLower().EndsWith(".json") ? "" : ".bplist"));
+
             if (File.Exists(path))
             {
                 File.Copy(path, path + ".bak", true);
@@ -56,17 +76,32 @@ namespace BeatSync.Utilities
                 serializer.Serialize(sw, playlist);
             }
             File.Delete(path + ".bak");
+            return path;
         }
 
+        /// <summary>
+        /// Updates an existing playlist from a file.
+        /// </summary>
+        /// <param name="playlist"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown if the provided playlist is null.</exception>
         public static Playlist ReadPlaylist(Playlist playlist)
         {
+            if (playlist == null)
+                throw new ArgumentNullException(nameof(playlist), "playlist cannot be null for FileIO.ReadPlaylist().");
             var path = GetPlaylistFilePath(playlist.FileName);
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return playlist;
-            JsonConvert.PopulateObject(FileIO.LoadStringFromFile(path), playlist);
+            JsonConvert.PopulateObject(LoadStringFromFile(path), playlist);
             return playlist;
         }
 
+        /// <summary>
+        /// Creates a new Playlist from a file.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        /// <exception cref="IOException">Thrown if there's a problem copying/deleting an associated .bak file </exception>
         public static Playlist ReadPlaylist(string fileName)
         {
             var path = GetPlaylistFilePath(fileName);

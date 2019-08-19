@@ -14,7 +14,7 @@ namespace BeatSyncTests.FileIO_Tests
         private static readonly string SongZipsPath = Path.Combine("Data", "SongZips");
 
         [TestMethod]
-        public void ExtractZip_Normal()
+        public void ExtractZip_Normal_NotExistingDir()
         {
             string zipPath = Path.Combine(SongZipsPath, "5d28-LongEntry.zip");
             string[] entries;
@@ -25,14 +25,48 @@ namespace BeatSyncTests.FileIO_Tests
             }
             string songsPath = @"Output";
             string songDir = "5d28-Normal";
-            string extractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
-            var extractedFolder = new DirectoryInfo(FileIO.ExtractZipAsync(zipPath, extractPath, false, false).Result);
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            if (Directory.Exists(originalExtractPath))
+                Directory.Delete(originalExtractPath, true);
+            var finalExtractPath = FileIO.ExtractZipAsync(zipPath, originalExtractPath, false, false).Result;
+            Assert.IsTrue(finalExtractPath.Equals(originalExtractPath));
+            var extractedFolder = new DirectoryInfo(finalExtractPath);
             Assert.IsTrue(File.Exists(zipPath));
             var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
             foreach (var entry in entries)
             {
                 Assert.IsTrue(extractedFiles.Contains(entry));
             }
+            Directory.Delete(originalExtractPath, true);
+            if (Directory.Exists(finalExtractPath))
+                Directory.Delete(finalExtractPath, true);
+        }
+
+        [TestMethod]
+        public void ExtractZip_ExistingNoOverwrite()
+        {
+            string zipPath = Path.Combine(SongZipsPath, "5d28-LongEntry.zip");
+            string[] entries;
+            using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+            using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
+            {
+                entries = zipArchive.Entries.Select(e => e.Name).ToArray();
+            }
+            string songsPath = @"Output";
+            string songDir = "5d28-Existing";
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            Directory.CreateDirectory(originalExtractPath);
+            var finalExtractPath = FileIO.ExtractZipAsync(zipPath, originalExtractPath, false, false).Result;
+            var extractedFolder = new DirectoryInfo(finalExtractPath);
+            Assert.IsFalse(extractedFolder.Equals(originalExtractPath));
+            var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
+            foreach (var entry in entries)
+            {
+                Assert.IsTrue(extractedFiles.Contains(entry));
+            }
+            Directory.Delete(originalExtractPath, true);
+            if (Directory.Exists(finalExtractPath))
+                Directory.Delete(finalExtractPath, true);
         }
 
         [TestMethod]
@@ -46,22 +80,27 @@ namespace BeatSyncTests.FileIO_Tests
                 entries = zipArchive.Entries.Select(e => e.Name).ToArray();
             }
             string songsPath = @"Output";
-            string songDir = "5d28-Normal";
-            string extractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
-            var lockedFile = Path.Combine(extractPath, entries.Last());
-            Directory.CreateDirectory(extractPath);
+            string songDir = "5d28-Partial";
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            var lockedFile = Path.Combine(originalExtractPath, entries.Last());
+            Directory.CreateDirectory(originalExtractPath);
             using (var file = File.Create(lockedFile)) { }
             var fileLock = File.OpenRead(lockedFile);
-            var finalPath = FileIO.ExtractZipAsync(zipPath, extractPath, false, true).Result;
-            Assert.IsTrue(finalPath == null);
-            var extractedFolder = new DirectoryInfo(extractPath);
-            
+            var finalPath = FileIO.ExtractZipAsync(zipPath, originalExtractPath, false, true).Result;
             fileLock.Dispose();
             File.Delete(lockedFile);
+            Assert.IsTrue(finalPath == null);
+            var extractedFolder = new DirectoryInfo(originalExtractPath);
             var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
             foreach (var entry in entries)
             {
                 Assert.IsFalse(extractedFiles.Contains(entry));
+            }
+            Directory.Delete(originalExtractPath, true);
+            if (!string.IsNullOrEmpty(finalPath) && Directory.Exists(finalPath))
+            {
+                Directory.Delete(finalPath, true);
+                Assert.Fail($"finalPath ({finalPath}) shouldn't exist.");
             }
         }
 
@@ -79,15 +118,22 @@ namespace BeatSyncTests.FileIO_Tests
                 entries = zipArchive.Entries.Select(e => e.Name).ToArray();
             }
             string songsPath = @"Output";
-            string songDir = "5d28-Copied";
-            string extractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
-            var extractedFolder = new DirectoryInfo(FileIO.ExtractZipAsync(copiedZipPath, extractPath, true, false).Result);
+            string songDir = "5d28-DeleteZip";
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            var finalExtractPath = FileIO.ExtractZipAsync(copiedZipPath, originalExtractPath, true, false).Result;
+            var extractedFolder = new DirectoryInfo(finalExtractPath);
+
+
             Assert.IsFalse(File.Exists(copiedZipPath));
             var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
             foreach (var entry in entries)
             {
                 Assert.IsTrue(extractedFiles.Contains(entry));
             }
+
+            Directory.Delete(originalExtractPath, true);
+            if (Directory.Exists(finalExtractPath))
+                Directory.Delete(finalExtractPath, true);
         }
 
         [TestMethod]
@@ -104,12 +150,14 @@ namespace BeatSyncTests.FileIO_Tests
                 entries = zipArchive.Entries.Select(e => e.Name).ToArray();
             }
             string songsPath = @"Output";
-            string songDir = "5d28-Copied";
-            string extractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            string songDir = "5d28-CantDeleteZip";
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            string finalExtractPath = null;
             DirectoryInfo extractedFolder = null;
             using (var copiedZip = File.OpenRead(copiedZipPath))
             {
-                extractedFolder = new DirectoryInfo(FileIO.ExtractZipAsync(copiedZipPath, extractPath, true, false).Result);
+                finalExtractPath = FileIO.ExtractZipAsync(copiedZipPath, originalExtractPath, true, false).Result;
+                extractedFolder = new DirectoryInfo(finalExtractPath);
             }
             Assert.IsTrue(File.Exists(copiedZipPath));
             var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
@@ -117,6 +165,10 @@ namespace BeatSyncTests.FileIO_Tests
             {
                 Assert.IsTrue(extractedFiles.Contains(entry));
             }
+
+            Directory.Delete(originalExtractPath, true);
+            if (Directory.Exists(finalExtractPath))
+                Directory.Delete(finalExtractPath, true);
         }
 
         [TestMethod]
@@ -131,13 +183,20 @@ namespace BeatSyncTests.FileIO_Tests
             }
             string songsPath = @"Output";
             string songDir = "DuplicateFiles";
-            string extractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
-            var extractedFolder = new DirectoryInfo(FileIO.ExtractZipAsync(zipPath, extractPath, false, false).Result);
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            if (Directory.Exists(originalExtractPath))
+                Directory.Delete(originalExtractPath, true);
+            var finalExtractPath = FileIO.ExtractZipAsync(zipPath, originalExtractPath, false, false).Result;
+            var extractedFolder = new DirectoryInfo(finalExtractPath);
             var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
             foreach (var entry in entries)
             {
                 Assert.IsTrue(extractedFiles.Contains(entry));
             }
+            Directory.Delete(originalExtractPath, true);
+            Assert.AreEqual(originalExtractPath, finalExtractPath);
+            if (Directory.Exists(finalExtractPath))
+                Directory.Delete(finalExtractPath, true);
         }
 
         [TestMethod]
@@ -155,14 +214,33 @@ namespace BeatSyncTests.FileIO_Tests
             var dInfo = new DirectoryInfo(songsPath);
             var security = dInfo.GetAccessControl();
             var currentUser = System.Security.Principal.WindowsIdentity.GetCurrent().User;
-            security.AddAccessRule(new FileSystemAccessRule(currentUser,
+            var accessRule = new FileSystemAccessRule(currentUser,
                 FileSystemRights.Write, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None,
-                AccessControlType.Deny));
+                AccessControlType.Deny);
+            security.AddAccessRule(accessRule);
             dInfo.SetAccessControl(security);
+            security.ModifyAccessRule(AccessControlModification.Remove, accessRule, out bool success);
+            Assert.IsTrue(success);
+
             string songDir = "5d28-Inaccessible";
-            string extractPath = Path.Combine(songsPath, songDir);
-            extractPath = FileIO.ExtractZipAsync(zipPath, extractPath, false, false).Result;
-            Assert.IsTrue(extractPath == null);
+            string originalExtractPath = Path.Combine(songsPath, songDir);
+            var finalExtractPath = FileIO.ExtractZipAsync(zipPath, originalExtractPath, false, false).Result;
+            Assert.IsTrue(finalExtractPath == null);
+            dInfo.SetAccessControl(security);
+            if (dInfo.Exists)
+                dInfo.Delete(true);
+            if (Directory.Exists(originalExtractPath))
+            {
+                Directory.Delete(originalExtractPath);
+                Assert.Fail("Extraction directory should never have been created.");
+            }
+            if (!string.IsNullOrEmpty(finalExtractPath))
+            {
+                if (Directory.Exists(finalExtractPath))
+                    Directory.Delete(originalExtractPath);
+                Assert.Fail("Extraction directory should never have been created.");
+            }
+
         }
 
 
