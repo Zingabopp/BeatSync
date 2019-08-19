@@ -118,7 +118,7 @@ namespace BeatSync.Utilities
                 playlist = (Playlist)serializer.Deserialize(sr, typeof(Playlist));
             }
             playlist.FileName = fileName;
-            //Logger.log?.Info($"Found Playlist {playlist.Title}");
+            Logger.log?.Info($"Found Playlist {playlist.Title}");
 
             return playlist;
         }
@@ -196,7 +196,7 @@ namespace BeatSync.Utilities
             FileInfo zipFile = new FileInfo(zipPath);
             if (!zipFile.Exists)
                 throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
-            //Logger.log.Info($"Starting ExtractZipAsync for {zipPath}");
+            Logger.log?.Debug($"Starting ExtractZipAsync for {zipPath}");
             //var extractedFiles = await ExtractAsync(zipFile.FullName, extDir.FullName, overwriteTarget).ConfigureAwait(true);
             //List<string> extractedFiles = new List<string>();
             bool success = false;
@@ -212,10 +212,10 @@ namespace BeatSync.Utilities
                 }
                 catch (IOException ex)
                 {
-                    //Logger.log.Warn($"Unable to delete file {zipFile.FullName}.\n{ex.Message}\n{ex.StackTrace}");
+                    Logger.log?.Warn($"Unable to delete file {zipFile.FullName}.\n{ex.Message}\n{ex.StackTrace}");
                 }
             }
-            //Logger.log.Info($"Finished extraction, {success}");
+            Logger.log?.Debug($"Finished extraction, {success}");
             return extractDirectory;
         }
 
@@ -238,12 +238,12 @@ namespace BeatSync.Utilities
 
                 if (dirName.Length + diff > 0)
                 {
-                    //Logger.log.Warn($"{extractDirectory} is too long, attempting to shorten.");
+                    //Logger.log?.Warn($"{extractDirectory} is too long, attempting to shorten.");
                     extractDirectory = extractDirectory.Substring(0, minLength + dirName.Length + diff);
                 }
                 else
                 {
-                    //Logger.log.Error($"{extractDirectory} is too long, couldn't shorten enough.");
+                    //Logger.log?.Error($"{extractDirectory} is too long, couldn't shorten enough.");
                     throw new PathTooLongException(extractDirectory);
                 }
             }
@@ -257,11 +257,11 @@ namespace BeatSync.Utilities
             var createdFiles = new List<string>();
             try
             {
-                //Logger.log.Info($"ExtractDirectory is {extractDirectory}");
+                //Logger.log?.Info($"ExtractDirectory is {extractDirectory}");
                 using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
                 using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
                 {
-                    //Logger.log.Info("Zip opened");
+                    //Logger.log?.Info("Zip opened");
                     //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
                     var longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
                     extractDirectory = GetValidPath(extractDirectory, longestEntryName, 3);
@@ -293,8 +293,8 @@ namespace BeatSync.Utilities
                             }
                             catch (Exception ex)
                             {
-                                //Logger.log.Error($"Error extracting {extractDirectory}");
-                                //Logger.log.Error(ex);
+                                //Logger.log?.Error($"Error extracting {extractDirectory}");
+                                //Logger.log?.Error(ex);
                                 throw ex;
                             }
                         }
@@ -306,8 +306,8 @@ namespace BeatSync.Utilities
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                //Logger.log.Error($"Error extracting {extractDirectory}");
-                //Logger.log.Error(ex);
+                //Logger.log?.Error($"Error extracting {extractDirectory}");
+                //Logger.log?.Error(ex);
                 try
                 {
                     if (!string.IsNullOrEmpty(createdDirectory))

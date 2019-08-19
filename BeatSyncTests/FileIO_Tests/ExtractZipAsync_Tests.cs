@@ -2,6 +2,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using BeatSync.Utilities;
+using BeatSync;
+using BeatSync.Logging;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.AccessControl;
@@ -11,6 +13,10 @@ namespace BeatSyncTests.FileIO_Tests
     [TestClass]
     public class ExtractZipAsync_Tests
     {
+        static ExtractZipAsync_Tests()
+        {
+            Logger.log = new BeatSyncConsoleLogger();
+        }
         private static readonly string SongZipsPath = Path.Combine("Data", "SongZips");
 
         [TestMethod]

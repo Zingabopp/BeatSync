@@ -35,8 +35,8 @@ namespace BeatSync
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
             IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.All;
-            Logger.log = logger;
-            Logger.log.Debug("Logger initialied.");
+            Logger.log = new BeatSyncIPALogger(logger);
+            Logger.log?.Debug("Logger initialied.");
             configProvider = cfgProvider;
             config = configProvider.MakeLink<PluginConfig>((p, v) =>
             {
@@ -53,7 +53,7 @@ namespace BeatSync
 
         public void OnApplicationStart()
         {
-            Logger.log.Debug("OnApplicationStart");
+            Logger.log?.Debug("OnApplicationStart");
             //SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
             // Check if CustomUI is installed.
             customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
@@ -71,14 +71,14 @@ namespace BeatSync
             SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
             SongFeedReaders.Utilities.Logger = readerLogger;
             SongFeedReaders.WebUtils.Logger = readerLogger;
-            
+
         }
 
 
 
         public void OnApplicationQuit()
         {
-            Logger.log.Debug("OnApplicationQuit");
+            Logger.log?.Debug("OnApplicationQuit");
         }
 
         /// <summary>
@@ -108,13 +108,13 @@ namespace BeatSync
             {
                 var beatSync = new GameObject().AddComponent<BeatSync>();
                 GameObject.DontDestroyOnLoad(beatSync);
-                
+
                 var hashList = JsonConvert.DeserializeObject<Dictionary<string, SongCore.Data.SongHashData>>(File.ReadAllText(CachedHashDataPath));
                 var thing = hashList.Values.Where(h => h.songHash.Equals("CC2250FDB1C2020DAD112BAF54FC25A52FA56822")).ToList();
                 if (thing.Count > 0)
-                    Logger.log.Critical($"---------------Found {thing.FirstOrDefault()}-------------");
+                    Logger.log?.Debug($"---------------Found {thing.FirstOrDefault()}-------------");
                 else
-                    Logger.log.Critical($"----------Couldn't find song------------------");
+                    Logger.log?.Debug($"----------Couldn't find song------------------");
             }
         }
 
@@ -125,7 +125,7 @@ namespace BeatSync
         public void MenuLoadedFresh()
         {
             {
-                Logger.log.Debug("Creating plugin's UI");
+                Logger.log?.Debug("Creating plugin's UI");
                 UI.BeatSync_UI.CreateUI();
             }
 

@@ -84,7 +84,7 @@ namespace BeatSync.Playlists
         /// <returns></returns>
         public bool TryWriteFile(out Exception exception)
         {
-            //Logger.log.Error($"Writing {FileName} to file.");
+            //Logger.log?.Error($"Writing {FileName} to file.");
             exception = null;
             try
             {
@@ -106,7 +106,7 @@ namespace BeatSync.Playlists
         {
             var retVal = TryWriteFile(out var ex);
             //if (ex != null)
-                //Logger.log.Error(ex);
+                //Logger.log?.Error(ex);
             return retVal;
         }
 

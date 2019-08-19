@@ -47,7 +47,7 @@ namespace BeatSync.UI
 
         public void CreateText()
         {
-            Logger.log.Debug("Font found, creating text.");
+            Logger.log?.Debug("Font found, creating text.");
             GameObject gameObject = new GameObject();
             UnityEngine.Object.DontDestroyOnLoad(gameObject);
             gameObject.transform.position = new Vector3(0f, 0f, 2.5f);
@@ -60,7 +60,7 @@ namespace BeatSync.UI
             textMeshProUGUI.text = _displayedText;
             textMeshProUGUI.fontSize = 10f;
             textMeshProUGUI.alignment = TextAlignmentOptions.Center;
-            Logger.log.Debug("Text created.");
+            Logger.log?.Debug("Text created.");
         }
 
 

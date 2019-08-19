@@ -89,11 +89,11 @@ namespace BeatSync.Playlists
                     {
                         playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
                         playlist.FileName = path;
-                        Logger.log.Critical($"Playlist FileName is {playlist.FileName}");
+                        Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
                     }
                 }
             }
-            Logger.log.Critical($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()}");
+            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()}");
             return playlist;
         }
 

@@ -45,8 +45,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
-    <Compile Include="PlaylistTests.cs" />
+    <Compile Include="Playlist_Tests\PlaylistTests.cs" />
     <Compile Include="FileIO_Tests\FileIOTests.cs" />
+    <Compile Include="SongDownloader_Tests\ReadScoreSaber_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\ReadBeatSaber_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\ReadBeastSaber_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\RunDownloaderAsync_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\ReadFeed_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\RunReaders_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\DownloadJob_Tests.cs" />
+    <Compile Include="SongHasher_Tests\GetSongHashData_Tests.cs" />
+    <Compile Include="SongHasher_Tests\AddMissingHashes_Tests.cs" />
+    <Compile Include="SongHasher_Tests\LoadCachedSongHashesAsync_Test.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

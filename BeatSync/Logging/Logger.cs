@@ -1,9 +1,9 @@
-﻿using IPALogger = IPA.Logging.Logger;
+﻿using BeatSync.Logging;
 
 namespace BeatSync
 {
-    internal static class Logger
+    public static class Logger
     {
-        public static IPALogger log { get; set; }
+        public static IBeatSyncLogger log { get; set; }
     }
 }

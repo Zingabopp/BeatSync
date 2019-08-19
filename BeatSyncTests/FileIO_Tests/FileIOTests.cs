@@ -4,12 +4,18 @@ using System.IO;
 using BeatSync.Utilities;
 using System.IO.Compression;
 using System.Linq;
+using BeatSync;
+using BeatSync.Logging;
 
 namespace BeatSyncTests.FileIO_Tests
 {
     [TestClass]
     public class GetValidPath_Tests
     {
+        static GetValidPath_Tests()
+        {
+            Logger.log = new BeatSyncConsoleLogger();
+        }
         private static readonly string SongZipsPath = Path.Combine("Data", "SongZips");
 
         [TestMethod]

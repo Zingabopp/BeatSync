@@ -31,17 +31,17 @@ namespace BeatSync.Configs
             var mapperList = new List<string>();
             if (!File.Exists(FilePath))
             {
-                Logger.log.Debug($"Couldn't find FavoriteMappers.ini in the UserData folder, skipping");
+                Logger.log?.Debug($"Couldn't find FavoriteMappers.ini in the UserData folder, skipping");
                 return mapperList;
             }
             try
             {
                 mapperList.AddRange(File.ReadAllLines(FilePath));
-                Logger.log.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");
+                Logger.log?.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");
             }
             catch (Exception ex)
             {
-                Logger.log.Warn(ex);
+                Logger.log?.Warn(ex);
             }
             return mapperList;
         }

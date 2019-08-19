@@ -36,7 +36,7 @@ namespace BeatSync.Utilities
                 }
                 catch (Exception ex)
                 {
-                    Logger.log.Error($"Error invoking action for WaitForResource<{typeof(TResource)}> with name {name}.\n{ex?.Message}\n{ex?.StackTrace}");
+                    Logger.log?.Error($"Error invoking action for WaitForResource<{typeof(TResource)}> with name {name}.\n{ex?.Message}\n{ex?.StackTrace}");
                 }
                 return true;
             });
@@ -81,7 +81,7 @@ namespace BeatSync.Utilities
 
             string hash = SongCore.Utilities.Hashing.CreateSha1FromBytes(combinedBytes.ToArray());
             if (!string.IsNullOrEmpty(existingHash) && existingHash != hash)
-                Logger.log.Warn($"Hash doesn't match the existing hash for {songDirectory}");
+                Logger.log?.Warn($"Hash doesn't match the existing hash for {songDirectory}");
             return hash;
         }
 

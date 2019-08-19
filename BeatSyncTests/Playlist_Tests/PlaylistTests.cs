@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace BeatSyncTests
+namespace BeatSyncTests.Playlist_Tests
 {
     [TestClass]
     public class PlaylistTests

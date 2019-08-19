@@ -118,7 +118,7 @@ namespace BeatSync.UI
             //exampleToggle.OnToggle += (value) =>
             //{
             //    /*  You can execute whatever you want to occur when the value is toggled here, usually that would include updating wherever the value is pulled from   */
-            //    Logger.log.Debug($"Toggle is {(value ? "On" : "Off")}");
+            //    Logger.log?.Debug($"Toggle is {(value ? "On" : "Off")}");
             //};
             //exampleToggle.AddConflict("Conflicting Option Name"); //You can add conflicts with other gameplay options settings here, preventing both from being active at the same time, including that of other mods
 
@@ -133,7 +133,7 @@ namespace BeatSync.UI
             //{
             //    // Execute code based on what value is selected.
             //    Plugin.ExampleGameplayListSetting = value;
-            //    Logger.log.Debug($"Example GameplaySetting List value changed to {textValues[(int)value]}");
+            //    Logger.log?.Debug($"Example GameplaySetting List value changed to {textValues[(int)value]}");
             //};
         }
 

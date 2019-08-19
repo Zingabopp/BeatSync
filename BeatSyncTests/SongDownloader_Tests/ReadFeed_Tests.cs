@@ -2,15 +2,15 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSync;
 
-namespace BeatSyncTests
+namespace BeatSyncTests.SongDownloader_Tests
 {
     [TestClass]
-    public class UnitTest1
+    public class ReadFeed_Test
     {
         [TestMethod]
-        public void TestMethod1()
+        public void Normal()
         {
-            Console.WriteLine("Test");
+            Console.WriteLine("ReadFeed_Normal");
         }
     }
 }
