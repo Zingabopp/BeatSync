@@ -180,6 +180,7 @@
     <Compile Include="BeatSync.cs" />
     <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
     <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
+    <Compile Include="HistoryManager.cs" />
     <Compile Include="Configs\ConfigBases.cs" />
     <Compile Include="Configs\FavoriteMappers.cs" />
     <Compile Include="Configs\ScoreSaberConfigs.cs" />
