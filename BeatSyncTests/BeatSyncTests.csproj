@@ -44,8 +44,9 @@
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
     <Compile Include="PlaylistTests.cs" />
-    <Compile Include="FileIOTests.cs" />
+    <Compile Include="FileIO_Tests\FileIOTests.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -73,12 +74,22 @@
     <None Include="Data\Playlists\SyncSaberPlaylist.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Data\SongZips\5d28-LongEntry.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongZips\DuplicateFiles.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BeatSync\BeatSync.csproj">
       <Project>{e9536f87-b2de-423a-95a5-c1e35b1b0dd5}</Project>
       <Name>BeatSync</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Download\" />
+    <Folder Include="Output\Inaccessible\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

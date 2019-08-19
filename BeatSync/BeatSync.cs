@@ -63,7 +63,7 @@ namespace BeatSync
                     tempFile = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
                     if (!string.IsNullOrEmpty(tempFile))
                     {
-                        extractDirectory = Path.GetFullPath(await FileIO.ExtractZipAsync(tempFile, songDirPath, song.Key, true, overwrite));
+                        extractDirectory = Path.GetFullPath(await FileIO.ExtractZipAsync(tempFile, songDirPath, true, overwrite));
                         if (!overwrite && !songDirPath.Equals(extractDirectory))
                         {
                             Logger.log.Debug($"songDirPath {songDirPath} != {extractDirectory}, updating dictionary.");

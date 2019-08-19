@@ -15,7 +15,7 @@ namespace BeatSyncTests
         {
             var playlists = PlaylistManager.DefaultPlaylists;
             var song1 = new PlaylistSong("63F2998EDBCE2D1AD31917E4F4D4F8D66348105D", "Sun Pluck", "3a9b", "ruckus");
-            StackTest();
+            //StackTest();
             foreach (var playlist in playlists.Values)
             {
                 
@@ -107,7 +107,7 @@ namespace BeatSyncTests
             // Write to log
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void ConvertLegacy_Test()
         {
             PlaylistManager.ConvertLegacyPlaylists();
