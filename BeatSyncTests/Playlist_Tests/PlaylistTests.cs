@@ -4,12 +4,19 @@ using BeatSync.Playlists;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using BeatSync.Logging;
+using BeatSync;
 
 namespace BeatSyncTests.Playlist_Tests
 {
     [TestClass]
     public class PlaylistTests
     {
+        static PlaylistTests()
+        {
+            TestSetup.Initialize();
+        }
+
         [TestMethod]
         public void TestMethod1()
         {

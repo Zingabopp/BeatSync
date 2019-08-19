@@ -1,5 +1,6 @@
 ﻿using BeatSync.Utilities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SongCore.Data;
 using System;
 using System.Collections.Concurrent;
@@ -52,14 +53,24 @@ namespace BeatSync
                 using (var js = new JsonTextReader(fs))
                 {
                     var ser = new JsonSerializer();
-                    var songHashes = ser.Deserialize<Dictionary<string, SongHashData>>(js);
-                    foreach (var songHash in songHashes)
+                    var token = JToken.ReadFrom(js);
+                    //Better performance this way
+                    foreach (JProperty item in token.Children())
                     {
-                        var success = HashDictionary.TryAdd(songHash.Key, songHash.Value);
-                        ExistingSongs.TryAdd(songHash.Value.songHash, songHash.Key);
+                        var songHashData = item.Value.ToObject<SongHashData>();
+                        var success = HashDictionary.TryAdd(item.Name, songHashData);
+                        ExistingSongs.TryAdd(songHashData.songHash, item.Name);
                         if (!success)
-                            Logger.log?.Warn($"Couldn't add {songHash.Key} to the HashDictionary");
+                            Logger.log?.Warn($"Couldn't add {item.Name} to the HashDictionary");
                     }
+                    //var songHashes = ser.Deserialize<Dictionary<string, SongHashData>>(js);
+                    //foreach (var songHash in songHashes)
+                    //{
+                    //    var success = HashDictionary.TryAdd(songHash.Key, songHash.Value);
+                    //    ExistingSongs.TryAdd(songHash.Value.songHash, songHash.Key);
+                    //    if (!success)
+                    //        Logger.log?.Warn($"Couldn't add {songHash.Key} to the HashDictionary");
+                    //}
                     Logger.log?.Info($"Added {HashDictionary.Count} song hashes from SongCore's cache.");
                 }
             }

@@ -21,10 +21,26 @@ namespace BeatSync
     public class BeatSync : MonoBehaviour
     {
         public static BeatSync Instance { get; set; }
-        public static bool PauseWork { get; set; }
+        private static bool _paused;
+        public static bool Paused
+        {
+            get
+            {
+                return _paused;
+            }
+            set
+            {
+                _paused = value;
+                if (_paused)
+                    SongFeedReaders.Utilities.Pause();
+                else
+                    SongFeedReaders.Utilities.UnPause();
+            }
+        }
+
         private SongDownloader Downloader;
-        
-        
+
+
 
         public void Awake()
         {
@@ -34,7 +50,7 @@ namespace BeatSync
             //FinishedHashing += OnHashingFinished;
         }
 
-        
+
         public void Start()
         {
             Logger.log?.Debug("BeatSync Start()");
@@ -47,7 +63,7 @@ namespace BeatSync
             FavoriteMappers.Initialize();
         }
 
-        
+
         public IEnumerator<WaitUntil> ScrapeSongsCoroutine()
         {
             Logger.log?.Debug("Starting ScrapeSongsCoroutine");
@@ -61,10 +77,10 @@ namespace BeatSync
 
         }
 
-        
 
-        
-        
+
+
+
     }
 }
 

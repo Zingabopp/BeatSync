@@ -15,7 +15,7 @@ namespace BeatSyncTests.FileIO_Tests
     {
         static ExtractZipAsync_Tests()
         {
-            Logger.log = new BeatSyncConsoleLogger();
+            TestSetup.Initialize();
         }
         private static readonly string SongZipsPath = Path.Combine("Data", "SongZips");
 

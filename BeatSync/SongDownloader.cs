@@ -73,12 +73,17 @@ namespace BeatSync
                 // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting, incrementing folder name
                 if (HashSource.HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
                 {
+                    if(BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
                     var downloadTarget = Path.Combine(SongTempPath, song.Key);
                     tempFile = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
                     if (!string.IsNullOrEmpty(tempFile))
                     {
-                        extractDirectory = Path.GetFullPath(await FileIO.ExtractZipAsync(tempFile, songDirPath, true, overwrite));
+                        if (BeatSync.Paused)
+                            await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+                        extractDirectory = await FileIO.ExtractZipAsync(tempFile, songDirPath, true, overwrite);
+                        extractDirectory = Path.GetFullPath(extractDirectory);
                         if (!overwrite && !songDirPath.Equals(extractDirectory))
                         {
                             Logger.log?.Debug($"songDirPath {songDirPath} != {extractDirectory}, updating dictionary.");
@@ -203,6 +208,8 @@ namespace BeatSync
         #region Feed Read Functions
         public async Task<Dictionary<string, ScrapedSong>> ReadBeastSaber()
         {
+            if (BeatSync.Paused)
+                await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Logger.log?.Info("Starting BeastSaber reading");
@@ -227,6 +234,8 @@ namespace BeatSync
                     var feedPlaylist = config.Bookmarks.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Bookmarks.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -250,6 +259,8 @@ namespace BeatSync
                     var feedPlaylist = config.Follows.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Follows.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -271,6 +282,8 @@ namespace BeatSync
                     var feedPlaylist = config.CuratorRecommended.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.CuratorRecommended.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -280,6 +293,8 @@ namespace BeatSync
                     Logger.log?.Error(ex);
                 }
             }
+            if (BeatSync.Paused)
+                await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             sw.Stop();
             var totalPages = readerSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             Logger.log?.Info($"Found {readerSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} from {reader.Name} in {sw.Elapsed.ToString()}");
@@ -288,6 +303,8 @@ namespace BeatSync
 
         public async Task<Dictionary<string, ScrapedSong>> ReadBeatSaver(Playlist allPlaylist = null)
         {
+            if (BeatSync.Paused)
+                await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Logger.log?.Info("Starting BeatSaver reading");
@@ -314,6 +331,8 @@ namespace BeatSync
                     var feedPlaylist = config.FavoriteMappers.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.FavoriteMappers.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -341,6 +360,8 @@ namespace BeatSync
                     var feedPlaylist = config.Hot.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Hot.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -366,6 +387,8 @@ namespace BeatSync
                     var feedPlaylist = config.Downloads.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Downloads.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -384,6 +407,8 @@ namespace BeatSync
                 }
             }
             sw.Stop();
+            if (BeatSync.Paused)
+                await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             var totalPages = readerSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             Logger.log?.Info($"Found {readerSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} from {reader.Name} in {sw.Elapsed.ToString()}");
             return readerSongs;
@@ -391,6 +416,8 @@ namespace BeatSync
 
         public async Task<Dictionary<string, ScrapedSong>> ReadScoreSaber(Playlist allPlaylist = null)
         {
+            if (BeatSync.Paused)
+                await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Logger.log?.Info("Starting ScoreSaber reading");
@@ -416,6 +443,8 @@ namespace BeatSync
                     var feedPlaylist = config.TopRanked.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.TopRanked.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -434,6 +463,8 @@ namespace BeatSync
                     var feedPlaylist = config.Trending.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Trending.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -452,6 +483,8 @@ namespace BeatSync
                     var feedPlaylist = config.TopPlayed.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.TopPlayed.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -470,6 +503,8 @@ namespace BeatSync
                     var feedPlaylist = config.LatestRanked.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.LatestRanked.FeedPlaylist)
                         : null;
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
@@ -481,6 +516,8 @@ namespace BeatSync
             }
 
             sw.Stop();
+            if (BeatSync.Paused)
+                await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             var totalPages = readerSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             Logger.log?.Info($"Found {readerSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} from {reader.Name} in {sw.Elapsed.ToString()}");
             return readerSongs;
