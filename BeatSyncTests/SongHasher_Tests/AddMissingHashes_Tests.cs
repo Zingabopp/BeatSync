@@ -19,17 +19,17 @@ namespace BeatSyncTests.SongHasher_Tests
         }
 
         //[TestMethod]
-        //public void BigTest()
-        //{
-        //    var hasher = new SongHasher();
-        //    hasher.LoadCachedSongHashes();
-        //    var songPath = new DirectoryInfo(hasher.HashDictionary.Keys.First());
-        //    songPath = songPath.Parent;
-        //    hasher = new SongHasher(songPath.FullName);
-        //    hasher.LoadCachedSongHashes();
-        //    var newHashes = hasher.AddMissingHashes();
-        //    Console.WriteLine($"Hashed {newHashes} new songs");
-        //}
+        public void BigTest()
+        {
+            var hasher = new SongHasher();
+            hasher.LoadCachedSongHashes();
+            var songPath = new DirectoryInfo(hasher.HashDictionary.Keys.First());
+            songPath = songPath.Parent;
+            hasher = new SongHasher(songPath.FullName);
+            hasher.LoadCachedSongHashes();
+            var newHashes = hasher.AddMissingHashes();
+            Console.WriteLine($"Hashed {newHashes} new songs");
+        }
 
         [TestMethod]
         public void HashCacheDoesntExist()

@@ -18,6 +18,7 @@ namespace BeatSyncTests.SongHasher_Tests
         private static readonly string SongCoreCachePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\Hyperbolic Magnetism\Beat Saber\SongHashData.dat";
         private static readonly string TestCacheDir = Path.GetFullPath(Path.Combine("Data", "SongHashData"));
         private static readonly string TestSongsDir = Path.GetFullPath(Path.Combine("Data", "Songs"));
+
         [TestMethod]
         public void Normal()
         {
