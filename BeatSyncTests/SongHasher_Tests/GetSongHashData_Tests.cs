@@ -26,7 +26,7 @@ namespace BeatSyncTests.SongHasher_Tests
             var songDir = @"Data\Songs\5d02 (Sail - baxter395)";
             var expectedHash = "d6f3f15484fe169f4593718f50ef6d049fcaa72e".ToUpper();
             var hashData = hasher.GetSongHashDataAsync(songDir).Result;
-            Assert.AreEqual(hashData.songHash, expectedHash);
+            Assert.AreEqual(expectedHash, hashData.songHash);
         }
 
         [TestMethod]

@@ -21,10 +21,21 @@ namespace BeatSync
         private static readonly string DefaultSongCoreCachePath = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"..\LocalLow\Hyperbolic Magnetism\Beat Saber\SongHashData.dat"));
         private static readonly string DefaultCustomLevelsPath = Path.GetFullPath(Path.Combine("Beat Saber_Data", "CustomLevels"));
 
+        /// <summary>
+        /// Path to the SongCore hash cache file.
+        /// </summary>
         public string SongCoreCachePath { get; private set; }
+        /// <summary>
+        /// Directory where custom levels folders are.
+        /// </summary>
         public string CustomLevelsPath { get; private set; }
 
-        public SongHasher(string songCoreCachePath, string customLevelsPath)
+        /// <summary>
+        /// Creates a new SongHasher with the specified customLevelsPath and songCoreCachePath
+        /// </summary>
+        /// <param name="customLevelsPath"></param>
+        /// <param name="songCoreCachePath"></param>
+        public SongHasher(string customLevelsPath, string songCoreCachePath)
         {
             SongCoreCachePath = songCoreCachePath;
             CustomLevelsPath = customLevelsPath;
@@ -32,6 +43,10 @@ namespace BeatSync
             ExistingSongs = new ConcurrentDictionary<string, string>();
         }
 
+        /// <summary>
+        /// Creates a new SongHasher with the specified customLevelsPath and default SongCore cache path.
+        /// </summary>
+        /// <param name="customLevelsPath"></param>
         public SongHasher(string customLevelsPath)
         {
             SongCoreCachePath = DefaultSongCoreCachePath;
@@ -40,14 +55,18 @@ namespace BeatSync
             ExistingSongs = new ConcurrentDictionary<string, string>();
         }
 
+        /// <summary>
+        /// Creates a new SongHasher with the defaults for custom levels path and SongCore cache path
+        /// </summary>
         public SongHasher()
-            : this(DefaultSongCoreCachePath, DefaultCustomLevelsPath)
+            : this(DefaultCustomLevelsPath, DefaultSongCoreCachePath)
         {
 
         }
 
         /// <summary>
-        /// Gets the directory and song hash for the specified directory. Returns null for the hash if the directory's contents aren't in the correct format.
+        /// Gets the directory and song hash for the specified directory.
+        /// Returns null for the hash if the directory's contents aren't in the correct format.
         /// </summary>
         /// <param name="songDirectory"></param>
         /// <returns></returns>
@@ -60,6 +79,10 @@ namespace BeatSync
             return new SongHashData(directoryHash, hash);
         }
 
+        /// <summary>
+        /// Loads cached data from the file into the HashDictionary and ExistingSongs dictionary.
+        /// Fails silently if the cache file doesn't exist. 
+        /// </summary>
         public void LoadCachedSongHashes()
         {
             if (!File.Exists(SongCoreCachePath))

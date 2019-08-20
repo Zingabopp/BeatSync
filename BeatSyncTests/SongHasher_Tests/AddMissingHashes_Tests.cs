@@ -35,7 +35,7 @@ namespace BeatSyncTests.SongHasher_Tests
         public void HashCacheDoesntExist()
         {
             var nonExistantCacheFile = Path.Combine(TestCacheDir, "DoesntExist.dat");
-            var hasher = new SongHasher(nonExistantCacheFile, TestSongsDir);
+            var hasher = new SongHasher(TestSongsDir, nonExistantCacheFile);
             var newHashes = hasher.AddMissingHashes();
             Assert.AreEqual(newHashes, 6);
         }
@@ -44,7 +44,7 @@ namespace BeatSyncTests.SongHasher_Tests
         public void HashAllSongs()
         {
             var cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData.dat");
-            var hasher = new SongHasher(cacheFile, TestSongsDir);
+            var hasher = new SongHasher(TestSongsDir, cacheFile);
             var newHashes = hasher.AddMissingHashes();
             Assert.AreEqual(newHashes, 6);
         }
@@ -53,7 +53,7 @@ namespace BeatSyncTests.SongHasher_Tests
         public void AfterFullCacheCoverage()
         {
             var cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData.dat");
-            var hasher = new SongHasher(cacheFile, TestSongsDir);
+            var hasher = new SongHasher(TestSongsDir, cacheFile);
             hasher.LoadCachedSongHashes();
             var newHashes = hasher.AddMissingHashes();
             Assert.AreEqual(newHashes, 0);
@@ -63,10 +63,22 @@ namespace BeatSyncTests.SongHasher_Tests
         public void AfterPartialCacheCoverage()
         {
             var cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData_Partial.dat");
-            var hasher = new SongHasher(cacheFile, TestSongsDir);
+            var hasher = new SongHasher(TestSongsDir, cacheFile);
             hasher.LoadCachedSongHashes();
             var newHashes = hasher.AddMissingHashes();
             Assert.AreEqual(newHashes, 2);
+        }
+
+        [TestMethod]
+        public void EmptyDirectory()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TestMethod]
+        public void DirectoryDoesntExist()
+        {
+            throw new NotImplementedException();
         }
     }
 }

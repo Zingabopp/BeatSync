@@ -13,8 +13,15 @@ namespace BeatSync
     public class HistoryManager
     {
         public static string DefaultHistoryPath => Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json");
+
+        /// <summary>
+        /// Path to the history json file.
+        /// </summary>
         public string HistoryPath { get; private set; }
 
+        /// <summary>
+        /// Number of entries in history.
+        /// </summary>
         public int Count
         {
             get
@@ -23,8 +30,15 @@ namespace BeatSync
             }
         }
 
+        /// <summary>
+        /// HistoryManager has been initialized and is ready to use.
+        /// </summary>
         public bool IsInitialized { get; private set; }
 
+        /// <summary>
+        /// Creates a new HistoryManager. Uses the default history path if one isn't provided.
+        /// </summary>
+        /// <param name="historyPath"></param>
         public HistoryManager(string historyPath = "")
         {
             if (!string.IsNullOrEmpty(historyPath))
@@ -71,12 +85,12 @@ namespace BeatSync
         }
 
         /// <summary>
-        /// Key: Hash (upper case), Value: SongTitle - MapperName
+        /// Key: Hash (upper case), Value: (SongKey) SongTitle by MapperName
         /// </summary>
         private ConcurrentDictionary<string, string> SongHistory;
 
         /// <summary>
-        /// 
+        /// Tries to add the provided songHash and songInfo to the history. Returns false if the hash is null/empty.
         /// </summary>
         /// <param name="songHash"></param>
         /// <param name="songInfo"></param>
@@ -93,7 +107,7 @@ namespace BeatSync
         }
 
         /// <summary>
-        /// 
+        /// Tries to add the provided PlaylistSong to the SongHistory. Returns false if the PlaylistSong is null, or its hash is null/empty.
         /// </summary>
         /// <param name="song"></param>
         /// <returns></returns>
@@ -104,10 +118,11 @@ namespace BeatSync
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (song == null || string.IsNullOrEmpty(song.Hash))
                 return false; // This will never happen because PlaylistSong.Hash can never be null or empty.
-            return SongHistory.TryAdd(song.Hash, $"({song.Key}) {song.Name} by {song.LevelAuthorName}");
+            return TryAdd(song.Hash, $"({song.Key}) {song.Name} by {song.LevelAuthorName}");
         }
+
         /// <summary>
-        /// 
+        /// Returns true if the provided songHash exists in history. Returns false if the songHash doesn't exist or is null/empty.
         /// </summary>
         /// <param name="songHash"></param>
         /// <returns></returns>
@@ -120,8 +135,9 @@ namespace BeatSync
                 return false; // May not need this.
             return SongHistory.ContainsKey(songHash.ToUpper());
         }
+
         /// <summary>
-        /// 
+        /// Tries to retrieve the value of the associated songHash. Returns false with a null value if it fails.
         /// </summary>
         /// <param name="songHash"></param>
         /// <param name="value"></param>
@@ -137,7 +153,7 @@ namespace BeatSync
         
 
         /// <summary>
-        /// 
+        /// Writes the contents of HistoryPath to file. Throws an exception if it fails.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         /// <exception cref="IOException">Thrown when there's a file system problem writing to file.</exception>
