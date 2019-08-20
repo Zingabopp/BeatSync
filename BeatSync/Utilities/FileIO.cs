@@ -225,15 +225,16 @@ namespace BeatSync.Utilities
         /// </summary>
         /// <param name="extractDirectory"></param>
         /// <param name="longestEntryName"></param>
+        /// <param name="padding"></param>
         /// <returns></returns>
         /// <exception cref="PathTooLongException">Thrown if shortening the path enough is impossible.</exception>
-        public static string GetValidPath(string extractDirectory, int longestEntryName, int buffer = 0)
+        public static string GetValidPath(string extractDirectory, int longestEntryName, int padding = 0)
         {
             var extLength = extractDirectory.Length;
             var dir = new DirectoryInfo(extractDirectory);
             int minLength = dir.Parent.FullName.Length + 2;
             var dirName = dir.Name;
-            var diff = MaxFileSystemPathLength - extLength - longestEntryName - buffer;
+            var diff = MaxFileSystemPathLength - extLength - longestEntryName - padding;
             if (diff < 0)
             {
 
@@ -273,7 +274,7 @@ namespace BeatSync.Utilities
                         do
                         {
                             var append = $" ({pathNum})";
-                            finalPath = GetValidPath(extractDirectory, longestEntryName, append.Length) + append; // buffer ensures we aren't continuously cutting off the append value
+                            finalPath = GetValidPath(extractDirectory, longestEntryName, append.Length) + append; // padding ensures we aren't continuously cutting off the append value
                             pathNum++;
                         } while (Directory.Exists(finalPath));
                         extractDirectory = finalPath;

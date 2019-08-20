@@ -41,11 +41,11 @@ namespace BeatSyncTests.FileIO_Tests
         }
 
         [TestMethod]
-        public void GetValidPath_DefaultPathTooLongWithBuffer()
+        public void GetValidPath_DefaultPathTooLongWithPadding()
         {
             string zipPath = Path.Combine(SongZipsPath, "5d28-LongEntry.zip");
             int longestEntryLength = 0;
-            int buffer = 4;
+            int padding = 4;
             using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
             using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
             {
@@ -54,12 +54,12 @@ namespace BeatSyncTests.FileIO_Tests
             string songsPath = Path.Combine(Environment.CurrentDirectory, "Extended-");
             string songDir = "5d28asdfasdfasdf";
 
-            while (songsPath.Length < FileIO.MaxFileSystemPathLength - longestEntryLength - songDir.Length - buffer + 2)
+            while (songsPath.Length < FileIO.MaxFileSystemPathLength - longestEntryLength - songDir.Length - padding + 2)
             {
                 songsPath += "1";
             }
             string extractPath = Path.Combine(songsPath, songDir);
-            var finalPath = FileIO.GetValidPath(extractPath, longestEntryLength, buffer);
+            var finalPath = FileIO.GetValidPath(extractPath, longestEntryLength, padding);
         }
 
         [TestMethod]
