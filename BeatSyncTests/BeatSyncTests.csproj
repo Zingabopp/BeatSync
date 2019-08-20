@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\Collection_Tests.cs" />
     <Compile Include="Playlist_Tests\PlaylistTests.cs" />
     <Compile Include="FileIO_Tests\FileIOTests.cs" />
     <Compile Include="SongDownloader_Tests\ReadScoreSaber_Tests.cs" />
@@ -86,6 +87,93 @@
     <None Include="Data\Playlists\SyncSaberPlaylist.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Data\SongHashData\TestSongsHashData_Partial.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\TestSongsHashData_NonMatchingHash.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\TestSongsHashData.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\SongHashData_DuplicateEntries.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\SongHashData_DuplicateSong.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\SongHashData.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing ExpectedDiff%29\info.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing ExpectedDiff%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing Info.dat%29\Expert.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing Info.dat%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\Expert.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\Expert.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Easy.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Expert.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\ExpertPlus.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Hard.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Normal.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\song.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\ExpertPlus.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\newgame.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\ExpertPlus.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\song.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\SongZips\5d28-LongEntry.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -102,6 +190,32 @@
   <ItemGroup>
     <Folder Include="Data\Download\" />
     <Folder Include="Output\Inaccessible\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Data\Songs\0 %28Missing ExpectedDiff%29\cover.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\0 %28Missing Info.dat%29\cover.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5d02 %28Sail - baxter395%29\baxter.png.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5d02 %28Sail - baxter395%29\sail.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

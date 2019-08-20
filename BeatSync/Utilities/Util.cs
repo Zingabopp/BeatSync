@@ -50,7 +50,7 @@ namespace BeatSync.Utilities
         }
 
         /// <summary>
-        /// Generates a hash for the song and assigns it to the SongHash field.
+        /// Generates a hash for the song and assigns it to the SongHash field. Returns null if info.dat doesn't exist.
         /// Uses Kylemc1413's implementation from SongCore.
         /// TODO: Handle/document exceptions (such as if the files no longer exist when this is called).
         /// https://github.com/Kylemc1413/SongCore
@@ -76,6 +76,8 @@ namespace BeatSync.Utilities
                     string beatmapPath = Path.Combine(songDirectory, diff["_beatmapFilename"].Value<string>());
                     if (File.Exists(beatmapPath))
                         combinedBytes = combinedBytes.Concat(File.ReadAllBytes(beatmapPath)).ToArray();
+                    else
+                        Logger.log?.Debug($"Missing difficulty file {beatmapPath.Split('\\', '/').LastOrDefault()}");
                 }
             }
 

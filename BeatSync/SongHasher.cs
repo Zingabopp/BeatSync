@@ -18,38 +18,58 @@ namespace BeatSync
         public ConcurrentDictionary<string, SongHashData> HashDictionary;
         public ConcurrentDictionary<string, string> ExistingSongs;
 
-        public SongHasher()
+        private static readonly string DefaultSongCoreCachePath = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"..\LocalLow\Hyperbolic Magnetism\Beat Saber\SongHashData.dat"));
+        private static readonly string DefaultCustomLevelsPath = Path.GetFullPath(Path.Combine("Beat Saber_Data", "CustomLevels"));
+
+        public string SongCoreCachePath { get; private set; }
+        public string CustomLevelsPath { get; private set; }
+
+        public SongHasher(string songCoreCachePath, string customLevelsPath)
         {
+            SongCoreCachePath = songCoreCachePath;
+            CustomLevelsPath = customLevelsPath;
             HashDictionary = new ConcurrentDictionary<string, SongHashData>();
             ExistingSongs = new ConcurrentDictionary<string, string>();
         }
 
-        public void OnHashingFinished()
+        public SongHasher(string customLevelsPath)
         {
-            Logger.log?.Info("Hashing finished.");
-            Logger.log?.Critical($"HashDictionary has {HashDictionary.Count} songs.");
-            //StartCoroutine(ScrapeSongsCoroutine());
+            SongCoreCachePath = DefaultSongCoreCachePath;
+            CustomLevelsPath = customLevelsPath;
+            HashDictionary = new ConcurrentDictionary<string, SongHashData>();
+            ExistingSongs = new ConcurrentDictionary<string, string>();
         }
 
-        private async Task<SongHashData> GetSongHashData(string songDirectory)
+        public SongHasher()
+            : this(DefaultSongCoreCachePath, DefaultCustomLevelsPath)
         {
 
+        }
+
+        /// <summary>
+        /// Gets the directory and song hash for the specified directory. Returns null for the hash if the directory's contents aren't in the correct format.
+        /// </summary>
+        /// <param name="songDirectory"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown when path is null or empty.</exception>
+        /// <exception cref="DirectoryNotFoundException">Thrown when path's directory doesn't exist.</exception>
+        public async Task<SongHashData> GetSongHashDataAsync(string songDirectory)
+        {
             var directoryHash = await Task.Run(() => Util.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
             string hash = await Task.Run(() => Util.GenerateHash(songDirectory)).ConfigureAwait(false);
-
             return new SongHashData(directoryHash, hash);
         }
 
-        public void LoadCachedSongHashesAsync(string cachedHashPath)
+        public void LoadCachedSongHashes()
         {
-            if (!File.Exists(cachedHashPath))
+            if (!File.Exists(SongCoreCachePath))
             {
-                Logger.log?.Warn($"Couldn't find cached songs at {cachedHashPath}");
+                Logger.log?.Warn($"Couldn't find cached songs at {SongCoreCachePath}");
                 return;
             }
             try
             {
-                using (var fs = File.OpenText(cachedHashPath))
+                using (var fs = File.OpenText(SongCoreCachePath))
                 using (var js = new JsonTextReader(fs))
                 {
                     var ser = new JsonSerializer();
@@ -58,7 +78,7 @@ namespace BeatSync
                     foreach (JProperty item in token.Children())
                     {
                         var songHashData = item.Value.ToObject<SongHashData>();
-                        var success = HashDictionary.TryAdd(item.Name, songHashData);
+                        var success = HashDictionary.TryAdd(Path.GetFullPath(item.Name), songHashData);
                         ExistingSongs.TryAdd(songHashData.songHash, item.Name);
                         if (!success)
                             Logger.log?.Warn($"Couldn't add {item.Name} to the HashDictionary");
@@ -82,16 +102,36 @@ namespace BeatSync
             Logger.log?.Debug("Finished adding cached song hashes to the dictionary");
         }
 
-        private void AddMissingHashes()
+        /// <summary>
+        /// Hashes songs that aren't in the cache. Returns the number of hashed songs.
+        /// </summary>
+        /// <returns></returns>
+        public int AddMissingHashes()
         {
             Logger.log?.Info("Starting AddMissingHashes");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var songDir = new DirectoryInfo(Plugin.CustomLevelsPath);
+            var songDir = new DirectoryInfo(CustomLevelsPath);
             Logger.log?.Info($"SongDir is {songDir.FullName}");
+            int hashedSongs = 0;
             songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().AsParallel().ForAll(d =>
             {
-                var data = GetSongHashData(d.FullName).Result;
+                SongHashData data = null;
+                try
+                {
+                    data = GetSongHashDataAsync(d.FullName).Result;
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    Logger.log?.Warn($"Directory {d.FullName} does not exist, this will [probably] never happen.");
+                    return;
+                }
+                catch(ArgumentNullException)
+                {
+                    Logger.log?.Warn("Somehow the directory is null in AddMissingHashes, this will [probably] never happen.");
+                    return;
+                }
+
                 if (data == null)
                 {
                     Logger.log?.Warn($"GetSongHashData({d.FullName}) returned null");
@@ -99,34 +139,30 @@ namespace BeatSync
                 }
                 else if (string.IsNullOrEmpty(data.songHash))
                 {
-                    Logger.log?.Warn($"GetSongHashData({d.FullName}) returned a null string for hash.");
+                    Logger.log?.Warn($"GetSongHashData(\"{d.Name}\") returned a null string for hash (No info.dat?).");
                     return;
                 }
-                //if (HashDictionary[d.FullName].songHash != data.songHash)
-                //    Logger.log?.Warn($"Hash doesn't match for {d.Name}");
-                try
-                {
-                    ExistingSongs.TryAdd(data.songHash, d.FullName);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log?.Error($"Exception in AddMissingHashes.\n{ex.Message}\n{ex.StackTrace}");
-                }
+
+                if (!ExistingSongs.TryAdd(data.songHash, d.FullName))
+                    Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash].Split('\\', '/').LastOrDefault()} : {d.Name}");
                 if (!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log?.Warn($"Couldn't add {d.FullName} to HashDictionary");
                 }
                 else
                 {
-                    //Logger.log?.Info($"Added {d.Name} to the HashDictionary.");
+                    hashedSongs++;
                 }
+                //else
+                //{
+                //    //Logger.log?.Info($"Added {d.Name} to the HashDictionary.");
+                //}
             });
             sw.Stop();
-            Logger.log?.Warn($"Finished hashing in {sw.ElapsedMilliseconds}ms, Triggering FinishedHashing");
-            FinishedHashing?.Invoke();
+            Logger.log?.Debug($"Finished hashing in {sw.ElapsedMilliseconds}ms.");
+            return hashedSongs;
         }
 
-        public event Action FinishedHashing;
 
     }
 }
