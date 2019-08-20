@@ -150,10 +150,11 @@ namespace BeatSync.Utilities
 
         /// <summary>
         /// Downloads a file from the specified URI to the specified path (path includes file name).
+        /// TODO: out parameter error codes?
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="path"></param>
-        /// <returns></returns>
+        /// <returns></returns> 
         public static async Task<string> DownloadFileAsync(Uri uri, string path, bool overwrite = true)
         {
             string actualPath = path;
