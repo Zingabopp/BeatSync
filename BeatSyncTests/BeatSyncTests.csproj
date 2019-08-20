@@ -49,7 +49,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
-    <Compile Include="HistoryManager_Tests\Collection_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\Initialize_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryGetValue_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\ContainsKey_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryAdd_Tests.cs" />
     <Compile Include="Playlist_Tests\PlaylistTests.cs" />
     <Compile Include="FileIO_Tests\FileIOTests.cs" />
     <Compile Include="SongDownloader_Tests\ReadScoreSaber_Tests.cs" />
@@ -75,6 +79,12 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Data\HistoryManager\BeatSyncHistory-TestCol1.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\HistoryManager\BeatSyncHistory-TestCol2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\Playlists\ScoreSaberTopRanked.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

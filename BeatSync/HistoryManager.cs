@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace BeatSync
 {
-    public static class HistoryManager
+    public class HistoryManager
     {
         public static string DefaultHistoryPath => Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json");
-        public static string HistoryPath { get; private set; }
+        public string HistoryPath { get; private set; }
 
-        public static int Count
+        public int Count
         {
             get
             {
@@ -23,17 +23,57 @@ namespace BeatSync
             }
         }
 
-        public static bool IsInitialized { get; private set; }
+        public bool IsInitialized { get; private set; }
 
-        static HistoryManager()
+        public HistoryManager(string historyPath = "")
         {
-            HistoryPath = DefaultHistoryPath;
+            if (!string.IsNullOrEmpty(historyPath))
+            {
+                HistoryPath = Path.GetFullPath(historyPath);
+            }
+            else
+            {
+                HistoryPath = DefaultHistoryPath;
+            }
             SongHistory = new ConcurrentDictionary<string, string>();
         }
+
+        /// <summary>
+        /// Must be called before doing any other operations. Attempts to load the song history from the json.
+        /// If already Initialized and the historyPath isn't changed, does nothing. If the historyPath is changed,
+        ///  current history is cleared and loaded from file.
+        /// </summary>
+        /// <param name="historyPath"></param>
+        public void Initialize(string historyPath = "")
+        {
+            if (IsInitialized)
+            {
+                if (string.IsNullOrEmpty(historyPath) && HistoryPath.Equals(DefaultHistoryPath))
+                    return;
+                else if (historyPath != null && HistoryPath.Equals(historyPath))
+                    return;
+            }
+            if (!string.IsNullOrEmpty(historyPath))
+            {
+                HistoryPath = Path.GetFullPath(historyPath);
+            }
+            // Load from file.
+            SongHistory.Clear();
+            if (File.Exists(HistoryPath))
+            {
+                JsonConvert.PopulateObject(FileIO.LoadStringFromFile(HistoryPath), SongHistory);
+            }
+            else
+            {
+                SongHistory = new ConcurrentDictionary<string, string>();
+            }
+            IsInitialized = true;
+        }
+
         /// <summary>
         /// Key: Hash (upper case), Value: SongTitle - MapperName
         /// </summary>
-        private static ConcurrentDictionary<string, string> SongHistory;
+        private ConcurrentDictionary<string, string> SongHistory;
 
         /// <summary>
         /// 
@@ -42,7 +82,7 @@ namespace BeatSync
         /// <param name="songInfo"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public static bool TryAdd(string songHash, string songInfo)
+        public bool TryAdd(string songHash, string songInfo)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
@@ -58,12 +98,12 @@ namespace BeatSync
         /// <param name="song"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public static bool TryAdd(Playlists.PlaylistSong song)
+        public bool TryAdd(Playlists.PlaylistSong song)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (song == null || string.IsNullOrEmpty(song.Hash))
-                return false;
+                return false; // This will never happen because PlaylistSong.Hash can never be null or empty.
             return SongHistory.TryAdd(song.Hash, $"({song.Key}) {song.Name} by {song.LevelAuthorName}");
         }
         /// <summary>
@@ -72,7 +112,7 @@ namespace BeatSync
         /// <param name="songHash"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public static bool ContainsKey(string songHash)
+        public bool ContainsKey(string songHash)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
@@ -87,41 +127,21 @@ namespace BeatSync
         /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public static bool TryGetValue(string songHash, out string value)
+        public bool TryGetValue(string songHash, out string value)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             return SongHistory.TryGetValue(songHash.ToUpper(), out value);
         }
 
-        public static void Initialize(string historyPath = "")
-        {
-            if(IsInitialized)
-            {
-                if (string.IsNullOrEmpty(historyPath) && HistoryPath.Equals(DefaultHistoryPath))
-                    return;
-                else if (historyPath != null && HistoryPath.Equals(historyPath))
-                    return;
-            }
-            if(!string.IsNullOrEmpty(historyPath))
-            {
-                HistoryPath = Path.GetFullPath(historyPath);
-            }
-            // Load from file.
-            if (File.Exists(HistoryPath))
-            {
-                JsonConvert.PopulateObject(FileIO.LoadStringFromFile(HistoryPath), SongHistory);
-            }
-            else
-                SongHistory = new ConcurrentDictionary<string, string>();
-            IsInitialized = true;
-        }
+        
 
         /// <summary>
         /// 
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public static void WriteToDisk()
+        /// <exception cref="IOException">Thrown when there's a file system problem writing to file.</exception>
+        public void WriteToFile()
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
@@ -130,6 +150,8 @@ namespace BeatSync
                 File.Copy(HistoryPath, HistoryPath + ".bak", true);
                 File.Delete(HistoryPath);
             }
+            var file = new FileInfo(HistoryPath);
+            file.Directory.Create();
             using (var sw = File.CreateText(HistoryPath))
             {
                 var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
