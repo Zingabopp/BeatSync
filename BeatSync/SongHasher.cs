@@ -72,7 +72,7 @@ namespace BeatSync
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown when path is null or empty.</exception>
         /// <exception cref="DirectoryNotFoundException">Thrown when path's directory doesn't exist.</exception>
-        public async Task<SongHashData> GetSongHashDataAsync(string songDirectory)
+        public static async Task<SongHashData> GetSongHashDataAsync(string songDirectory)
         {
             var directoryHash = await Task.Run(() => Util.GenerateDirectoryHash(songDirectory)).ConfigureAwait(false);
             string hash = await Task.Run(() => Util.GenerateHash(songDirectory)).ConfigureAwait(false);
