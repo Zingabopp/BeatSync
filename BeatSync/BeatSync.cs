@@ -59,7 +59,7 @@ namespace BeatSync
             SongHasher = new SongHasher(Plugin.CustomLevelsPath, Plugin.CachedHashDataPath);
             HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
             Task.Run(() => HistoryManager.Initialize());
-            Downloader = new SongDownloader(Plugin.config.Value, HistoryManager);
+            Downloader = new SongDownloader(Plugin.config.Value, HistoryManager, SongHasher, CustomLevelPathHelper.customLevelsDirectoryPath);
             //LoadCachedSongHashesAsync(Plugin.CachedHashDataPath);
             //Logger.log?.Critical($"Read {HashDictionary.Count} cached songs.");
             //var hashTask = Task.Run(() => AddMissingHashes());

@@ -152,7 +152,6 @@ namespace BeatSync.Utilities
 
         /// <summary>
         /// Downloads a file from the specified URI to the specified path (path includes file name).
-        /// TODO: out parameter error codes?
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="path"></param>
@@ -163,7 +162,7 @@ namespace BeatSync.Utilities
             int statusCode = 0;
             if (!overwrite && File.Exists(path))
                 return null;
-            using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri).ConfigureAwait(false))
+            using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, 30, 2).ConfigureAwait(false))
             {
                 statusCode = response.StatusCode;
                 if (!response.IsSuccessStatusCode)

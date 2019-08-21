@@ -15,19 +15,23 @@ using System.Threading.Tasks;
 
 namespace BeatSync
 {
-    internal class SongDownloader
+    public class SongDownloader
     {
         private SongHasher HashSource { get; set; }
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
+        private readonly string CustomLevelsPath;
         private ConcurrentQueue<PlaylistSong> DownloadQueue;
         private PluginConfig Config;
         private HistoryManager HistoryManager;
 
         private TransformBlock<PlaylistSong, PlaylistSong> DownloadBatch;
 
-        public SongDownloader(PluginConfig config, HistoryManager historyManager)
+        public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
+            CustomLevelsPath = customLevelsPath;
+            Directory.CreateDirectory(CustomLevelsPath);
+            HashSource = hashSource;
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
             HistoryManager = historyManager;
             Config = config;
@@ -61,6 +65,11 @@ namespace BeatSync
             return downloadedSongs;
         }
 
+        /// <summary>
+        /// This should be redone, return a DownloadResult so other things can take action with regards to HistoryManager
+        /// </summary>
+        /// <param name="song"></param>
+        /// <returns></returns>
         public async Task<PlaylistSong> DownloadJob(PlaylistSong song)
         {
 
@@ -70,9 +79,9 @@ namespace BeatSync
             string extractDirectory = null;
             try
             {
-                var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelPathHelper.customLevelsDirectoryPath, song.DirectoryName));
+                var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelsPath, song.DirectoryName));
                 directoryCreated = !Directory.Exists(songDirPath);
-                // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting, incrementing folder name
+                // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting/incrementing folder name
                 if (HashSource.HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
                 {
                     if (BeatSync.Paused)
@@ -103,7 +112,7 @@ namespace BeatSync
             }
             finally
             {
-                if (string.IsNullOrEmpty(result.FilePath) && result.StatusCode != 404)
+                if (string.IsNullOrEmpty(result?.FilePath) && result?.StatusCode != 404)
                     HistoryManager.TryRemove(song.Hash); // If it's not found, keep it in history so it doesn't try again.
                 if (File.Exists(result?.FilePath))
                     await FileIO.TryDeleteAsync(result?.FilePath).ConfigureAwait(false);
