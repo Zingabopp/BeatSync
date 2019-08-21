@@ -91,6 +91,11 @@ namespace BeatSync.Playlists
         [JsonIgnore]
         private string _hash;
 
+        public override string ToString()
+        {
+            return $"({Key}) {Name} by {LevelAuthorName}";
+        }
+
         public bool Equals(PlaylistSong other)
         {
             if (other == null)

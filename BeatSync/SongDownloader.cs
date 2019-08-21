@@ -101,11 +101,12 @@ namespace BeatSync
                             directoryCreated = true;
                             HashSource.ExistingSongs[song.Hash] = extractDirectory;
                         }
+                        Logger.log?.Info($"Finished downloading and extracting {song}");
                         var extractedHash = await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false);
                         if (!song.Hash.Equals(extractedHash.songHash))
-                            Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song.Key}");
+                            Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song}");
                         else
-                            Logger.log?.Debug($"Extracted hash matches Beat Saver hash for {song.Key}");
+                            Logger.log?.Debug($"Extracted hash matches Beat Saver hash for {song}");
                     }
                 }
             }
@@ -129,7 +130,6 @@ namespace BeatSync
         {
             List<Task<Dictionary<string, ScrapedSong>>> readerTasks = new List<Task<Dictionary<string, ScrapedSong>>>();
             var config = Config;
-            var beatSyncPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
             if (config.BeastSaber.Enabled)
             {
                 readerTasks.Add(ReadBeastSaber());
@@ -165,13 +165,13 @@ namespace BeatSync
                 songsToDownload.Merge(await readTask);
             }
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
-            var allPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
+            var allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
             var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
             foreach (var scrapedSong in songsToDownload.Values)
             {
                 var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
-                HistoryManager.TryAdd(playlistSong); // Make sure it's in HistoryManager even if it already exists.
-                if (HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, ""))
+                var notInHistory = HistoryManager.TryAdd(playlistSong); // Make sure it's in HistoryManager even if it already exists.
+                if (HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, "") && notInHistory)
                 {
                     Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongName} by {scrapedSong.MapperName} for download.");
                     DownloadQueue.Enqueue(playlistSong);
