@@ -20,6 +20,11 @@ namespace BeatSync
         public string HistoryPath { get; private set; }
 
         /// <summary>
+        /// Key: Hash (upper case), Value: (SongKey) SongTitle by MapperName
+        /// </summary>
+        private ConcurrentDictionary<string, string> SongHistory;
+
+        /// <summary>
         /// Number of entries in history.
         /// </summary>
         public int Count
@@ -62,7 +67,7 @@ namespace BeatSync
         {
             if (IsInitialized)
             {
-                if (string.IsNullOrEmpty(historyPath) && HistoryPath.Equals(DefaultHistoryPath))
+                if (string.IsNullOrEmpty(historyPath))
                     return;
                 else if (historyPath != null && HistoryPath.Equals(historyPath))
                     return;
@@ -83,12 +88,7 @@ namespace BeatSync
             }
             IsInitialized = true;
         }
-
-        /// <summary>
-        /// Key: Hash (upper case), Value: (SongKey) SongTitle by MapperName
-        /// </summary>
-        private ConcurrentDictionary<string, string> SongHistory;
-
+        
         /// <summary>
         /// Tries to add the provided songHash and songInfo to the history. Returns false if the hash is null/empty.
         /// </summary>
@@ -150,7 +150,18 @@ namespace BeatSync
             return SongHistory.TryGetValue(songHash.ToUpper(), out value);
         }
 
-        
+        /// <summary>
+        /// Tries to remove a hash from the dictionary.
+        /// </summary>
+        /// <param name="songHash"></param>
+        /// <returns></returns>
+        /// /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
+        public bool TryRemove(string songHash)
+        {
+            if (!IsInitialized)
+                throw new InvalidOperationException("HistoryManager is not initialized.");
+            return SongHistory.TryRemove(songHash.ToUpper(), out _);
+        }
 
         /// <summary>
         /// Writes the contents of HistoryPath to file. Throws an exception if it fails.
