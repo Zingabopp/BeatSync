@@ -10,6 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSync</RootNamespace>
     <AssemblyName>BeatSync</AssemblyName>
+	<AssemblyVersion>0.0.1</AssemblyVersion>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PathMap>$(SolutionDir)=C:\</PathMap>
@@ -237,6 +238,50 @@
     <Message Text="Copying $(OutputPath)$(AssemblyName).dll to Plugins folder" Importance="high" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName)-merged.dll" DestinationFiles="$(ProjectDir)\References\Plugins\$(AssemblyName).dll" />
   </Target>
+  <!-- Source: Mostly from https://github.com/opl-/beatsaber-http-status -->
+  <Target Name="ZipRelease" AfterTargets="ILRepacker" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
+    <Message Text="Zipping plugin for release. $(AssemblyVersion)" Importance="high" />
+    <Exec Command="git rev-parse HEAD &gt; $(IntermediateOutputPath)head" />
+    <ReadLinesFromFile File="$(IntermediateOutputPath)head">
+      <Output TaskParameter="Lines" PropertyName="FullCommitHash" />
+    </ReadLinesFromFile>
+    <Delete Files="$(IntermediateOutputPath)head" />
+    <PropertyGroup>
+      <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
+    </PropertyGroup>
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName)-merged.dll" DestinationFiles="$(IntermediateOutputPath)\zip\Plugins\$(AssemblyName).dll" />
+    <ZipDir ZipFileName="$(OutDir)\BeatSync-$(AssemblyVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
+  </Target>
+  <!-- Source: https://stackoverflow.com/a/38127938 -->
+  <UsingTask TaskName="ZipDir" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <ZipFileName ParameterType="System.String" Required="true" />
+      <DirectoryName ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.IO.Compression.FileSystem" />
+	  <Reference Include="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+	  <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        try
+        {
+		  if(File.Exists(ZipFileName))
+		    File.Delete(ZipFileName);
+          Log.LogMessage(string.Format("Zipping Directory {0} to {1}", DirectoryName, ZipFileName));
+          ZipFile.CreateFromDirectory( DirectoryName, ZipFileName );
+          return true;
+        }
+        catch(Exception ex)
+        {
+          Log.LogErrorFromException(ex);
+          return false;
+        }
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
