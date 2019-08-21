@@ -286,6 +286,8 @@ namespace BeatSync.Utilities
                     createdDirectory = string.IsNullOrEmpty(toBeCreated) ? null : extractDirectory;
                     foreach (var entry in zipArchive.Entries)
                     {
+                        if (!entry.FullName.Equals(entry.Name)) // If false, the entry is a directory or file nested in one
+                            continue;
                         var entryPath = Path.Combine(extractDirectory, entry.Name);
                         var fileExists = File.Exists(entryPath);
                         if (overwriteTarget || !fileExists)
@@ -297,8 +299,8 @@ namespace BeatSync.Utilities
                             }
                             catch (Exception ex)
                             {
-                                //Logger.log?.Error($"Error extracting {extractDirectory}");
-                                //Logger.log?.Error(ex);
+                                Logger.log?.Error($"Error extracting {extractDirectory}");
+                                Logger.log?.Error(ex);
                                 throw ex;
                             }
                         }
