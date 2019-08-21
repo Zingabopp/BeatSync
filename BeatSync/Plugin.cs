@@ -116,6 +116,10 @@ namespace BeatSync
                 else
                     Logger.log?.Debug($"----------Couldn't find song------------------");
             }
+            if (nextScene.name == "GameCore")
+                BeatSync.Paused = true;
+            else
+                BeatSync.Paused = false;
         }
 
         /// <summary>
