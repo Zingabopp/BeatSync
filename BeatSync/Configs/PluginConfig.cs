@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 // public bool DeleteDuplicateSongs { get; set; }
 namespace BeatSync.Configs
 {
-    internal class PluginConfig
+    public class PluginConfig
     {
         [JsonIgnore]
         private bool _regenerateConfig = true;
