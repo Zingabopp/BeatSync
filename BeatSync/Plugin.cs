@@ -106,6 +106,7 @@ namespace BeatSync
         {
             if (nextScene.name == "HealthWarning")
             {
+                BeatSync.Paused = false;
                 var beatSync = new GameObject().AddComponent<BeatSync>();
                 GameObject.DontDestroyOnLoad(beatSync);
 
