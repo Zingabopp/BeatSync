@@ -118,7 +118,7 @@ namespace BeatSync
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (song == null || string.IsNullOrEmpty(song.Hash))
                 return false; // This will never happen because PlaylistSong.Hash can never be null or empty.
-            return TryAdd(song.Hash, $"({song.Key}) {song.Name} by {song.LevelAuthorName}");
+            return TryAdd(song.Hash, song.ToString());
         }
 
         /// <summary>
