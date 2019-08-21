@@ -148,6 +148,8 @@ namespace BeatSync.Utilities
 
         }
 
+        
+
         /// <summary>
         /// Downloads a file from the specified URI to the specified path (path includes file name).
         /// TODO: out parameter error codes?
@@ -155,27 +157,28 @@ namespace BeatSync.Utilities
         /// <param name="uri"></param>
         /// <param name="path"></param>
         /// <returns></returns> 
-        public static async Task<string> DownloadFileAsync(Uri uri, string path, bool overwrite = true)
+        public static async Task<DownloadResult> DownloadFileAsync(Uri uri, string path, bool overwrite = true)
         {
             string actualPath = path;
+            int statusCode = 0;
             if (!overwrite && File.Exists(path))
                 return null;
             using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri).ConfigureAwait(false))
             {
+                statusCode = response.StatusCode;
                 if (!response.IsSuccessStatusCode)
-                    return null;
+                    return new DownloadResult(null, statusCode, response.ReasonPhrase);
                 try
                 {
                     Directory.GetParent(path).Create();
-
                     actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    return null;
+                    return new DownloadResult(null, statusCode, response.ReasonPhrase, ex);
                 }
             }
-            return actualPath;
+            return new DownloadResult(actualPath, statusCode);
         }
 
         /// <summary>
@@ -376,5 +379,20 @@ namespace BeatSync.Utilities
         {
 
         }
+    }
+
+    public class DownloadResult
+    {
+        public DownloadResult(string path, int statusCode, string reason = null, Exception exception = null)
+        {
+            FilePath = path;
+            StatusCode = statusCode;
+            Reason = reason;
+            Exception = exception;
+        }
+        public string FilePath { get; private set; }
+        public string Reason { get; private set; }
+        public int StatusCode { get; private set; }
+        public Exception Exception { get; private set; }
     }
 }

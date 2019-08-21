@@ -22,12 +22,14 @@ namespace BeatSync
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private ConcurrentQueue<PlaylistSong> DownloadQueue;
         private PluginConfig Config;
+        private HistoryManager HistoryManager;
 
         private TransformBlock<PlaylistSong, PlaylistSong> DownloadBatch;
 
-        public SongDownloader(PluginConfig config)
+        public SongDownloader(PluginConfig config, HistoryManager historyManager)
         {
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
+            HistoryManager = historyManager;
             Config = config;
         }
 
@@ -63,7 +65,7 @@ namespace BeatSync
         {
 
             bool directoryCreated = false;
-            string tempFile = null;
+            DownloadResult result = null;
             bool overwrite = true;
             string extractDirectory = null;
             try
@@ -73,16 +75,16 @@ namespace BeatSync
                 // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting, incrementing folder name
                 if (HashSource.HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
                 {
-                    if(BeatSync.Paused)
+                    if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
                     var downloadTarget = Path.Combine(SongTempPath, song.Key);
-                    tempFile = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
-                    if (!string.IsNullOrEmpty(tempFile))
+                    result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
+                    if (!string.IsNullOrEmpty(result?.FilePath))
                     {
                         if (BeatSync.Paused)
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                        extractDirectory = await FileIO.ExtractZipAsync(tempFile, songDirPath, true, overwrite);
+                        extractDirectory = await FileIO.ExtractZipAsync(result.FilePath, songDirPath, true, overwrite);
                         extractDirectory = Path.GetFullPath(extractDirectory);
                         if (!overwrite && !songDirPath.Equals(extractDirectory))
                         {
@@ -91,21 +93,21 @@ namespace BeatSync
                             HashSource.ExistingSongs[song.Hash] = extractDirectory;
                         }
                     }
-
                 }
-
             }
             catch (Exception ex)
             {
-
+                Logger.log?.Error($"Error downloading {song.Key}: {ex.Message}");
+                if (!string.IsNullOrEmpty(result.FilePath))
+                    HistoryManager.TryRemove(song.Hash); // Download probably succeeded, but extract failed, try again later.
             }
             finally
             {
-                if (File.Exists(tempFile))
-                    await FileIO.TryDeleteAsync(tempFile).ConfigureAwait(false);
+                if (string.IsNullOrEmpty(result.FilePath) && result.StatusCode != 404)
+                    HistoryManager.TryRemove(song.Hash); // If it's not found, keep it in history so it doesn't try again.
+                if (File.Exists(result?.FilePath))
+                    await FileIO.TryDeleteAsync(result?.FilePath).ConfigureAwait(false);
             }
-
-
             return song;
         }
 
@@ -154,6 +156,7 @@ namespace BeatSync
             foreach (var scrapedSong in songsToDownload.Values)
             {
                 var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
+                HistoryManager.TryAdd(playlistSong); // Make sure it's in HistoryManager even if it already exists.
                 if (HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, ""))
                 {
                     Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongKey} by {scrapedSong.MapperName} for download.");
@@ -168,7 +171,7 @@ namespace BeatSync
             {
                 var minDate = DateTime.Now - new TimeSpan(config.RecentPlaylistDays, 0, 0, 0);
                 int removedCount = recentPlaylist.Songs.RemoveAll(s => s.DateAdded < minDate);
-                if(removedCount > 0)
+                if (removedCount > 0)
                     Logger.log?.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
                 recentPlaylist.TryWriteFile();
             }
