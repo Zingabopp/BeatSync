@@ -93,7 +93,7 @@ namespace BeatSync
                     {
                         if (BeatSync.Paused)
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                        extractDirectory = await FileIO.ExtractZipAsync(result.FilePath, songDirPath, true, overwrite);
+                        extractDirectory = await FileIO.ExtractZipAsync(result.FilePath, songDirPath, true, overwrite).ConfigureAwait(false);
                         extractDirectory = Path.GetFullPath(extractDirectory);
                         if (!overwrite && !songDirPath.Equals(extractDirectory))
                         {
@@ -101,6 +101,11 @@ namespace BeatSync
                             directoryCreated = true;
                             HashSource.ExistingSongs[song.Hash] = extractDirectory;
                         }
+                        var extractedHash = await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false);
+                        if (!song.Hash.Equals(extractedHash.songHash))
+                            Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song.Key}");
+                        else
+                            Logger.log?.Debug($"Extracted hash matches Beat Saver hash for {song.Key}");
                     }
                 }
             }
@@ -168,7 +173,7 @@ namespace BeatSync
                 HistoryManager.TryAdd(playlistSong); // Make sure it's in HistoryManager even if it already exists.
                 if (HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, ""))
                 {
-                    Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongKey} by {scrapedSong.MapperName} for download.");
+                    Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongName} by {scrapedSong.MapperName} for download.");
                     DownloadQueue.Enqueue(playlistSong);
                 }
 
