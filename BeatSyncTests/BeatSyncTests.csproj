@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
     <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
     <Compile Include="HistoryManager_Tests\Initialize_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryGetValue_Tests.cs" />

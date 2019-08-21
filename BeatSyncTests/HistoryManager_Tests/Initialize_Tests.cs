@@ -16,7 +16,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             TestSetup.Initialize();
         }
 
-        private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "HistoryManager"));
+        private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Data", "HistoryManager"));
 
         private Dictionary<string, string> TestCollection1 = new Dictionary<string, string>()
         {
@@ -71,8 +71,6 @@ namespace BeatSyncTests.HistoryManager_Tests
             var fileName = "BeatSyncHistory-TestCol1.json";
             var filePath = Path.Combine(HistoryTestPathDir, fileName);
             Directory.CreateDirectory(HistoryTestPathDir);
-            if (!File.Exists(filePath))
-                File.Copy(Path.Combine(@"Data\HistoryManager\", fileName), filePath);
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 8);
@@ -94,8 +92,6 @@ namespace BeatSyncTests.HistoryManager_Tests
             var fileName = "BeatSyncHistory-TestCol1.json";
             var filePath = Path.Combine(HistoryTestPathDir, fileName);
             Directory.CreateDirectory(HistoryTestPathDir);
-            if (!File.Exists(filePath))
-                File.Copy(Path.Combine(@"Data\HistoryManager\", fileName), filePath);
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 8);
@@ -109,13 +105,41 @@ namespace BeatSyncTests.HistoryManager_Tests
             var fileName = "BeatSyncHistory-TestCol1.json";
             var filePath = Path.Combine(HistoryTestPathDir, fileName);
             Directory.CreateDirectory(HistoryTestPathDir);
-            if (!File.Exists(filePath))
-                File.Copy(Path.Combine(@"Data\HistoryManager\", fileName), filePath);
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 8);
             historyManager.Initialize(@"Data\HistoryManager\BeatSyncHistory-TestCol2.json");
             Assert.AreEqual(4, historyManager.Count);
+        }
+
+        [TestMethod]
+        public void Initialize_SecondCall_Parameterless()
+        {
+            var fileName = "BeatSyncHistory-TestCol1.json";
+            var filePath = Path.Combine(HistoryTestPathDir, fileName);
+            Directory.CreateDirectory(HistoryTestPathDir);
+            var historyManager = new HistoryManager(filePath);
+            historyManager.Initialize();
+            var songToAdd = TestCollection2.First();
+            historyManager.TryAdd(songToAdd.Key, songToAdd.Value);
+            Assert.AreEqual(9, historyManager.Count);
+            historyManager.Initialize();
+            Assert.AreEqual(9, historyManager.Count);
+        }
+
+        [TestMethod]
+        public void Initialize_SecondCall_SamePath()
+        {
+            var fileName = "BeatSyncHistory-TestCol1.json";
+            var filePath = Path.Combine(HistoryTestPathDir, fileName);
+            Directory.CreateDirectory(HistoryTestPathDir);
+            var historyManager = new HistoryManager(filePath);
+            historyManager.Initialize(filePath);
+            var songToAdd = TestCollection2.First();
+            historyManager.TryAdd(songToAdd.Key, songToAdd.Value);
+            Assert.AreEqual(9, historyManager.Count);
+            historyManager.Initialize(filePath);
+            Assert.AreEqual(9, historyManager.Count);
         }
 
     }

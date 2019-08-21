@@ -11,6 +11,6 @@ namespace BeatSync.Utilities
     /// </summary>
     public class FileLock
     {
-
+        // Use named Mutex instead?
     }
 }

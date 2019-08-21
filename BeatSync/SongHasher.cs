@@ -129,12 +129,14 @@ namespace BeatSync
         /// Hashes songs that aren't in the cache. Returns the number of hashed songs.
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="DirectoryNotFoundException">Thrown if the set song directory doesn't exist.</exception>
         public int AddMissingHashes()
         {
-            Logger.log?.Info("Starting AddMissingHashes");
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var songDir = new DirectoryInfo(CustomLevelsPath);
+            if (!songDir.Exists)
+                throw new DirectoryNotFoundException($"Song Hasher's song directory doesn't exist: {songDir.FullName}");
             Logger.log?.Info($"SongDir is {songDir.FullName}");
             int hashedSongs = 0;
             songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().AsParallel().ForAll(d =>

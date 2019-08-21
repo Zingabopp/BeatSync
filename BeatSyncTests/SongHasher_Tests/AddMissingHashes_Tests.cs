@@ -72,13 +72,30 @@ namespace BeatSyncTests.SongHasher_Tests
         [TestMethod]
         public void EmptyDirectory()
         {
-            throw new NotImplementedException();
+            var emptyDir = Path.Combine(TestSongsDir, "EmptyDirectory");
+            var dInfo = new DirectoryInfo(emptyDir);
+            dInfo.Create();
+            Assert.AreEqual(0, dInfo.GetFiles().Count());
+            var hasher = new SongHasher(emptyDir);
+            var newHashes = hasher.AddMissingHashes();
+            Assert.AreEqual(0, newHashes);
+
+            //Clean up
+            if (dInfo.Exists)
+                dInfo.Delete(true);
         }
 
         [TestMethod]
         public void DirectoryDoesntExist()
         {
-            throw new NotImplementedException();
+            var nonExistantDir = Path.Combine(TestSongsDir, "DoesntExist");
+            if (Directory.Exists(nonExistantDir))
+                Directory.Delete(nonExistantDir, true);
+            Assert.IsFalse(Directory.Exists(nonExistantDir));
+            var hasher = new SongHasher(nonExistantDir);
+            Assert.ThrowsException<DirectoryNotFoundException>(() => hasher.AddMissingHashes());
+            if (Directory.Exists(nonExistantDir))
+                Directory.Delete(nonExistantDir, true);
         }
     }
 }
