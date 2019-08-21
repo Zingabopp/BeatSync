@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSync</RootNamespace>
     <AssemblyName>BeatSync</AssemblyName>
-	<AssemblyVersion>0.0.1</AssemblyVersion>
+    <AssemblyVersion>0.0.1</AssemblyVersion>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PathMap>$(SolutionDir)=C:\</PathMap>
@@ -63,6 +63,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\BeatSaberCustomUI.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="BeatSaverDownloader, Version=4.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>References\Plugins\BeatSaverDownloader.dll</HintPath>
     </Reference>
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -260,11 +264,10 @@
     </ParameterGroup>
     <Task>
       <Reference Include="System.IO.Compression.FileSystem" />
-	  <Reference Include="System.IO" />
+      <Reference Include="System.IO" />
       <Using Namespace="System.IO.Compression" />
-	  <Using Namespace="System.IO" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
         try
         {
 		  if(File.Exists(ZipFileName))
@@ -278,8 +281,7 @@
           Log.LogErrorFromException(ex);
           return false;
         }
-      ]]>
-      </Code>
+      ]]></Code>
     </Task>
   </UsingTask>
   <PropertyGroup>

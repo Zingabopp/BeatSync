@@ -15,6 +15,7 @@ using BeatSync.Playlists;
 using BeatSync.Utilities;
 using SongFeedReaders.DataflowAlternative;
 using System.IO.Compression;
+using BeatSaverDownloader;
 
 namespace BeatSync
 {
@@ -104,10 +105,23 @@ namespace BeatSync
             yield return downloadWait;
             int numDownloads = downloadTask.Result.Count;
             HistoryManager.WriteToFile();
-            Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
-            IsRunning = false;
-            //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
 
+            IsRunning = false;
+            var waitPaused = new WaitUntil(() => !Paused);
+            yield return waitPaused;
+
+            while (SongCore.Loader.AreSongsLoading)
+                yield return null;
+            SongCore.Loader.Instance?.RefreshSongs(true);
+
+            while (!SongCore.Loader.AreSongsLoaded)
+                yield return null;
+
+            
+            SongCore.Loader.Instance?.RefreshLevelPacks();
+            BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
+            //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
+            Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
         }
 
 
