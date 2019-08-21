@@ -22,6 +22,7 @@ namespace BeatSync
     {
         public static BeatSync Instance { get; set; }
         private static bool _paused;
+        public static bool IsRunning { get; private set; }
         public static bool Paused
         {
             get
@@ -30,11 +31,24 @@ namespace BeatSync
             }
             set
             {
+                if (_paused == value)
+                {
+                    return;
+                }
+
                 _paused = value;
                 if (_paused)
+                {
                     SongFeedReaders.Utilities.Pause();
+                    if (IsRunning)
+                        Logger.log?.Info("Pausing BeatSync.");
+                }
                 else
+                {
                     SongFeedReaders.Utilities.UnPause();
+                    if (IsRunning)
+                        Logger.log?.Info("Resuming BeatSync.");
+                }
             }
         }
 
@@ -55,7 +69,7 @@ namespace BeatSync
         public void Start()
         {
             Logger.log?.Debug("BeatSync Start()");
-            
+            IsRunning = true;
             SongHasher = new SongHasher(Plugin.CustomLevelsPath, Plugin.CachedHashDataPath);
             HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
             Task.Run(() => HistoryManager.Initialize());
@@ -88,7 +102,10 @@ namespace BeatSync
             var downloadTask = Downloader.RunDownloaderAsync();
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
+            int numDownloads = downloadTask.Result.Count;
             HistoryManager.WriteToFile();
+            Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
+            IsRunning = false;
             //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
 
         }
