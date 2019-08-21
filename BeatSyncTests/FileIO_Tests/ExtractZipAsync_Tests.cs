@@ -49,6 +49,36 @@ namespace BeatSyncTests.FileIO_Tests
         }
 
         [TestMethod]
+        public void ExtractZip_NestedDirInZip()
+        {
+            string zipPath = Path.Combine(SongZipsPath, "5dd6-NestedDir.zip");
+            string[] entries;
+            using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+            using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
+            {
+                entries = zipArchive.Entries.Where(e => e.FullName.Equals(e.Name)).Select(e => e.Name).ToArray();
+            }
+            string songsPath = @"Output";
+            string songDir = "5d28-Normal";
+            string originalExtractPath = Path.GetFullPath(Path.Combine(songsPath, songDir));
+            if (Directory.Exists(originalExtractPath))
+                Directory.Delete(originalExtractPath, true);
+            var finalExtractPath = FileIO.ExtractZipAsync(zipPath, originalExtractPath, false, false).Result;
+            Assert.IsTrue(finalExtractPath.Equals(originalExtractPath));
+            var extractedFolder = new DirectoryInfo(finalExtractPath);
+            Assert.IsTrue(File.Exists(zipPath));
+            var extractedFiles = extractedFolder.GetFiles().Select(f => f.Name);
+            foreach (var entry in entries)
+            {
+                // Empty entry name = directory, not file
+                Assert.IsTrue(extractedFiles.Contains(entry));
+            }
+            Directory.Delete(originalExtractPath, true);
+            if (Directory.Exists(finalExtractPath))
+                Directory.Delete(finalExtractPath, true);
+        }
+
+        [TestMethod]
         public void ExtractZip_ExistingNoOverwrite()
         {
             string zipPath = Path.Combine(SongZipsPath, "5d28-LongEntry.zip");

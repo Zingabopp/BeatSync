@@ -8,6 +8,8 @@ namespace BeatSync.Configs
 {
     public class PluginConfig
     {
+        public static PluginConfig DefaultConfig = new PluginConfig().SetDefaults();
+
         [JsonIgnore]
         private bool _regenerateConfig = true;
         [JsonIgnore]
@@ -66,7 +68,7 @@ namespace BeatSync.Configs
 
             BeatSaver = new BeatSaverConfig()
             {
-                Enabled = true,
+                Enabled = false,
                 MaxConcurrentPageChecks = 5,
                 Hot = new BeatSaverHot() { Enabled = false, MaxSongs = 10, CreatePlaylist = true },
                 Downloads = new BeatSaverDownloads() { Enabled = false, MaxSongs = 20, CreatePlaylist = true },
@@ -79,8 +81,8 @@ namespace BeatSync.Configs
                 MaxConcurrentPageChecks = 5,
                 Username = "",
                 Bookmarks = new BeastSaberBookmarks() { Enabled = true, MaxSongs = 0, CreatePlaylist = true },
-                Follows = new BeastSaberFollowings() { Enabled = true, MaxSongs = 0, CreatePlaylist = true },
-                CuratorRecommended = new BeastSaberCuratorRecommended() { Enabled = true, MaxSongs = 20, CreatePlaylist = true }
+                Follows = new BeastSaberFollowings() { Enabled = true, MaxSongs = 20, CreatePlaylist = true },
+                CuratorRecommended = new BeastSaberCuratorRecommended() { Enabled = false, MaxSongs = 20, CreatePlaylist = true }
             };
 
             ScoreSaber = new ScoreSaberConfig()

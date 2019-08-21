@@ -65,7 +65,17 @@ namespace BeatSync
             //var hashTask = Task.Run(() => AddMissingHashes());
             //Logger.log?.Info("Converting legacy playlists.");
             //PlaylistManager.ConvertLegacyPlaylists();
+            StartCoroutine(HashSongsCoroutine());
             FavoriteMappers.Initialize();
+        }
+
+        public IEnumerator<WaitUntil> HashSongsCoroutine()
+        {
+            SongHasher.LoadCachedSongHashes();
+            var hashTask = Task.Run(() => SongHasher.AddMissingHashes());
+            var hashWait = new WaitUntil(() => hashTask.IsCompleted);
+            yield return hashWait;
+            StartCoroutine(ScrapeSongsCoroutine());
         }
 
 
@@ -78,6 +88,7 @@ namespace BeatSync
             var downloadTask = Downloader.RunDownloaderAsync();
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
+            HistoryManager.WriteToFile();
             //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
 
         }

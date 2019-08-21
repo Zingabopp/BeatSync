@@ -191,6 +191,9 @@
     <None Include="Data\SongZips\5d28-LongEntry.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Data\SongZips\5dd6-NestedDir.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\SongZips\DuplicateFiles.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

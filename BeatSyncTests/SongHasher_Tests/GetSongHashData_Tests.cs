@@ -25,7 +25,7 @@ namespace BeatSyncTests.SongHasher_Tests
             var hasher = new SongHasher(@"Data\Songs");
             var songDir = @"Data\Songs\5d02 (Sail - baxter395)";
             var expectedHash = "d6f3f15484fe169f4593718f50ef6d049fcaa72e".ToUpper();
-            var hashData = hasher.GetSongHashDataAsync(songDir).Result;
+            var hashData = SongHasher.GetSongHashDataAsync(songDir).Result;
             Assert.AreEqual(expectedHash, hashData.songHash);
         }
 
@@ -34,7 +34,7 @@ namespace BeatSyncTests.SongHasher_Tests
         {
             var hasher = new SongHasher();
             var songDir = @"Data\Songs\0 (Missing Info.dat)";
-            var hashData = hasher.GetSongHashDataAsync(songDir).Result;
+            var hashData = SongHasher.GetSongHashDataAsync(songDir).Result;
             Assert.IsNull(hashData.songHash);
         }
 
@@ -43,7 +43,7 @@ namespace BeatSyncTests.SongHasher_Tests
         {
             var hasher = new SongHasher();
             var songDir = @"Data\Songs\0 (Missing ExpectedDiff)";
-            var hashData = hasher.GetSongHashDataAsync(songDir).Result;
+            var hashData = SongHasher.GetSongHashDataAsync(songDir).Result;
             Assert.IsNotNull(hashData.songHash);
         }
 
@@ -53,7 +53,7 @@ namespace BeatSyncTests.SongHasher_Tests
             var songDir = Path.GetFullPath(@"Data\DoesntExistSongs");
             var hasher = new SongHasher();
 
-            var test = Assert.ThrowsExceptionAsync<DirectoryNotFoundException>(async () => await hasher.GetSongHashDataAsync(songDir).ConfigureAwait(false)).Result;
+            var test = Assert.ThrowsExceptionAsync<DirectoryNotFoundException>(async () => await SongHasher.GetSongHashDataAsync(songDir).ConfigureAwait(false)).Result;
         }
     }
 }
