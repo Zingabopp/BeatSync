@@ -48,8 +48,8 @@ namespace BeatSyncTests.HistoryManager_Tests
             string value = "Song to remove";
             string otherKey = "ZXCVOIUZXCOVIUZXCVUIOZZ";
             string otherValue = "Other song";
-            var success = historyManager.TryAdd(key, value);
-            success = success && historyManager.TryAdd(otherKey, otherValue);
+            var success = historyManager.TryAdd(key, value, 0);
+            success = success && historyManager.TryAdd(otherKey, otherValue, 0);
             Assert.IsTrue(success);
             Assert.AreEqual(historyManager.Count, 2);
             // End setup
@@ -69,7 +69,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             string key = "QWEMNRBQENMQBWERNBQWXCV";
             string value = "Song to remove";
             string doesntExist = "ZXCVOIUZXCOVIUZXCVUIOZZ";
-            var success = historyManager.TryAdd(key, value);
+            var success = historyManager.TryAdd(key, value, 0);
             Assert.IsTrue(success);
             Assert.AreEqual(historyManager.Count, 1);
             // End setup

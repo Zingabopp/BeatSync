@@ -45,7 +45,7 @@ namespace BeatSyncTests.HistoryManager_Tests
         {
             var historyManager = new HistoryManager();
             string key = "LKSJDFLKJASDLFKJ";
-            string value = null;
+            HistoryEntry value = null;
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryGetValue(key, out value));
         }
 
@@ -57,13 +57,13 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value);
+                historyManager.TryAdd(pair.Key, pair.Value, 0);
             }
             var key = TestCollection1.Keys.First();
             var expectedValue = TestCollection1[key];
-            var doesContain = historyManager.TryGetValue(key, out string value);
+            var doesContain = historyManager.TryGetValue(key, out HistoryEntry value);
             Assert.IsTrue(doesContain);
-            Assert.AreEqual(expectedValue, value);
+            Assert.AreEqual(expectedValue, value.SongInfo);
 
         }
 
@@ -75,10 +75,10 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value);
+                historyManager.TryAdd(pair.Key, pair.Value, 0);
             }
             var key = "ozxicuvoizuxcvoiu";
-            var doesContain = historyManager.TryGetValue(key, out string value);
+            var doesContain = historyManager.TryGetValue(key, out HistoryEntry value);
             Assert.IsFalse(doesContain);
             Assert.IsNull(value);
 

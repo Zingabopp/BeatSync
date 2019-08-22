@@ -64,6 +64,43 @@ namespace BeatSync.Playlists
             { 4, new Playlist("ScoreSaberTopRanked.json", "ScoreSaber Top Ranked", "SyncSaber", "1") }
         };
 
+        /// <summary>
+        /// Attempts to remove the song with the matching hash from all loaded playlists.
+        /// </summary>
+        /// <param name="hash"></param>
+        public static void RemoveSongFromAll(string hash)
+        {
+            hash = hash.ToUpper();
+            foreach (var playlist in AvailablePlaylists.Values)
+            {
+                if (playlist == null)
+                    continue;
+                playlist.TryRemove(hash);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to remove the song from all loaded playlists.
+        /// </summary>
+        /// <param name="song"></param>
+        public static void RemoveSongFromAll(PlaylistSong song)
+        {
+            RemoveSongFromAll(song.Hash);
+        }
+
+        public static void WriteAllPlaylists()
+        {
+            foreach (var playlist in AvailablePlaylists.Values)
+            {
+                if (playlist == null)
+                    continue;
+                if (playlist.IsDirty)
+                {
+                    Logger.log?.Debug($"Writing {playlist.Title} to file.");
+                    playlist.TryWriteFile();
+                }
+            }
+        }
 
         /// <summary>
         /// Retrieves the specified playlist. If the playlist doesn't exist, creates one using the default.

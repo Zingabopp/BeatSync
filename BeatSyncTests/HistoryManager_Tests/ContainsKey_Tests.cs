@@ -55,7 +55,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value);
+                historyManager.TryAdd(pair.Key, pair.Value, 0);
             }
             var doesContain = historyManager.ContainsKey(TestCollection1.Keys.First());
             Assert.IsTrue(doesContain);
@@ -69,7 +69,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value);
+                historyManager.TryAdd(pair.Key, pair.Value, 0);
             }
             var notAddedKey = "zoxcasdlfkjasdlfkj";
             var doesContain = historyManager.ContainsKey(notAddedKey);
@@ -84,7 +84,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value);
+                historyManager.TryAdd(pair.Key, pair.Value, 0);
             }
             var emptyKey = "";
             var doesContain = historyManager.ContainsKey(emptyKey);
@@ -99,7 +99,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value);
+                historyManager.TryAdd(pair.Key, pair.Value, 0);
             }
             string nullKey = null;
             var doesContain = historyManager.ContainsKey(nullKey);

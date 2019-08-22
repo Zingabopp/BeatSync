@@ -1,6 +1,18 @@
 {
-  "ZXCVOIUZXCOVIUZXCVUIOZZ": "Test song 10 by whoever",
-  "YXXCVBYIUXCVBIUYXCVBIUY": "Test song 11 by whoever",
-  "MNBWMENRTBMQNWEBTMNQBWE": "Test song 12 by whoever",
-  "QWEMNRBQENMQBWERNBQWXCV": "Test song 9 by whoever"
+  "QWEMNRBQENMQBWERNBQWXCV": {
+    "SongInfo": "Test song 9 by whoever",
+    "Flag": 0
+  },
+  "ZXCVOIUZXCOVIUZXCVUIOZZ": {
+    "SongInfo": "Test song 10 by whoever",
+    "Flag": 0
+  },
+  "YXXCVBYIUXCVBIUYXCVBIUY": {
+    "SongInfo": "Test song 11 by whoever",
+    "Flag": 0
+  },
+  "MNBWMENRTBMQNWEBTMNQBWE": {
+    "SongInfo": "Test song 12 by whoever",
+    "Flag": 0
+  }
 }

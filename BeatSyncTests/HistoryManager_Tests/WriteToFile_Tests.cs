@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using BeatSync.Playlists;
+using Newtonsoft.Json;
 
 namespace BeatSyncTests.HistoryManager_Tests
 {
@@ -14,28 +15,30 @@ namespace BeatSyncTests.HistoryManager_Tests
         static WriteToFile_Tests()
         {
             TestSetup.Initialize();
+            //File.WriteAllText(@"Data\HistoryManager\BeatSyncHistory-TestCol1-newnew.json", JsonConvert.SerializeObject(TestCollection1, Formatting.Indented));
+            //File.WriteAllText(@"Data\HistoryManager\BeatSyncHistory-TestCol2-newnew.json", JsonConvert.SerializeObject(TestCollection2, Formatting.Indented));
         }
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "HistoryManager", "WriteTests"));
 
-        private Dictionary<string, string> TestCollection1 = new Dictionary<string, string>()
+        private static Dictionary<string, HistoryEntry> TestCollection1 = new Dictionary<string, HistoryEntry>()
         {
-            {"LAKSDJFLK23LKJF23LKJ23R", "Test song 1 by whoever" },
-            {"ASDFALKSDJFLKAJSDFLKJAS", "Test song 2 by whoever" },
-            {"AVCIJASLDKVJAVLSKDJLKAJ", "Test song 3 by whoever" },
-            {"ASDLVKJASVLDKJALKSDJFLK", "Test song 4 by whoever" },
-            {"QWEORIUQWEORIUQOWIEURAO", "Test song 5 by whoever" },
-            {"ZXCVPOZIXCVPOIZXCVPOVIV", "Test song 6 by whoever" },
-            {"QLQFWHJLNKFLKNMWLQKCNML", "Test song 7 by whoever" },
-            {"TBRNEMNTMRBEBNMTEERVCVB", "Test song 8 by whoever" }
+            {"LAKSDJFLK23LKJF23LKJ23R", new HistoryEntry("Test song 1 by whoever", 0) },
+            {"ASDFALKSDJFLKAJSDFLKJAS", new HistoryEntry("Test song 2 by whoever", 0) },
+            {"AVCIJASLDKVJAVLSKDJLKAJ", new HistoryEntry("Test song 3 by whoever", 0) },
+            {"ASDLVKJASVLDKJALKSDJFLK", new HistoryEntry("Test song 4 by whoever", 0) },
+            {"QWEORIUQWEORIUQOWIEURAO", new HistoryEntry("Test song 5 by whoever", 0) },
+            {"ZXCVPOZIXCVPOIZXCVPOVIV", new HistoryEntry("Test song 6 by whoever", 0) },
+            {"QLQFWHJLNKFLKNMWLQKCNML", new HistoryEntry("Test song 7 by whoever", 0) },
+            {"TBRNEMNTMRBEBNMTEERVCVB", new HistoryEntry("Test song 8 by whoever", 0) }
         };
 
-        private Dictionary<string, string> TestCollection2 = new Dictionary<string, string>()
+        private static Dictionary<string, HistoryEntry> TestCollection2 = new Dictionary<string, HistoryEntry>()
         {
-            {"QWEMNRBQENMQBWERNBQWXCV", "Test song 9 by whoever" },
-            {"ZXCVOIUZXCOVIUZXCVUIOZZ", "Test song 10 by whoever" },
-            {"YXXCVBYIUXCVBIUYXCVBIUY", "Test song 11 by whoever" },
-            {"MNBWMENRTBMQNWEBTMNQBWE", "Test song 12 by whoever" }
+            {"QWEMNRBQENMQBWERNBQWXCV", new HistoryEntry("Test song 9 by whoever", 0) },
+            {"ZXCVOIUZXCOVIUZXCVUIOZZ", new HistoryEntry("Test song 10 by whoever", 0) },
+            {"YXXCVBYIUXCVBIUYXCVBIUY", new HistoryEntry("Test song 11 by whoever", 0) },
+            {"MNBWMENRTBMQNWEBTMNQBWE", new HistoryEntry("Test song 12 by whoever", 0) }
         };
 
         [TestMethod]
@@ -92,7 +95,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var item in TestCollection1)
             {
-                historyManager.TryAdd(item.Key, item.Value);
+                historyManager.TryAdd(item.Key, item.Value.SongInfo, 0);
             }
             historyManager.WriteToFile();
             if (Directory.Exists(dirPath))
@@ -119,7 +122,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             Assert.AreEqual(historyManager.Count, 0);
             foreach (var item in TestCollection1)
             {
-                historyManager.TryAdd(item.Key, item.Value);
+                historyManager.TryAdd(item.Key, item.Value.SongInfo, 0);
             }
             historyManager.WriteToFile();
 

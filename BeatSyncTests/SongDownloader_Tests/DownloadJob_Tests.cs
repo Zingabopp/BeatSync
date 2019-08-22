@@ -33,7 +33,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             historyManager.Initialize();
             var downloader = new SongDownloader(defaultConfig, historyManager, songHasher, DefaultSongsPath);
             var doesntExist = new PlaylistSong("196be1af64958d8b5375b328b0eafae2151d46f8", "Doesn't Exist", "ffff", "Who knows");
-            historyManager.TryAdd(doesntExist); // Song is added before it gets to DownloadJob
+            historyManager.TryAdd(doesntExist, 0); // Song is added before it gets to DownloadJob
             var result = downloader.DownloadJob(doesntExist).Result;
             Assert.IsTrue(historyManager.ContainsKey(doesntExist.Hash)); // Keep song in history so it doesn't try to download a non-existant song again.
         }
@@ -46,7 +46,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             historyManager.Initialize();
             var downloader = new SongDownloader(defaultConfig, historyManager, songHasher, DefaultSongsPath);
             var exists = new PlaylistSong("d375405d047d6a2a4dd0f4d40d8da77554f1f677", "Doesn't Exist", "ffff", "Who knows");
-            historyManager.TryAdd(exists); // Song is added before it gets to DownloadJob
+            historyManager.TryAdd(exists, 0); // Song is added before it gets to DownloadJob
             var result = downloader.DownloadJob(exists).Result;
             Assert.IsTrue(historyManager.ContainsKey(exists.Hash)); // Successful download is kept in history
         }

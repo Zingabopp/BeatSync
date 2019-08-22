@@ -1,10 +1,34 @@
 {
-  "LAKSDJFLK23LKJF23LKJ23R": "Test song 1 by whoever",
-  "ASDFALKSDJFLKAJSDFLKJAS": "Test song 2 by whoever",
-  "ASDLVKJASVLDKJALKSDJFLK": "Test song 4 by whoever",
-  "ZXCVPOZIXCVPOIZXCVPOVIV": "Test song 6 by whoever",
-  "QWEORIUQWEORIUQOWIEURAO": "Test song 5 by whoever",
-  "AVCIJASLDKVJAVLSKDJLKAJ": "Test song 3 by whoever",
-  "TBRNEMNTMRBEBNMTEERVCVB": "Test song 8 by whoever",
-  "QLQFWHJLNKFLKNMWLQKCNML": "Test song 7 by whoever"
+  "LAKSDJFLK23LKJF23LKJ23R": {
+    "SongInfo": "Test song 1 by whoever",
+    "Flag": 0
+  },
+  "ASDFALKSDJFLKAJSDFLKJAS": {
+    "SongInfo": "Test song 2 by whoever",
+    "Flag": 0
+  },
+  "AVCIJASLDKVJAVLSKDJLKAJ": {
+    "SongInfo": "Test song 3 by whoever",
+    "Flag": 0
+  },
+  "ASDLVKJASVLDKJALKSDJFLK": {
+    "SongInfo": "Test song 4 by whoever",
+    "Flag": 0
+  },
+  "QWEORIUQWEORIUQOWIEURAO": {
+    "SongInfo": "Test song 5 by whoever",
+    "Flag": 0
+  },
+  "ZXCVPOZIXCVPOIZXCVPOVIV": {
+    "SongInfo": "Test song 6 by whoever",
+    "Flag": 0
+  },
+  "QLQFWHJLNKFLKNMWLQKCNML": {
+    "SongInfo": "Test song 7 by whoever",
+    "Flag": 0
+  },
+  "TBRNEMNTMRBEBNMTEERVCVB": {
+    "SongInfo": "Test song 8 by whoever",
+    "Flag": 0
+  }
 }

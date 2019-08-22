@@ -103,6 +103,7 @@ namespace BeatSync
             var downloadTask = Downloader.RunDownloaderAsync();
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
+            PlaylistManager.WriteAllPlaylists();
             int numDownloads = downloadTask.Result.Count;
             HistoryManager.WriteToFile();
 

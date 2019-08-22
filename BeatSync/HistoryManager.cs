@@ -1,4 +1,5 @@
-﻿using BeatSync.Utilities;
+﻿using BeatSync.Playlists;
+using BeatSync.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +23,7 @@ namespace BeatSync
         /// <summary>
         /// Key: Hash (upper case), Value: (SongKey) SongTitle by MapperName
         /// </summary>
-        private ConcurrentDictionary<string, string> SongHistory;
+        private ConcurrentDictionary<string, HistoryEntry> SongHistory;
 
         /// <summary>
         /// Number of entries in history.
@@ -54,7 +55,7 @@ namespace BeatSync
             {
                 HistoryPath = DefaultHistoryPath;
             }
-            SongHistory = new ConcurrentDictionary<string, string>();
+            SongHistory = new ConcurrentDictionary<string, HistoryEntry>();
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace BeatSync
             }
             else
             {
-                SongHistory = new ConcurrentDictionary<string, string>();
+                SongHistory = new ConcurrentDictionary<string, HistoryEntry>();
             }
             IsInitialized = true;
         }
@@ -96,14 +97,14 @@ namespace BeatSync
         /// <param name="songInfo"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryAdd(string songHash, string songInfo)
+        public bool TryAdd(string songHash, string songInfo, HistoryFlag flag)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (string.IsNullOrEmpty(songHash))
                 return false;
                 //throw new ArgumentNullException(nameof(songHash), "songHash cannot be null for HistoryManager.TryAdd");
-            return SongHistory.TryAdd(songHash.ToUpper(), songInfo);
+            return SongHistory.TryAdd(songHash.ToUpper(), new HistoryEntry(songInfo, flag));
         }
 
         /// <summary>
@@ -112,13 +113,27 @@ namespace BeatSync
         /// <param name="song"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryAdd(Playlists.PlaylistSong song)
+        public bool TryAdd(PlaylistSong song, HistoryFlag flag)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (song == null || string.IsNullOrEmpty(song.Hash))
                 return false; // This will never happen because PlaylistSong.Hash can never be null or empty.
-            return TryAdd(song.Hash, song.ToString());
+            return TryAdd(song.Hash, song.ToString(), flag);
+        }
+
+        public bool TryUpdateFlag(string songHash, HistoryFlag flag)
+        {
+            songHash = songHash.ToUpper();
+            if (!SongHistory.ContainsKey(songHash))
+                return false;
+            SongHistory[songHash].Flag = flag;
+            return true;
+        }
+
+        public bool TryUpdateFlag(PlaylistSong song, HistoryFlag flag)
+        {
+            return TryUpdateFlag(song.Hash, flag);
         }
 
         /// <summary>
@@ -143,7 +158,7 @@ namespace BeatSync
         /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryGetValue(string songHash, out string value)
+        public bool TryGetValue(string songHash, out HistoryEntry value)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
@@ -188,5 +203,35 @@ namespace BeatSync
         }
         
 
+    }
+
+    public class HistoryEntry
+    {
+        public HistoryEntry() { }
+        public HistoryEntry(string songInfo, HistoryFlag flag = 0)
+        {
+            SongInfo = songInfo;
+            Flag = flag;
+        }
+
+        public HistoryEntry(PlaylistSong song, HistoryFlag flag = 0)
+        {
+            SongInfo = song.ToString();
+            Flag = flag;
+        }
+
+        public string SongInfo { get; set; }
+        public HistoryFlag Flag { get; set; }
+    }
+
+    public enum HistoryFlag
+    {
+        None = 0,
+        Downloaded = 1,
+        Deleted = 2,
+        Missing = 3,
+        PreExisting = 4,
+        NotFound = 404
+        
     }
 }

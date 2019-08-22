@@ -102,6 +102,7 @@ namespace BeatSync
                             HashSource.ExistingSongs[song.Hash] = extractDirectory;
                         }
                         Logger.log?.Info($"Finished downloading and extracting {song}");
+                        HistoryManager.TryUpdateFlag(song.Hash, HistoryFlag.Downloaded);
                         var extractedHash = await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false);
                         if (!song.Hash.Equals(extractedHash.songHash))
                             Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song}");
@@ -118,10 +119,17 @@ namespace BeatSync
             }
             finally
             {
+                if (result?.StatusCode == 404)
+                {
+                    if (HistoryManager.TryUpdateFlag(song.Hash, HistoryFlag.NotFound))
+                        Logger.log?.Warn($"Updated flag to NotFound for {song.Key}");
+                    PlaylistManager.RemoveSongFromAll(song.Hash);
+                }
                 if (string.IsNullOrEmpty(result?.FilePath) && result?.StatusCode != 404)
                     HistoryManager.TryRemove(song.Hash); // If it's not found, keep it in history so it doesn't try again.
                 if (File.Exists(result?.FilePath))
                     await FileIO.TryDeleteAsync(result?.FilePath).ConfigureAwait(false);
+
             }
             return song;
         }
@@ -170,11 +178,17 @@ namespace BeatSync
             foreach (var scrapedSong in songsToDownload.Values)
             {
                 var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
-                var notInHistory = HistoryManager.TryAdd(playlistSong); // Make sure it's in HistoryManager even if it already exists.
-                if (HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, "") && notInHistory)
+                var notInHistory = HistoryManager.TryAdd(playlistSong, 0); // Make sure it's in HistoryManager even if it already exists.
+                var didntExist = HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, "");
+                if (didntExist && notInHistory)
                 {
                     Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongName} by {scrapedSong.MapperName} for download.");
                     DownloadQueue.Enqueue(playlistSong);
+                }
+                else if (!didntExist && HistoryManager.TryGetValue(scrapedSong.Hash, out var value))
+                {
+                    if(value.Flag == HistoryFlag.None)
+                    HistoryManager.TryUpdateFlag(scrapedSong.Hash, HistoryFlag.PreExisting);
                 }
 
                 allPlaylist?.TryAdd(playlistSong);
@@ -200,6 +214,12 @@ namespace BeatSync
             var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
             foreach (var scrapedSong in songs.Reverse()) // Reverse so the last songs have the oldest DateTime
             {
+                if (HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry)
+                    && (historyEntry.Flag == HistoryFlag.NotFound
+                    || historyEntry.Flag == HistoryFlag.Deleted))
+                {
+                    continue;
+                }
                 if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
                 {
                     try

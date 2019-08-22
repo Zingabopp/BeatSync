@@ -81,7 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\HistoryManager\BeatSyncHistory-TestCol1.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Data\HistoryManager\BeatSyncHistory-TestCol2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

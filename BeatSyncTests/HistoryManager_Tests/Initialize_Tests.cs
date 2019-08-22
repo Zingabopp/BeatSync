@@ -121,7 +121,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             var songToAdd = TestCollection2.First();
-            historyManager.TryAdd(songToAdd.Key, songToAdd.Value);
+            historyManager.TryAdd(songToAdd.Key, songToAdd.Value, 0);
             Assert.AreEqual(9, historyManager.Count);
             historyManager.Initialize();
             Assert.AreEqual(9, historyManager.Count);
@@ -136,7 +136,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize(filePath);
             var songToAdd = TestCollection2.First();
-            historyManager.TryAdd(songToAdd.Key, songToAdd.Value);
+            historyManager.TryAdd(songToAdd.Key, songToAdd.Value, 0);
             Assert.AreEqual(9, historyManager.Count);
             historyManager.Initialize(filePath);
             Assert.AreEqual(9, historyManager.Count);

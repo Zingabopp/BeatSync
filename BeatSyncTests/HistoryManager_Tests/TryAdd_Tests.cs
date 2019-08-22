@@ -46,7 +46,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             var pairToInsert = TestCollection1.First();
             Assert.AreEqual(historyManager.Count, 0);
-            var success = historyManager.TryAdd(pairToInsert.Key, pairToInsert.Value);
+            var success = historyManager.TryAdd(pairToInsert.Key, pairToInsert.Value, 0);
             Assert.IsTrue(success);
             Assert.AreEqual(historyManager.Count, 1);
         }
@@ -59,9 +59,9 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             var pairToInsert = TestCollection1.First();
             Assert.AreEqual(historyManager.Count, 0);
-            var success = historyManager.TryAdd(pairToInsert.Key, pairToInsert.Value);
+            var success = historyManager.TryAdd(pairToInsert.Key, pairToInsert.Value, 0);
             Assert.IsTrue(success);
-            success = historyManager.TryAdd(pairToInsert.Key, pairToInsert.Value);
+            success = historyManager.TryAdd(pairToInsert.Key, pairToInsert.Value, 0);
             Assert.IsFalse(success);
             Assert.AreEqual(historyManager.Count, 1);
         }
@@ -74,7 +74,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             string key = "";
             string value = "Song that should not be inserted";
-            var success = historyManager.TryAdd(key, value);
+            var success = historyManager.TryAdd(key, value, 0);
             Assert.IsFalse(success);
             Assert.AreEqual(historyManager.Count, 0);
         }
@@ -87,7 +87,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             string key = null;
             string value = "Song that should not be inserted";
-            var success = historyManager.TryAdd(key, value);
+            var success = historyManager.TryAdd(key, value, 0);
             Assert.IsFalse(success);
             Assert.AreEqual(historyManager.Count, 0);
         }
@@ -100,7 +100,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             string key = "LKSJDFLKJASDLFKJ";
             string value = "";
-            var success = historyManager.TryAdd(key, value);
+            var success = historyManager.TryAdd(key, value, 0);
             Assert.IsTrue(success);
             Assert.AreEqual(historyManager.Count, 1);
         }
@@ -113,7 +113,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             string key = "LKSJDFLKJASDLFKJ";
             string value = null;
-            var success = historyManager.TryAdd(key, value);
+            var success = historyManager.TryAdd(key, value, 0);
             Assert.IsTrue(success);
             Assert.AreEqual(historyManager.Count, 1);
         }
@@ -124,7 +124,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var historyManager = new HistoryManager();
             string key = "LKSJDFLKJASDLFKJ";
             string value = null;
-            Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(key, value));
+            Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(key, value, 0));
         }
 
         [TestMethod]
@@ -136,7 +136,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             string songKey = "aaaa";
             string mapper = "SomeMapper";
             PlaylistSong song = new PlaylistSong(hash, songName, songKey, mapper);
-            Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song));
+            Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song, 0));
         }
 
         [TestMethod]
@@ -150,11 +150,11 @@ namespace BeatSyncTests.HistoryManager_Tests
             string songKey = "aaaa";
             string mapper = "SomeMapper";
             PlaylistSong song = new PlaylistSong(hash, songName, songKey, mapper);
-            var success = historyManager.TryAdd(song);
+            var success = historyManager.TryAdd(song, 0);
             Assert.IsTrue(success);
             success = historyManager.TryGetValue(hash, out var retrieved);
             Assert.IsTrue(success);
-            Assert.AreEqual(retrieved, PlaylistToString(song));
+            Assert.AreEqual(song.ToString(), retrieved.SongInfo);
         }
 
         [TestMethod]
@@ -170,7 +170,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             try
             {
                 PlaylistSong song = new PlaylistSong(hash, songName, songKey, mapper);
-                Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song));
+                Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song, 0));
             }
             catch (ArgumentNullException)
             {
@@ -192,7 +192,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             try
             {
                 PlaylistSong song = new PlaylistSong(hash, songName, songKey, mapper);
-                Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song));
+                Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song, 0));
             }
             catch (ArgumentNullException)
             {

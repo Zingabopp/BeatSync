@@ -14,6 +14,7 @@ namespace BeatSync.Playlists
     [Serializable]
     public class Playlist
     {
+        public bool IsDirty { get; private set; }
         public Playlist() { }
         public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor, string image)
         {
@@ -22,6 +23,7 @@ namespace BeatSync.Playlists
             Author = playlistAuthor;
             Image = image;
             Songs = new List<PlaylistSong>();
+            IsDirty = true;
         }
 
         /// <summary>
@@ -34,9 +36,27 @@ namespace BeatSync.Playlists
             if (!Songs.Contains(song))
             {
                 Songs.Add(song);
+                IsDirty = true;
                 return true;
             }
             return false;
+        }
+
+        public bool TryRemove(string songHash)
+        {
+            songHash = songHash.ToUpper();
+            if (Songs.Any(s => songHash.Equals(s.Hash)))
+            {
+                int songsRemoved = Songs.RemoveAll(s => songHash.Equals(s.Hash));
+                IsDirty = true;
+                return true;
+            }
+            return false;
+        }
+
+        public bool TryRemove(PlaylistSong song)
+        {
+            return TryRemove(song.Hash);
         }
 
         /// <summary>
@@ -61,7 +81,10 @@ namespace BeatSync.Playlists
             //{
             //    Songs.Remove(song);
             //}
+            var count = Songs.Count;
             Songs = Songs.Distinct().ToList();
+            if (count != Songs.Count)
+                IsDirty = true;
         }
 
         /// <summary>
@@ -73,6 +96,7 @@ namespace BeatSync.Playlists
             foreach (var song in oldSongs)
             {
                 Songs.Remove(song);
+                IsDirty = true;
             }
         }
 
@@ -90,8 +114,10 @@ namespace BeatSync.Playlists
             {
                 Songs = Songs.OrderByDescending(s => s.DateAdded).ToList();
                 FileIO.WritePlaylist(this);
+                IsDirty = false;
                 return true;
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 exception = ex;
                 return false;
@@ -106,7 +132,7 @@ namespace BeatSync.Playlists
         {
             var retVal = TryWriteFile(out var ex);
             //if (ex != null)
-                //Logger.log?.Error(ex);
+            //Logger.log?.Error(ex);
             return retVal;
         }
 
@@ -123,10 +149,19 @@ namespace BeatSync.Playlists
             get
             {
                 if (_songs == null)
+                {
                     _songs = new List<PlaylistSong>();
+                    IsDirty = true;
+                }
                 return _songs;
             }
-            set { _songs = value; }
+            set
+            {
+                if (_songs == value)
+                    return;
+                _songs = value;
+                IsDirty = true;
+            }
         }
 
         [JsonIgnore]
