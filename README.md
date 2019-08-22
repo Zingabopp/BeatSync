@@ -2,15 +2,15 @@
 Beat Saber plugin to automatically download songs.
 
 # Configuration
-Configuration is currently only available by editting BeatSync.json in the UserData folder.
+Configuration is currently only available by editing BeatSync.json in the UserData folder.
 * RegenerateConfig: If true, set all options to defaults.
 * DownloadTimeout: How long to wait for a download response before giving up.
 * MaxConcurrentDownloads: How many queued songs to download at the same time.
-* RecentPlaylistDays: How long recently downloaded songs stay in the BeatSync Recent playlist. (0 to disable)
+* RecentPlaylistDays: How long recently downloaded songs stay in the BeatSync Recent playlist. (0 to disable the playlist)
 * AllBeatSyncSongsPlaylist: If enabled, BeatSync creates a playlist with all the songs it finds (large playlists can cause a big freeze after custom songs are initially loaded)
 * BeastSaber:
   * Enabled: If false, disables all feeds from this source.
-  * Username: Your BeastSaver username. You must enter this to get songs from the Bookmarks and Follows feeds.
+  * Username: Your BeastSaber username. You must enter this to get songs from the Bookmarks and Follows feeds.
   * MaxConcurrentPageChecks: Number of pages to check simultaneously when reading feeds.
   * Bookmarks: Get bookmarked songs from BeastSaber.
     * Enabled
@@ -42,7 +42,7 @@ Configuration is currently only available by editting BeatSync.json in the UserD
 	* CreatePlaylist
 * ScoreSaber
   * Enabled: If false, disables all feeds from this source.
-  * Trending: Get songs using ScoreSabers "Trending" ordering.
+  * Trending: Get songs using ScoreSaber's "Trending" ordering.
     * Enabled
 	* MaxSongs
 	* CreatePlaylist
