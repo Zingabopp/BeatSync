@@ -122,6 +122,12 @@ namespace BeatSync
             return TryAdd(song.Hash, song.ToString(), flag);
         }
 
+        /// <summary>
+        /// If the provided song hash exists in history, change the flag to the one provided. Returns true if the song was found.
+        /// </summary>
+        /// <param name="songHash"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
         public bool TryUpdateFlag(string songHash, HistoryFlag flag)
         {
             songHash = songHash.ToUpper();
@@ -131,6 +137,12 @@ namespace BeatSync
             return true;
         }
 
+        /// <summary>
+        /// If the provided song exists in history, change the flag to the one provided. Returns true if the song was found.
+        /// </summary>
+        /// <param name="song"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
         public bool TryUpdateFlag(PlaylistSong song, HistoryFlag flag)
         {
             return TryUpdateFlag(song.Hash, flag);
@@ -170,7 +182,7 @@ namespace BeatSync
         /// </summary>
         /// <param name="songHash"></param>
         /// <returns></returns>
-        /// /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
         public bool TryRemove(string songHash)
         {
             if (!IsInitialized)
@@ -226,11 +238,29 @@ namespace BeatSync
 
     public enum HistoryFlag
     {
+        /// <summary>
+        /// Not set.
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// Downloaded by BeatSync.
+        /// </summary>
         Downloaded = 1,
+        /// <summary>
+        /// Confirmed deleted.
+        /// </summary>
         Deleted = 2,
+        /// <summary>
+        /// Used to exist, now it doesn't
+        /// </summary>
         Missing = 3,
+        /// <summary>
+        /// Downloaded without BeatSync
+        /// </summary>
         PreExisting = 4,
+        /// <summary>
+        /// Not found on Beat Saver.
+        /// </summary>
         NotFound = 404
         
     }
