@@ -21,7 +21,7 @@ namespace BeatSync
         public string HistoryPath { get; private set; }
 
         /// <summary>
-        /// Key: Hash (upper case), Value: (SongKey) SongTitle by MapperName
+        /// Key: Hash (upper case), Value: HistoryEntry with PlaylistSong.ToString() and HistoryFlag
         /// </summary>
         private ConcurrentDictionary<string, HistoryEntry> SongHistory;
 
