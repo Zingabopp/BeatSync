@@ -109,25 +109,19 @@ namespace BeatSync
             IsRunning = false;
             var waitPaused = new WaitUntil(() => !Paused);
             yield return waitPaused;
-
-            while (SongCore.Loader.AreSongsLoading)
-                yield return null;
-            SongCore.Loader.Instance?.RefreshSongs(true);
-
-            while (!SongCore.Loader.AreSongsLoaded)
-                yield return null;
-
-            
-            SongCore.Loader.Instance?.RefreshLevelPacks();
             BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
-            //TestPrintReaderResults(beatSaverTask, bsaberTask, scoreSaberTask);
+            if (!SongCore.Loader.AreSongsLoaded && SongCore.Loader.AreSongsLoading)
+            {
+                while (SongCore.Loader.AreSongsLoading)
+                    yield return null;
+            }
+            else
+            {
+                SongCore.Loader.Instance?.RefreshLevelPacks();
+                SongCore.Loader.Instance?.RefreshSongs(true);
+            }
             Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
         }
-
-
-
-
-
     }
 }
 
