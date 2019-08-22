@@ -3,6 +3,9 @@ Beat Saber plugin to automatically download songs.
 
 # Configuration
 Configuration is currently only available by editing BeatSync.json in the UserData folder.
+Each feed has options the options Enabled, MaxSongs (maximum number of songs to download from that feed), and CreatePlaylist (creates a playlist using songs from the feed).
+
+__BeatSync.json__
 * RegenerateConfig: If true, set all options to defaults.
 * DownloadTimeout: How long to wait for a download response before giving up.
 * MaxConcurrentDownloads: How many queued songs to download at the same time.
