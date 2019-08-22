@@ -114,7 +114,8 @@ namespace BeatSync
             catch (Exception ex)
             {
                 Logger.log?.Error($"Error downloading {song.Key}: {ex.Message}");
-                if (!string.IsNullOrEmpty(result.FilePath))
+                var downloadHasFilePathBecauseItWasAbleToStartWritingTheFile = !string.IsNullOrEmpty(result.FilePath);
+                if (downloadHasFilePathBecauseItWasAbleToStartWritingTheFile)
                     HistoryManager.TryRemove(song.Hash); // Download probably succeeded, but extract failed, try again later.
             }
             finally
