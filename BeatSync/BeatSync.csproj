@@ -147,44 +147,11 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <!--
-  <Choose>
-    <When Condition="'$(Configuration)' == 'Release'">
-      <ItemGroup>
-        <Reference Include="SongFeedReaders">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Release\net45\SongFeedReaders.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-        <Reference Include="WebUtilities">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\Libs\BeatSaberDataProvider\WebUtilities\bin\Release\net45\WebUtilities.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="'$(Configuration)' == 'Debug'">
-      <ItemGroup>
-        <Reference Include="SongFeedReaders">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\Libs\BeatSaberDataProvider\SongFeedReaders\bin\Debug\net45\SongFeedReaders.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-        <Reference Include="WebUtilities">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\Libs\BeatSaberDataProvider\WebUtilities\bin\Debug\net45\WebUtilities.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  -->
   <ItemGroup>
     <Compile Include="BeatSync.cs" />
     <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
     <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
+    <Compile Include="Downloader\JobResult.cs" />
     <Compile Include="HistoryManager.cs" />
     <Compile Include="Configs\ConfigBases.cs" />
     <Compile Include="Configs\FavoriteMappers.cs" />
@@ -193,7 +160,7 @@
     <Compile Include="Logging\BeatSyncConsoleLogger.cs" />
     <Compile Include="Logging\BeatSyncIPALogger.cs" />
     <Compile Include="Logging\IBeatSyncLogger.cs" />
-    <Compile Include="SongDownloader.cs" />
+    <Compile Include="Downloader\SongDownloader.cs" />
     <Compile Include="SongHasher.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />
     <Compile Include="Utilities\FileIO.cs" />
@@ -254,7 +221,7 @@
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
     <Copy SourceFiles="$(OutputPath)$(AssemblyName)-merged.dll" DestinationFiles="$(IntermediateOutputPath)\zip\Plugins\$(AssemblyName).dll" />
-    <ZipDir ZipFileName="$(OutDir)\BeatSync-$(AssemblyVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
+    <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(AssemblyVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
   <UsingTask TaskName="ZipDir" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
@@ -267,9 +234,24 @@
       <Reference Include="System.IO" />
       <Using Namespace="System.IO.Compression" />
       <Using Namespace="System.IO" />
+	  <Using Namespace="System.Threading" />
       <Code Type="Fragment" Language="cs"><![CDATA[
         try
         {
+		  var zipDir = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(ZipFileName)));
+          if (zipDir.Exists)
+            zipDir.Delete(true);
+          zipDir.Create();
+		  zipDir.Refresh();
+		  int tries = 0;
+		  while(!zipDir.Exists || tries < 10) // Prevents breaking when Explorer is in the folder.
+		  {
+		    tries++;
+		    Thread.Sleep(50);
+			zipDir.Create();
+			zipDir.Refresh();
+		  }
+		  
 		  if(File.Exists(ZipFileName))
 		    File.Delete(ZipFileName);
           Log.LogMessage(string.Format("Zipping Directory {0} to {1}", DirectoryName, ZipFileName));
