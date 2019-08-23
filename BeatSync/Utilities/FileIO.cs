@@ -148,10 +148,11 @@ namespace BeatSync.Utilities
 
         }
 
-        
+
 
         /// <summary>
         /// Downloads a file from the specified URI to the specified path (path includes file name).
+        /// Creates the target directory if it doesn't exist. All exceptions are stored in the DownloadResult.
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="path"></param>
@@ -160,66 +161,36 @@ namespace BeatSync.Utilities
         {
             string actualPath = path;
             int statusCode = 0;
+            if (uri == null)
+                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0);
             if (!overwrite && File.Exists(path))
-                return null;
+                return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, 30, 2).ConfigureAwait(false))
             {
-                statusCode = response.StatusCode;
-                if (!response.IsSuccessStatusCode)
-                    return new DownloadResult(null, statusCode, response.ReasonPhrase);
+                statusCode = response?.StatusCode ?? 0;
+                if (!(response?.IsSuccessStatusCode ?? false))
+                    return new DownloadResult(null, DownloadResultStatus.NetFailed, statusCode, response.ReasonPhrase);
                 try
                 {
                     Directory.GetParent(path).Create();
                     actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
                 }
-                catch (Exception ex)
-                {
-                    return new DownloadResult(null, statusCode, response.ReasonPhrase, ex);
-                }
-            }
-            return new DownloadResult(actualPath, statusCode);
-        }
-
-        /// <summary>
-        /// Extracts a zip file to the specified directory.
-        /// </summary>
-        /// <param name="zipPath">Path to zip file</param>
-        /// <param name="extractDirectory">Directory to extract to</param>
-        /// <param name="deleteZip">If true, deletes zip file after extraction</param>
-        /// <param name="overwriteTarget">If true, overwrites existing files with the zip's contents</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown when zipPath or extractDirectory are null or empty.</exception>
-        /// <exception cref="ArgumentException">Thrown when the file at zipPath doesn't exist.</exception>
-        public static async Task<string> ExtractZipAsync(string zipPath, string extractDirectory, bool deleteZip = true, bool overwriteTarget = true)
-        {
-            if (string.IsNullOrEmpty(zipPath))
-                throw new ArgumentNullException(nameof(zipPath));
-            if (string.IsNullOrEmpty(extractDirectory))
-                throw new ArgumentNullException(nameof(extractDirectory));
-            FileInfo zipFile = new FileInfo(zipPath);
-            if (!zipFile.Exists)
-                throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
-            Logger.log?.Debug($"Starting ExtractZipAsync for {zipPath}");
-            //var extractedFiles = await ExtractAsync(zipFile.FullName, extDir.FullName, overwriteTarget).ConfigureAwait(true);
-            //List<string> extractedFiles = new List<string>();
-            bool success = false;
-
-            extractDirectory = await Task.Run(() => ExtractTask(zipPath, extractDirectory, overwriteTarget)).ConfigureAwait(false);
-            success = !string.IsNullOrEmpty(extractDirectory);
-
-            if (deleteZip)
-            {
-                try
-                {
-                    var deleteSuccessful = await TryDeleteAsync(zipFile.FullName).ConfigureAwait(false);
-                }
                 catch (IOException ex)
                 {
-                    Logger.log?.Warn($"Unable to delete file {zipFile.FullName}.\n{ex.Message}\n{ex.StackTrace}");
+                    // Also catches DirectoryNotFoundException
+                    return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // File already exists and overwrite is false.
+                    return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
+                }
+                catch (Exception ex)
+                {
+                    return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
                 }
             }
-            Logger.log?.Debug($"Finished extraction, {success}");
-            return extractDirectory;
+            return new DownloadResult(actualPath, DownloadResultStatus.Success, statusCode);
         }
 
         /// <summary>
@@ -254,9 +225,30 @@ namespace BeatSync.Utilities
             return extractDirectory;
         }
 
-        private static string ExtractTask(string zipPath, string extractDirectory, bool overwriteTarget = true)
+        /// <summary>
+        /// Extracts a zip file to the specified directory. If an exception is thrown during extraction, it is stored in ZipExtractResult.
+        /// </summary>
+        /// <param name="zipPath">Path to zip file</param>
+        /// <param name="extractDirectory">Directory to extract to</param>
+        /// <param name="deleteZip">If true, deletes zip file after extraction</param>
+        /// <param name="overwriteTarget">If true, overwrites existing files with the zip's contents</param>
+        /// <returns></returns>
+        public static ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)
         {
-            extractDirectory = Path.GetFullPath(extractDirectory);
+            if (string.IsNullOrEmpty(zipPath))
+                throw new ArgumentNullException(nameof(zipPath));
+            if (string.IsNullOrEmpty(extractDirectory))
+                throw new ArgumentNullException(nameof(extractDirectory));
+            FileInfo zipFile = new FileInfo(zipPath);
+            if (!zipFile.Exists)
+                throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
+
+            ZipExtractResult result = new ZipExtractResult
+            {
+                SourceZip = zipPath,
+                ResultStatus = ZipExtractResultStatus.NotStarted
+            };
+            
             string createdDirectory = null;
             var createdFiles = new List<string>();
             try
@@ -268,22 +260,43 @@ namespace BeatSync.Utilities
                     //Logger.log?.Info("Zip opened");
                     //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
                     var longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
-                    extractDirectory = GetValidPath(extractDirectory, longestEntryName, 3);
-                    if (!overwriteTarget && Directory.Exists(extractDirectory))
+                    try
                     {
-                        int pathNum = 1;
-                        string finalPath;
-                        do
+                        extractDirectory = Path.GetFullPath(extractDirectory); // Could theoretically throw an exception: Argument/ArgumentNull/Security/NotSupported/PathTooLong
+                        extractDirectory = GetValidPath(extractDirectory, longestEntryName, 3);
+                        if (!overwriteTarget && Directory.Exists(extractDirectory))
                         {
-                            var append = $" ({pathNum})";
-                            finalPath = GetValidPath(extractDirectory, longestEntryName, append.Length) + append; // padding ensures we aren't continuously cutting off the append value
-                            pathNum++;
-                        } while (Directory.Exists(finalPath));
-                        extractDirectory = finalPath;
+                            int pathNum = 1;
+                            string finalPath;
+                            do
+                            {
+                                var append = $" ({pathNum})";
+                                finalPath = GetValidPath(extractDirectory, longestEntryName, append.Length) + append; // padding ensures we aren't continuously cutting off the append value
+                                pathNum++;
+                            } while (Directory.Exists(finalPath));
+                            extractDirectory = finalPath;
+                        }
                     }
-                    var toBeCreated = Directory.Exists(extractDirectory) ? null : extractDirectory; // For cleanup
-                    Directory.CreateDirectory(extractDirectory);
+                    catch (PathTooLongException ex)
+                    {
+                        result.Exception = ex;
+                        result.ResultStatus = ZipExtractResultStatus.DestinationFailed;
+                        return result;
+                    }
+                    result.OutputDirectory = extractDirectory;
+                    bool extractDirectoryExists = Directory.Exists(extractDirectory);
+                    var toBeCreated = extractDirectoryExists ? null : extractDirectory; // For cleanup
+                    try { Directory.CreateDirectory(extractDirectory); }
+                    catch (Exception ex)
+                    {
+                        result.Exception = ex;
+                        result.ResultStatus = ZipExtractResultStatus.DestinationFailed;
+                        return result;
+                    }
+
+                    result.CreatedOutputDirectory = !extractDirectoryExists;
                     createdDirectory = string.IsNullOrEmpty(toBeCreated) ? null : extractDirectory;
+
                     foreach (var entry in zipArchive.Entries)
                     {
                         if (!entry.FullName.Equals(entry.Name)) // If false, the entry is a directory or file nested in one
@@ -297,23 +310,50 @@ namespace BeatSync.Utilities
                                 entry.ExtractToFile(entryPath, overwriteTarget);
                                 createdFiles.Add(entryPath);
                             }
+                            catch (InvalidDataException ex) // Entry is missing, corrupt, or compression method isn't supported
+                            {
+                                Logger.log?.Error($"Error extracting {extractDirectory}, archive appears to be damaged.");
+                                Logger.log?.Error(ex);
+                                result.Exception = ex;
+                                result.ResultStatus = ZipExtractResultStatus.SourceFailed;
+                                result.ExtractedFiles = createdFiles.ToArray();
+                            }
                             catch (Exception ex)
                             {
                                 Logger.log?.Error($"Error extracting {extractDirectory}");
                                 Logger.log?.Error(ex);
-                                throw ex;
+                                result.Exception = ex;
+                                result.ResultStatus = ZipExtractResultStatus.DestinationFailed;
+                                result.ExtractedFiles = createdFiles.ToArray();
+                                
+                            }
+                            if(result.Exception != null)
+                            {
+                                foreach (var file in createdFiles)
+                                {
+                                    TryDeleteAsync(file).Wait();
+                                }
+                                return result;
                             }
                         }
                     }
+                    result.ExtractedFiles = createdFiles.ToArray();
                 }
-                return extractDirectory;
+                result.ResultStatus = ZipExtractResultStatus.Success;
+                return result;
 #pragma warning disable CA1031 // Do not catch general exception types
             }
-            catch (Exception ex)
+            catch (InvalidDataException ex) // FileStream is not in the zip archive format.
+            {
+                result.ResultStatus = ZipExtractResultStatus.SourceFailed;
+                result.Exception = ex;
+                return result;
+            }
+            catch (Exception ex) // If exception is thrown here, it probably happened when the FileStream was opened.
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                //Logger.log?.Error($"Error extracting {extractDirectory}");
-                //Logger.log?.Error(ex);
+                Logger.log?.Error($"Error opening FileStream for {zipPath}");
+                Logger.log?.Error(ex);
                 try
                 {
                     if (!string.IsNullOrEmpty(createdDirectory))
@@ -332,7 +372,10 @@ namespace BeatSync.Utilities
                 {
                     // Failed at cleanup
                 }
-                return null;
+                
+                result.Exception = ex;
+                result.ResultStatus = ZipExtractResultStatus.SourceFailed;
+                return result;
             }
         }
 
@@ -375,25 +418,61 @@ namespace BeatSync.Utilities
                 }
             }, timeoutToken);
         }
-
-        private enum ZipExtractResult
-        {
-
-        }
     }
 
     public class DownloadResult
     {
-        public DownloadResult(string path, int statusCode, string reason = null, Exception exception = null)
+        public DownloadResult(string path, DownloadResultStatus status, int httpStatus, string reason = null, Exception exception = null)
         {
             FilePath = path;
-            StatusCode = statusCode;
+            Status = status;
+            HttpStatusCode = httpStatus;
             Reason = reason;
             Exception = exception;
         }
         public string FilePath { get; private set; }
         public string Reason { get; private set; }
-        public int StatusCode { get; private set; }
+        public DownloadResultStatus Status { get; private set; }
+        public int HttpStatusCode { get; private set; }
         public Exception Exception { get; private set; }
+    }
+
+    public enum DownloadResultStatus
+    {
+        Unknown = 0,
+        Success = 1,
+        NetFailed = 2,
+        IOFailed = 3,
+        InvalidRequest = 4
+    }
+
+    public class ZipExtractResult
+    {
+        public string SourceZip { get; set; }
+        public string OutputDirectory { get; set; }
+        public bool CreatedOutputDirectory { get; set; }
+        public string[] ExtractedFiles { get; set; }
+        public ZipExtractResultStatus ResultStatus { get; set; }
+        public Exception Exception { get; set; }
+    }
+
+    public enum ZipExtractResultStatus
+    {
+        /// <summary>
+        /// Extraction hasn't been attempted.
+        /// </summary>
+        NotStarted = 0,
+        /// <summary>
+        /// Extraction was successful.
+        /// </summary>
+        Success = 1,
+        /// <summary>
+        /// Problem with the zip source.
+        /// </summary>
+        SourceFailed = 2,
+        /// <summary>
+        /// Problem with the destination target.
+        /// </summary>
+        DestinationFailed = 3
     }
 }

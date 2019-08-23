@@ -128,6 +128,19 @@ namespace BeatSyncTests.HistoryManager_Tests
         }
 
         [TestMethod]
+        public void TryAdd_NullPlaylistSong()
+        {
+            var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
+            var historyManager = new HistoryManager(path);
+            historyManager.Initialize();
+            PlaylistSong nullSong = null;
+            var success = historyManager.TryAdd(nullSong, 0);
+            Assert.IsFalse(success);
+            Assert.AreEqual(historyManager.Count, 0);
+        }
+
+
+        [TestMethod]
         public void TryAdd_PlaylistSong_NotInitialized()
         {
             var historyManager = new HistoryManager();

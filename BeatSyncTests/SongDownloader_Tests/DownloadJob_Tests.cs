@@ -4,6 +4,7 @@ using BeatSync;
 using BeatSync.Logging;
 using BeatSync.Playlists;
 using BeatSync.Configs;
+using BeatSync.Downloader;
 using System.IO;
 
 namespace BeatSyncTests.SongDownloader_Tests
@@ -17,6 +18,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             TestSetup.Initialize();
             defaultConfig = new PluginConfig().SetDefaults();
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            
         }
 
         public static PluginConfig defaultConfig;
@@ -27,7 +29,6 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void SongDoesntExist()
         {
-
             var historyManager = new HistoryManager(DefaultHistoryPath);
             var songHasher = new SongHasher(DefaultSongsPath, DefaultHashCachePath);
             historyManager.Initialize();
@@ -40,7 +41,6 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void SongDoesExist()
         {
-
             var historyManager = new HistoryManager(DefaultHistoryPath);
             var songHasher = new SongHasher(DefaultSongsPath, DefaultHashCachePath);
             historyManager.Initialize();

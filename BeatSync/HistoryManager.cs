@@ -103,7 +103,6 @@ namespace BeatSync
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (string.IsNullOrEmpty(songHash))
                 return false;
-                //throw new ArgumentNullException(nameof(songHash), "songHash cannot be null for HistoryManager.TryAdd");
             return SongHistory.TryAdd(songHash.ToUpper(), new HistoryEntry(songInfo, flag));
         }
 
@@ -117,8 +116,8 @@ namespace BeatSync
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
-            if (song == null || string.IsNullOrEmpty(song.Hash))
-                return false; // This will never happen because PlaylistSong.Hash can never be null or empty.
+            if (song == null)
+                return false;
             return TryAdd(song.Hash, song.ToString(), flag);
         }
 
@@ -145,6 +144,8 @@ namespace BeatSync
         /// <returns></returns>
         public bool TryUpdateFlag(PlaylistSong song, HistoryFlag flag)
         {
+            if (song == null)
+                return false;
             return TryUpdateFlag(song.Hash, flag);
         }
 

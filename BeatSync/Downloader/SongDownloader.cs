@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BeatSync
+namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
@@ -66,6 +66,22 @@ namespace BeatSync
         }
 
         /// <summary>
+        /// Attempts to download a song to the specified target path.
+        /// </summary>
+        /// <param name="song"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static async Task<DownloadResult> DownloadSongAsync(PlaylistSong song, string target)
+        {
+            DownloadResult result;
+            var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
+            var downloadTarget = Path.Combine(target, song.Key);
+            result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
+            return result;
+        }
+
+
+        /// <summary>
         /// This should be redone, return a DownloadResult so other things can take action with regards to HistoryManager
         /// </summary>
         /// <param name="song"></param>
@@ -74,7 +90,7 @@ namespace BeatSync
         {
 
             bool directoryCreated = false;
-            DownloadResult result = null;
+            JobResult result = new JobResult() { Song = song };
             bool overwrite = true;
             string extractDirectory = null;
             try
@@ -82,19 +98,29 @@ namespace BeatSync
                 var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelsPath, song.DirectoryName));
                 directoryCreated = !Directory.Exists(songDirPath);
                 // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting/incrementing folder name
+                // This doesn't guarantee the song isn't already downloaded
                 if (HashSource.HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
                 {
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
-                    var downloadTarget = Path.Combine(SongTempPath, song.Key);
-                    result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
-                    if (!string.IsNullOrEmpty(result?.FilePath))
+                    var downloadResult = await DownloadSongAsync(song, SongTempPath).ConfigureAwait(false);
+                    result.DownloadResult = downloadResult;
+                    if (!string.IsNullOrEmpty(downloadResult?.FilePath))
                     {
                         if (BeatSync.Paused)
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                        extractDirectory = await FileIO.ExtractZipAsync(result.FilePath, songDirPath, true, overwrite).ConfigureAwait(false);
-                        extractDirectory = Path.GetFullPath(extractDirectory);
+                        var zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
+
+                        try
+                        {
+                            var deleteSuccessful = await FileIO.TryDeleteAsync(downloadResult.FilePath).ConfigureAwait(false);
+                        }
+                        catch (IOException ex)
+                        {
+                            Logger.log?.Warn($"Unable to delete zip file after extraction: {downloadResult.FilePath}.\n{ex.Message}");
+                        }
+                        result.ZipResult = zipResult;
+                        extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
                         if (!overwrite && !songDirPath.Equals(extractDirectory))
                         {
                             Logger.log?.Debug($"songDirPath {songDirPath} != {extractDirectory}, updating dictionary.");
@@ -114,22 +140,22 @@ namespace BeatSync
             catch (Exception ex)
             {
                 Logger.log?.Error($"Error downloading {song.Key}: {ex.Message}");
-                var downloadHasFilePathBecauseItWasAbleToStartWritingTheFile = !string.IsNullOrEmpty(result.FilePath);
+                var downloadHasFilePathBecauseItWasAbleToStartWritingTheFile = !string.IsNullOrEmpty(result.DownloadResult.FilePath);
                 if (downloadHasFilePathBecauseItWasAbleToStartWritingTheFile)
                     HistoryManager.TryRemove(song.Hash); // Download probably succeeded, but extract failed, try again later.
             }
             finally
             {
-                if (result?.StatusCode == 404)
+                if (result.DownloadResult?.HttpStatusCode == 404)
                 {
                     if (HistoryManager.TryUpdateFlag(song.Hash, HistoryFlag.NotFound))
                         Logger.log?.Warn($"Updated flag to NotFound for {song.Key}");
                     PlaylistManager.RemoveSongFromAll(song.Hash);
                 }
-                if (string.IsNullOrEmpty(result?.FilePath) && result?.StatusCode != 404)
+                if (string.IsNullOrEmpty(result.DownloadResult?.FilePath) && result.DownloadResult?.HttpStatusCode != 404)
                     HistoryManager.TryRemove(song.Hash); // If it's not found, keep it in history so it doesn't try again.
-                if (File.Exists(result?.FilePath))
-                    await FileIO.TryDeleteAsync(result?.FilePath).ConfigureAwait(false);
+                if (File.Exists(result.DownloadResult?.FilePath))
+                    await FileIO.TryDeleteAsync(result.DownloadResult?.FilePath).ConfigureAwait(false);
 
             }
             return song;
@@ -188,8 +214,8 @@ namespace BeatSync
                 }
                 else if (!didntExist && HistoryManager.TryGetValue(scrapedSong.Hash, out var value))
                 {
-                    if(value.Flag == HistoryFlag.None)
-                    HistoryManager.TryUpdateFlag(scrapedSong.Hash, HistoryFlag.PreExisting);
+                    if (value.Flag == HistoryFlag.None)
+                        HistoryManager.TryUpdateFlag(scrapedSong.Hash, HistoryFlag.PreExisting);
                 }
 
                 allPlaylist?.TryAdd(playlistSong);
@@ -204,8 +230,6 @@ namespace BeatSync
                     Logger.log?.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
                 recentPlaylist.TryWriteFile();
             }
-
-
         }
 
         public async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist = null)

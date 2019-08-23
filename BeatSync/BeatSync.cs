@@ -16,6 +16,7 @@ using BeatSync.Utilities;
 using SongFeedReaders.DataflowAlternative;
 using System.IO.Compression;
 using BeatSaverDownloader;
+using BeatSync.Downloader;
 
 namespace BeatSync
 {
@@ -103,6 +104,10 @@ namespace BeatSync
             var downloadTask = Downloader.RunDownloaderAsync();
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
+            // For each song
+            //Check result -> Maybe remove from history
+            //                Maybe remove from playlists
+            //                Increment successful/failed downloads
             PlaylistManager.WriteAllPlaylists();
             int numDownloads = downloadTask.Result.Count;
             HistoryManager.WriteToFile();
