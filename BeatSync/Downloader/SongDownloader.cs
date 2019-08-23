@@ -25,7 +25,7 @@ namespace BeatSync.Downloader
         private PluginConfig Config;
         private HistoryManager HistoryManager;
 
-        private TransformBlock<PlaylistSong, PlaylistSong> DownloadBatch;
+        private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
 
         public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
@@ -37,32 +37,32 @@ namespace BeatSync.Downloader
             Config = config;
         }
 
-        public async Task<List<string>> RunDownloaderAsync()
+        public async Task<List<JobResult>> RunDownloaderAsync()
         {
-            DownloadBatch = new TransformBlock<PlaylistSong, PlaylistSong>(DownloadJob, new ExecutionDataflowBlockOptions()
+            DownloadBatch = new TransformBlock<PlaylistSong, JobResult>(DownloadJob, new ExecutionDataflowBlockOptions()
             {
                 BoundedCapacity = DownloadQueue.Count + 100,
                 MaxDegreeOfParallelism = Config.MaxConcurrentDownloads,
                 EnsureOrdered = false
             });
             //Logger.log?.Info($"Starting downloader.");
-            var downloadedSongs = new List<string>();
+            var jobResults = new List<JobResult>();
             while (DownloadQueue.TryDequeue(out var song))
             {
-                if (DownloadBatch.TryReceiveAll(out var songsCompleted))
+                if (DownloadBatch.TryReceiveAll(out var jobs))
                 {
-                    downloadedSongs.AddRange(songsCompleted.Select(s => s.Hash));
+                    jobResults.AddRange(jobs);
                 }
                 await DownloadBatch.SendAsync(song).ConfigureAwait(false);
             }
             DownloadBatch.Complete();
             await DownloadBatch.Completion().ConfigureAwait(false);
 
-            if (DownloadBatch.TryReceiveAll(out var songs))
+            if (DownloadBatch.TryReceiveAll(out var jobsCompleted))
             {
-                downloadedSongs.AddRange(songs.Select(s => s.Hash));
+                jobResults.AddRange(jobsCompleted);
             }
-            return downloadedSongs;
+            return jobResults;
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace BeatSync.Downloader
         /// </summary>
         /// <param name="song"></param>
         /// <returns></returns>
-        public async Task<PlaylistSong> DownloadJob(PlaylistSong song)
+        public async Task<JobResult> DownloadJob(PlaylistSong song)
         {
 
             bool directoryCreated = false;
@@ -105,12 +105,12 @@ namespace BeatSync.Downloader
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var downloadResult = await DownloadSongAsync(song, SongTempPath).ConfigureAwait(false);
                     result.DownloadResult = downloadResult;
-                    if (!string.IsNullOrEmpty(downloadResult?.FilePath))
+                    if (downloadResult.Status == DownloadResultStatus.Success)
                     {
                         if (BeatSync.Paused)
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                         var zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
-
+                        // Try to delete zip file
                         try
                         {
                             var deleteSuccessful = await FileIO.TryDeleteAsync(downloadResult.FilePath).ConfigureAwait(false);
@@ -119,6 +119,7 @@ namespace BeatSync.Downloader
                         {
                             Logger.log?.Warn($"Unable to delete zip file after extraction: {downloadResult.FilePath}.\n{ex.Message}");
                         }
+
                         result.ZipResult = zipResult;
                         extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
                         if (!overwrite && !songDirPath.Equals(extractDirectory))
@@ -128,8 +129,8 @@ namespace BeatSync.Downloader
                             HashSource.ExistingSongs[song.Hash] = extractDirectory;
                         }
                         Logger.log?.Info($"Finished downloading and extracting {song}");
-                        HistoryManager.TryUpdateFlag(song.Hash, HistoryFlag.Downloaded);
                         var extractedHash = await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false);
+                        result.HashAfterDownload = extractedHash.songHash;
                         if (!song.Hash.Equals(extractedHash.songHash))
                             Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song}");
                         else
@@ -140,25 +141,14 @@ namespace BeatSync.Downloader
             catch (Exception ex)
             {
                 Logger.log?.Error($"Error downloading {song.Key}: {ex.Message}");
-                var downloadHasFilePathBecauseItWasAbleToStartWritingTheFile = !string.IsNullOrEmpty(result.DownloadResult.FilePath);
-                if (downloadHasFilePathBecauseItWasAbleToStartWritingTheFile)
-                    HistoryManager.TryRemove(song.Hash); // Download probably succeeded, but extract failed, try again later.
             }
             finally
             {
-                if (result.DownloadResult?.HttpStatusCode == 404)
-                {
-                    if (HistoryManager.TryUpdateFlag(song.Hash, HistoryFlag.NotFound))
-                        Logger.log?.Warn($"Updated flag to NotFound for {song.Key}");
-                    PlaylistManager.RemoveSongFromAll(song.Hash);
-                }
-                if (string.IsNullOrEmpty(result.DownloadResult?.FilePath) && result.DownloadResult?.HttpStatusCode != 404)
-                    HistoryManager.TryRemove(song.Hash); // If it's not found, keep it in history so it doesn't try again.
                 if (File.Exists(result.DownloadResult?.FilePath))
                     await FileIO.TryDeleteAsync(result.DownloadResult?.FilePath).ConfigureAwait(false);
-
             }
-            return song;
+            result.Successful = true;
+            return result;
         }
 
         public async Task RunReaders()
