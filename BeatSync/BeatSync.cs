@@ -112,7 +112,7 @@ namespace BeatSync
             {
                 foreach (var job in downloadTask.Result)
                 {
-                    ProcessJob(job);
+                    Downloader.ProcessJob(job);
                 }
             });
             var processingWait = new WaitUntil(() => processingTask.IsCompleted);
@@ -125,32 +125,7 @@ namespace BeatSync
             StartCoroutine(UpdateLevelPacks());
         }
 
-        public void ProcessJob(JobResult job)
-        {
-            if (job.Successful)
-            {
-                HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.Downloaded);
-            }
-            else if (job.DownloadResult.Status != DownloadResultStatus.Success)
-            {
-                if(job.DownloadResult.HttpStatusCode == 404)
-                {
-                    // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
-                    HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.NotFound);
-                    PlaylistManager.RemoveSongFromAll(job.Song);
-                }
-                else
-                {
-                    // Download failed for some reason, remove from history so it tries again.
-                    HistoryManager.TryRemove(job.Song.Hash);
-                }
-            }
-            else if(job.ZipResult.ResultStatus != ZipExtractResultStatus.Success)
-            {
-                // Unzipping failed for some reason, remove from history so it tries again.
-                HistoryManager.TryRemove(job.Song.Hash);
-            }
-        }
+        
 
         public IEnumerator<WaitUntil> UpdateLevelPacks()
         {

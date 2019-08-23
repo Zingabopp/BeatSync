@@ -17,13 +17,14 @@ namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
-        private SongHasher HashSource { get; set; }
+        
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
         private ConcurrentQueue<PlaylistSong> DownloadQueue;
         private PluginConfig Config;
-        private HistoryManager HistoryManager;
+        public HistoryManager HistoryManager { get; private set; }
+        public SongHasher HashSource { get; private set; }
 
         private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
 
@@ -35,6 +36,33 @@ namespace BeatSync.Downloader
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
             HistoryManager = historyManager;
             Config = config;
+        }
+
+        public void ProcessJob(JobResult job)
+        {
+            if (job.Successful)
+            {
+                HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.Downloaded);
+            }
+            else if (job.DownloadResult.Status != DownloadResultStatus.Success)
+            {
+                if (job.DownloadResult.HttpStatusCode == 404)
+                {
+                    // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
+                    HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.NotFound);
+                    PlaylistManager.RemoveSongFromAll(job.Song);
+                }
+                else
+                {
+                    // Download failed for some reason, remove from history so it tries again.
+                    HistoryManager.TryRemove(job.Song.Hash);
+                }
+            }
+            else if (job.ZipResult.ResultStatus != ZipExtractResultStatus.Success)
+            {
+                // Unzipping failed for some reason, remove from history so it tries again.
+                HistoryManager.TryRemove(job.Song.Hash);
+            }
         }
 
         public async Task<List<JobResult>> RunDownloaderAsync()
