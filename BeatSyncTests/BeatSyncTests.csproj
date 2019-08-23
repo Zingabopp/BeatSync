@@ -48,6 +48,8 @@
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeatSync_Tests\ProcessJob_Tests.cs" />
+    <Compile Include="BeatSync_Tests\UnitTest1.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
     <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
@@ -84,6 +86,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Data\HistoryManager\BeatSyncHistory-TestCol2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\HistoryManager\TestSongsHistory.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Data\Playlists\ScoreSaberTopRanked.json">

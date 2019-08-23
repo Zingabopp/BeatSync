@@ -18,24 +18,24 @@ namespace BeatSyncTests.HistoryManager_Tests
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "HistoryManager"));
 
-        private Dictionary<string, string> TestCollection1 = new Dictionary<string, string>()
+        private static Dictionary<string, HistoryEntry> TestCollection1 = new Dictionary<string, HistoryEntry>()
         {
-            {"LAKSDJFLK23LKJF23LKJ23R", "Test song 1 by whoever" },
-            {"ASDFALKSDJFLKAJSDFLKJAS", "Test song 2 by whoever" },
-            {"AVCIJASLDKVJAVLSKDJLKAJ", "Test song 3 by whoever" },
-            {"ASDLVKJASVLDKJALKSDJFLK", "Test song 4 by whoever" },
-            {"QWEORIUQWEORIUQOWIEURAO", "Test song 5 by whoever" },
-            {"ZXCVPOZIXCVPOIZXCVPOVIV", "Test song 6 by whoever" },
-            {"QLQFWHJLNKFLKNMWLQKCNML", "Test song 7 by whoever" },
-            {"TBRNEMNTMRBEBNMTEERVCVB", "Test song 8 by whoever" }
+            {"LAKSDJFLK23LKJF23LKJ23R", new HistoryEntry("Test song 1 by whoever", 0) },
+            {"ASDFALKSDJFLKAJSDFLKJAS", new HistoryEntry("Test song 2 by whoever", 0) },
+            {"AVCIJASLDKVJAVLSKDJLKAJ", new HistoryEntry("Test song 3 by whoever", 0) },
+            {"ASDLVKJASVLDKJALKSDJFLK", new HistoryEntry("Test song 4 by whoever", 0) },
+            {"QWEORIUQWEORIUQOWIEURAO", new HistoryEntry("Test song 5 by whoever", 0) },
+            {"ZXCVPOZIXCVPOIZXCVPOVIV", new HistoryEntry("Test song 6 by whoever", 0) },
+            {"QLQFWHJLNKFLKNMWLQKCNML", new HistoryEntry("Test song 7 by whoever", 0) },
+            {"TBRNEMNTMRBEBNMTEERVCVB", new HistoryEntry("Test song 8 by whoever", 0) }
         };
 
-        private Dictionary<string, string> TestCollection2 = new Dictionary<string, string>()
+        private static Dictionary<string, HistoryEntry> TestCollection2 = new Dictionary<string, HistoryEntry>()
         {
-            {"QWEMNRBQENMQBWERNBQWXCV", "Test song 9 by whoever" },
-            {"ZXCVOIUZXCOVIUZXCVUIOZZ", "Test song 10 by whoever" },
-            {"YXXCVBYIUXCVBIUYXCVBIUY", "Test song 11 by whoever" },
-            {"MNBWMENRTBMQNWEBTMNQBWE", "Test song 12 by whoever" }
+            {"QWEMNRBQENMQBWERNBQWXCV", new HistoryEntry("Test song 9 by whoever", 0) },
+            {"ZXCVOIUZXCOVIUZXCVUIOZZ", new HistoryEntry("Test song 10 by whoever", 0) },
+            {"YXXCVBYIUXCVBIUYXCVBIUY", new HistoryEntry("Test song 11 by whoever", 0) },
+            {"MNBWMENRTBMQNWEBTMNQBWE", new HistoryEntry("Test song 12 by whoever", 0) }
         };
 
         [TestMethod]
@@ -55,7 +55,8 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value, 0);
+                
+                historyManager.TryAdd(pair.Key, pair.Value.SongInfo, pair.Value.Flag);
             }
             var doesContain = historyManager.ContainsKey(TestCollection1.Keys.First());
             Assert.IsTrue(doesContain);
@@ -69,7 +70,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value, 0);
+                historyManager.TryAdd(pair.Key, pair.Value.SongInfo, pair.Value.Flag);
             }
             var notAddedKey = "zoxcasdlfkjasdlfkj";
             var doesContain = historyManager.ContainsKey(notAddedKey);
@@ -84,7 +85,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value, 0);
+                historyManager.TryAdd(pair.Key, pair.Value.SongInfo, pair.Value.Flag);
             }
             var emptyKey = "";
             var doesContain = historyManager.ContainsKey(emptyKey);
@@ -99,7 +100,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
-                historyManager.TryAdd(pair.Key, pair.Value, 0);
+                historyManager.TryAdd(pair.Key, pair.Value.SongInfo, pair.Value.Flag);
             }
             string nullKey = null;
             var doesContain = historyManager.ContainsKey(nullKey);

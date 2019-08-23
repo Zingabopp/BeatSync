@@ -54,9 +54,10 @@ namespace BeatSync
             }
         }
 
+        private static WaitUntil WaitForUnPause = new WaitUntil(() => !Paused);
         private SongDownloader Downloader;
-        private SongHasher SongHasher;
-        private HistoryManager HistoryManager;
+        public SongHasher SongHasher;
+        public HistoryManager HistoryManager;
 
 
         public void Awake()
@@ -88,9 +89,7 @@ namespace BeatSync
         public IEnumerator<WaitUntil> HashSongsCoroutine()
         {
             SongHasher.LoadCachedSongHashes();
-            var hashTask = Task.Run(() => SongHasher.AddMissingHashes());
-            var hashWait = new WaitUntil(() => hashTask.IsCompleted);
-            yield return hashWait;
+            yield return WaitForUnPause;
             StartCoroutine(ScrapeSongsCoroutine());
         }
 
@@ -108,6 +107,7 @@ namespace BeatSync
             //Check result -> Maybe remove from history
             //                Maybe remove from playlists
             //                Increment successful/failed downloads
+            yield return WaitForUnPause;
             var processingTask = Task.Run(() =>
             {
                 foreach (var job in downloadTask.Result)
@@ -154,8 +154,7 @@ namespace BeatSync
 
         public IEnumerator<WaitUntil> UpdateLevelPacks()
         {
-            var waitPaused = new WaitUntil(() => !Paused);
-            yield return waitPaused;
+            yield return WaitForUnPause;
             BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
             if (!SongCore.Loader.AreSongsLoaded && SongCore.Loader.AreSongsLoading)
             {

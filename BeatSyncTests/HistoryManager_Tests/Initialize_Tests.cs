@@ -18,24 +18,24 @@ namespace BeatSyncTests.HistoryManager_Tests
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Data", "HistoryManager"));
 
-        private Dictionary<string, string> TestCollection1 = new Dictionary<string, string>()
+        private static Dictionary<string, HistoryEntry> TestCollection1 = new Dictionary<string, HistoryEntry>()
         {
-            {"LAKSDJFLK23LKJF23LKJ23R", "Test song 1 by whoever" },
-            {"ASDFALKSDJFLKAJSDFLKJAS", "Test song 2 by whoever" },
-            {"AVCIJASLDKVJAVLSKDJLKAJ", "Test song 3 by whoever" },
-            {"ASDLVKJASVLDKJALKSDJFLK", "Test song 4 by whoever" },
-            {"QWEORIUQWEORIUQOWIEURAO", "Test song 5 by whoever" },
-            {"ZXCVPOZIXCVPOIZXCVPOVIV", "Test song 6 by whoever" },
-            {"QLQFWHJLNKFLKNMWLQKCNML", "Test song 7 by whoever" },
-            {"TBRNEMNTMRBEBNMTEERVCVB", "Test song 8 by whoever" }
+            {"LAKSDJFLK23LKJF23LKJ23R", new HistoryEntry("Test song 1 by whoever", 0) },
+            {"ASDFALKSDJFLKAJSDFLKJAS", new HistoryEntry("Test song 2 by whoever", 0) },
+            {"AVCIJASLDKVJAVLSKDJLKAJ", new HistoryEntry("Test song 3 by whoever", 0) },
+            {"ASDLVKJASVLDKJALKSDJFLK", new HistoryEntry("Test song 4 by whoever", 0) },
+            {"QWEORIUQWEORIUQOWIEURAO", new HistoryEntry("Test song 5 by whoever", 0) },
+            {"ZXCVPOZIXCVPOIZXCVPOVIV", new HistoryEntry("Test song 6 by whoever", 0) },
+            {"QLQFWHJLNKFLKNMWLQKCNML", new HistoryEntry("Test song 7 by whoever", 0) },
+            {"TBRNEMNTMRBEBNMTEERVCVB", new HistoryEntry("Test song 8 by whoever", 0) }
         };
 
-        private Dictionary<string, string> TestCollection2 = new Dictionary<string, string>()
+        private static Dictionary<string, HistoryEntry> TestCollection2 = new Dictionary<string, HistoryEntry>()
         {
-            {"QWEMNRBQENMQBWERNBQWXCV", "Test song 9 by whoever" },
-            {"ZXCVOIUZXCOVIUZXCVUIOZZ", "Test song 10 by whoever" },
-            {"YXXCVBYIUXCVBIUYXCVBIUY", "Test song 11 by whoever" },
-            {"MNBWMENRTBMQNWEBTMNQBWE", "Test song 12 by whoever" }
+            {"QWEMNRBQENMQBWERNBQWXCV", new HistoryEntry("Test song 9 by whoever", 0) },
+            {"ZXCVOIUZXCOVIUZXCVUIOZZ", new HistoryEntry("Test song 10 by whoever", 0) },
+            {"YXXCVBYIUXCVBIUYXCVBIUY", new HistoryEntry("Test song 11 by whoever", 0) },
+            {"MNBWMENRTBMQNWEBTMNQBWE", new HistoryEntry("Test song 12 by whoever", 0) }
         };
 
         [TestMethod]
@@ -121,7 +121,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             var songToAdd = TestCollection2.First();
-            historyManager.TryAdd(songToAdd.Key, songToAdd.Value, 0);
+            historyManager.TryAdd(songToAdd.Key, songToAdd.Value.SongInfo, songToAdd.Value.Flag);
             Assert.AreEqual(9, historyManager.Count);
             historyManager.Initialize();
             Assert.AreEqual(9, historyManager.Count);
@@ -136,7 +136,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var historyManager = new HistoryManager(filePath);
             historyManager.Initialize(filePath);
             var songToAdd = TestCollection2.First();
-            historyManager.TryAdd(songToAdd.Key, songToAdd.Value, 0);
+            historyManager.TryAdd(songToAdd.Key, songToAdd.Value.SongInfo, songToAdd.Value.Flag);
             Assert.AreEqual(9, historyManager.Count);
             historyManager.Initialize(filePath);
             Assert.AreEqual(9, historyManager.Count);

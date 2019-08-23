@@ -82,7 +82,8 @@ namespace BeatSync.Downloader
 
 
         /// <summary>
-        /// This should be redone, return a DownloadResult so other things can take action with regards to HistoryManager
+        /// This should be redone, return a DownloadResult so other things can take action with regards to HistoryManager.
+        /// Attempts to delete the downloaded zip when finished.
         /// </summary>
         /// <param name="song"></param>
         /// <returns></returns>
@@ -99,44 +100,44 @@ namespace BeatSync.Downloader
                 directoryCreated = !Directory.Exists(songDirPath);
                 // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting/incrementing folder name
                 // This doesn't guarantee the song isn't already downloaded
-                if (HashSource.HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
+                //if (HashSource.HashDictionary.TryAdd(songDirPath, new SongHashData(0, song.Hash)))
+                //{
+                if (BeatSync.Paused)
+                    await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+                var downloadResult = await DownloadSongAsync(song, SongTempPath).ConfigureAwait(false);
+                result.DownloadResult = downloadResult;
+                if (downloadResult.Status == DownloadResultStatus.Success)
                 {
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var downloadResult = await DownloadSongAsync(song, SongTempPath).ConfigureAwait(false);
-                    result.DownloadResult = downloadResult;
-                    if (downloadResult.Status == DownloadResultStatus.Success)
+                    var zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
+                    // Try to delete zip file
+                    try
                     {
-                        if (BeatSync.Paused)
-                            await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                        var zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
-                        // Try to delete zip file
-                        try
-                        {
-                            var deleteSuccessful = await FileIO.TryDeleteAsync(downloadResult.FilePath).ConfigureAwait(false);
-                        }
-                        catch (IOException ex)
-                        {
-                            Logger.log?.Warn($"Unable to delete zip file after extraction: {downloadResult.FilePath}.\n{ex.Message}");
-                        }
-
-                        result.ZipResult = zipResult;
-                        extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
-                        if (!overwrite && !songDirPath.Equals(extractDirectory))
-                        {
-                            Logger.log?.Debug($"songDirPath {songDirPath} != {extractDirectory}, updating dictionary.");
-                            directoryCreated = true;
-                            HashSource.ExistingSongs[song.Hash] = extractDirectory;
-                        }
-                        Logger.log?.Info($"Finished downloading and extracting {song}");
-                        var extractedHash = await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false);
-                        result.HashAfterDownload = extractedHash.songHash;
-                        if (!song.Hash.Equals(extractedHash.songHash))
-                            Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song}");
-                        else
-                            Logger.log?.Debug($"Extracted hash matches Beat Saver hash for {song}");
+                        var deleteSuccessful = await FileIO.TryDeleteAsync(downloadResult.FilePath).ConfigureAwait(false);
                     }
+                    catch (IOException ex)
+                    {
+                        Logger.log?.Warn($"Unable to delete zip file after extraction: {downloadResult.FilePath}.\n{ex.Message}");
+                    }
+
+                    result.ZipResult = zipResult;
+                    extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
+                    if (!overwrite && !songDirPath.Equals(extractDirectory))
+                    {
+                        Logger.log?.Debug($"songDirPath {songDirPath} != {extractDirectory}, updating dictionary.");
+                        directoryCreated = true;
+                        HashSource.ExistingSongs[song.Hash] = extractDirectory;
+                    }
+                    Logger.log?.Info($"Finished downloading and extracting {song}");
+                    var extractedHash = await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false);
+                    result.HashAfterDownload = extractedHash.songHash;
+                    if (!song.Hash.Equals(extractedHash.songHash))
+                        Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for {song}");
+                    else
+                        Logger.log?.Debug($"Extracted hash matches Beat Saver hash for {song}");
                 }
+                //}
             }
             catch (Exception ex)
             {
