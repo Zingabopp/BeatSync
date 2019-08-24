@@ -83,10 +83,5 @@ namespace BeatSyncTests.HistoryManager_Tests
             Assert.IsNull(value);
 
         }
-
-        private string PlaylistToString(PlaylistSong song)
-        {
-            return $"({song.Key}) {song.Name} by {song.LevelAuthorName}";
-        }
     }
 }
