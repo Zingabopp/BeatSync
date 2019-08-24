@@ -63,7 +63,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var expectedValue = TestCollection1[key];
             var doesContain = historyManager.TryGetValue(key, out HistoryEntry value);
             Assert.IsTrue(doesContain);
-            Assert.AreEqual(expectedValue, value.SongInfo);
+            Assert.AreEqual(expectedValue.SongInfo, value.SongInfo);
 
         }
 
