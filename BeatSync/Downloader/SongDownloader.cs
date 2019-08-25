@@ -37,7 +37,7 @@ namespace BeatSync.Downloader
             HistoryManager = historyManager;
             Config = config;
         }
-
+        
         public void ProcessJob(JobResult job)
         {
             if (job.Successful)
@@ -77,9 +77,17 @@ namespace BeatSync.Downloader
             var jobResults = new List<JobResult>();
             while (DownloadQueue.TryDequeue(out var song))
             {
+                if (BeatSync.Paused)
+                    await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                 if (DownloadBatch.TryReceiveAll(out var jobs))
                 {
-                    jobResults.AddRange(jobs);
+                    foreach (var job in jobs)
+                    {
+                        if (BeatSync.Paused)
+                            await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+                        ProcessJob(job);
+                        jobResults.Add(job);
+                    }
                 }
                 await DownloadBatch.SendAsync(song).ConfigureAwait(false);
             }
@@ -88,7 +96,13 @@ namespace BeatSync.Downloader
 
             if (DownloadBatch.TryReceiveAll(out var jobsCompleted))
             {
-                jobResults.AddRange(jobsCompleted);
+                foreach (var job in jobsCompleted)
+                {
+                    if (BeatSync.Paused)
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+                    ProcessJob(job);
+                    jobResults.Add(job);
+                }
             }
             return jobResults;
         }
