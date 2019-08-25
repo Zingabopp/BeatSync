@@ -56,7 +56,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BeatSync_Tests\ProcessJob_Tests.cs" />
+    <Compile Include="SongDownloader_Tests\ProcessJob_Tests.cs" />
     <Compile Include="BeatSync_Tests\UnitTest1.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
