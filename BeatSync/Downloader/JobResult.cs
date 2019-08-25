@@ -17,5 +17,10 @@ namespace BeatSync.Downloader
         public DownloadResult DownloadResult { get; set; }
         public ZipExtractResult ZipResult { get; set; }
         public PlaylistSong Song { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Song?.ToString()}, Download Status: {DownloadResult?.Status}, Zip Result: {ZipResult?.ResultStatus}";
+        }
     }
 }

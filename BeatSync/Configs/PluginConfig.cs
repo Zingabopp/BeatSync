@@ -72,7 +72,8 @@ namespace BeatSync.Configs
                 MaxConcurrentPageChecks = 5,
                 Hot = new BeatSaverHot() { Enabled = false, MaxSongs = 10, CreatePlaylist = true },
                 Downloads = new BeatSaverDownloads() { Enabled = false, MaxSongs = 20, CreatePlaylist = true },
-                FavoriteMappers = new BeatSaverFavoriteMappers() { Enabled = true, MaxSongs = 0, SeparateMapperPlaylists = false, CreatePlaylist = true }
+                // , SeparateMapperPlaylists = false
+                FavoriteMappers = new BeatSaverFavoriteMappers() { Enabled = true, MaxSongs = 0, CreatePlaylist = true }
             };
 
             BeastSaber = new BeastSaberConfig()

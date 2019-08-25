@@ -58,7 +58,7 @@ namespace BeatSync.Downloader
                     HistoryManager.TryRemove(job.Song.Hash);
                 }
             }
-            else if (job.ZipResult.ResultStatus != ZipExtractResultStatus.Success)
+            else if (job.ZipResult?.ResultStatus != ZipExtractResultStatus.Success)
             {
                 // Unzipping failed for some reason, remove from history so it tries again.
                 HistoryManager.TryRemove(job.Song.Hash);
@@ -67,7 +67,7 @@ namespace BeatSync.Downloader
 
         public async Task<List<JobResult>> RunDownloaderAsync()
         {
-            DownloadBatch = new TransformBlock<PlaylistSong, JobResult>(DownloadJob, new ExecutionDataflowBlockOptions()
+            DownloadBatch = new TransformBlock<PlaylistSong, JobResult>(async s => await DownloadJob(s).ConfigureAwait(false), new ExecutionDataflowBlockOptions()
             {
                 BoundedCapacity = DownloadQueue.Count + 100,
                 MaxDegreeOfParallelism = Config.MaxConcurrentDownloads,
@@ -75,21 +75,30 @@ namespace BeatSync.Downloader
             });
             //Logger.log?.Info($"Starting downloader.");
             var jobResults = new List<JobResult>();
-            while (DownloadQueue.TryDequeue(out var song))
+            try
             {
-                if (DownloadBatch.TryReceiveAll(out var jobs))
+                Logger.log?.Info($"RunDownloaderAsync: {DownloadQueue.Count} songs in DownloadQueue.");
+                while (DownloadQueue.TryDequeue(out var song))
                 {
-                    jobResults.AddRange(jobs);
+                    Logger.log?.Info($"Dequeuing {song.ToString()}.");
+                    if (DownloadBatch.TryReceiveAll(out var jobs))
+                    {
+                        jobResults.AddRange(jobs);
+                    }
+                    Logger.log?.Info($"Waiting to send to block {song.ToString()}.");
+                    await DownloadBatch.SendAsync(song).ConfigureAwait(false);
+                    Logger.log?.Info($"Send to block {song.ToString()}.");
                 }
-                await DownloadBatch.SendAsync(song).ConfigureAwait(false);
-            }
-            DownloadBatch.Complete();
-            await DownloadBatch.Completion().ConfigureAwait(false);
-
-            if (DownloadBatch.TryReceiveAll(out var jobsCompleted))
-            {
-                jobResults.AddRange(jobsCompleted);
-            }
+                DownloadBatch.Complete();
+                Logger.log?.Info($"Waiting for Completion.");
+                await DownloadBatch.Completion().ConfigureAwait(false);
+                Logger.log?.Info($"Everything should be complete.");
+                if (DownloadBatch.TryReceiveAll(out var jobsCompleted))
+                {
+                    jobResults.AddRange(jobsCompleted);
+                }
+            }catch(Exception ex)
+            { Logger.log?.Error(ex); }
             return jobResults;
         }
 
@@ -221,20 +230,21 @@ namespace BeatSync.Downloader
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
             var allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
             var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
-            foreach (var scrapedSong in songsToDownload.Values)
+            foreach (var pair in songsToDownload)
             {
-                var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
+                var playlistSong = new PlaylistSong(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
                 var notInHistory = HistoryManager.TryAdd(playlistSong, 0); // Make sure it's in HistoryManager even if it already exists.
-                var didntExist = HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, "");
+                var didntExist = HashSource.ExistingSongs.TryAdd(pair.Value.Hash, "");
                 if (didntExist && notInHistory)
                 {
-                    Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongName} by {scrapedSong.MapperName} for download.");
+                    Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
+
                     DownloadQueue.Enqueue(playlistSong);
                 }
-                else if (!didntExist && HistoryManager.TryGetValue(scrapedSong.Hash, out var value))
+                else if (!didntExist && HistoryManager.TryGetValue(pair.Value.Hash, out var value))
                 {
                     if (value.Flag == HistoryFlag.None)
-                        HistoryManager.TryUpdateFlag(scrapedSong.Hash, HistoryFlag.PreExisting);
+                        HistoryManager.TryUpdateFlag(pair.Value.Hash, HistoryFlag.PreExisting);
                 }
 
                 allPlaylist?.TryAdd(playlistSong);
