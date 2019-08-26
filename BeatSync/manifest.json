@@ -5,7 +5,7 @@
   "gameVersion": "1.2.0",
   "id": "BeatSync",
   "name": "BeatSync",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependsOn": {
     "BSIPA": "^3.12.23",
     "SongCore": "^2.0.11",
