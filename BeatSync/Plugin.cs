@@ -105,11 +105,12 @@ namespace BeatSync
         public void MenuLoadedFresh()
         {
             {
-                Logger.log?.Debug("Creating plugin's UI");
+                Logger.log?.Debug("Creating BeatSync's UI");
                 UI.BeatSync_UI.CreateUI();
                 var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
                 try
                 {
+                    settingsMenu.didFinishEvent -= SettingsMenu_didFinishEvent;
                     settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
                 }
                 catch (Exception ex)
