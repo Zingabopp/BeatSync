@@ -37,7 +37,7 @@ namespace BeatSync.Downloader
             HistoryManager = historyManager;
             Config = config;
         }
-
+        
         public void ProcessJob(JobResult job)
         {
             if (job.Successful)
@@ -84,7 +84,7 @@ namespace BeatSync.Downloader
             {
                 Logger.log?.Debug($"RunDownloaderAsync: {DownloadQueue.Count} songs in DownloadQueue.");
                 while (DownloadQueue.TryDequeue(out var song))
-                {
+                {//-----------------------------------------------------------
                     if (downloadBatch.TryReceiveAll(out var jobs))
                     {
                         jobResults.AddRange(jobs.Select(r =>
@@ -93,6 +93,13 @@ namespace BeatSync.Downloader
                                 return new JobResult() { Exception = r.Exception };
                             return r.Output;
                         }));
+						foreach (var job in jobResults)
+						{
+							if (BeatSync.Paused)
+								await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+							ProcessJob(job);
+							jobResults.Add(job);
+						}
                     }
                     await downloadBatch.SendAsync(song).ConfigureAwait(false);
                 }
@@ -108,6 +115,13 @@ namespace BeatSync.Downloader
                             return new JobResult() { Exception = r.Exception };
                         return r.Output;
                     }));
+					foreach (var job in jobResults)
+                    {
+                        if (BeatSync.Paused)
+                            await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+                        ProcessJob(job);
+                        jobResults.Add(job);
+                    }
                 }
             }
             catch (Exception ex)

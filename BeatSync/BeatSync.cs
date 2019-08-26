@@ -120,20 +120,6 @@ namespace BeatSync
             var downloadTask = Downloader.RunDownloaderAsync(Plugin.config.Value.MaxConcurrentDownloads);
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
-            // For each song
-            //Check result -> Maybe remove from history
-            //                Maybe remove from playlists
-            //                Increment successful/failed downloads
-            yield return WaitForUnPause;
-            var processingTask = Task.Run(() =>
-            {
-                foreach (var job in downloadTask.Result)
-                {
-                    Downloader.ProcessJob(job);
-                }
-            });
-            var processingWait = new WaitUntil(() => processingTask.IsCompleted);
-            yield return processingWait;
             PlaylistManager.WriteAllPlaylists();
             HistoryManager.WriteToFile();
             int numDownloads = downloadTask.Result.Count;
