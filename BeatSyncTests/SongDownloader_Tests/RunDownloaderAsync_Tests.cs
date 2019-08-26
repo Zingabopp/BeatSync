@@ -28,9 +28,9 @@ namespace BeatSyncTests.SongDownloader_Tests
         public static string DefaultSongsPath = Path.GetFullPath(Path.Combine("Output", "RunDownloaderAsync_Tests", "Songs"));
 
         [TestMethod]
-        public void Normal()
+        public void SingleThreaded_FirstSongNotFound()
         {
-            var songsPath = Path.Combine(DefaultSongsPath, "Normal");
+            var songsPath = Path.Combine(DefaultSongsPath, "SingleThreaded_FirstSongNotFound");
             if (Directory.Exists(songsPath))
                 Directory.Delete(songsPath, true);
             var downloader = new SongDownloader(defaultConfig, null, null, songsPath);

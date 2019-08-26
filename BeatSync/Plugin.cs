@@ -58,13 +58,12 @@ namespace BeatSync
             // Check if CustomUI is installed.
             customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
             // If Custom UI is installed, create the UI
-            //if (customUIExists)
-            //    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
-
+            if (customUIExists)
+                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
             // Called to set the WebClient SongFeedReaders uses
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
 
-            // Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
+            // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             SongFeedReaders.BeastSaberReader.Logger = readerLogger;
             SongFeedReaders.BeatSaverReader.Logger = readerLogger;
@@ -75,12 +74,68 @@ namespace BeatSync
 
         }
 
-
-
         public void OnApplicationQuit()
         {
             Logger.log?.Debug("OnApplicationQuit");
         }
+
+        /// <summary>
+        /// Called when the active scene is changed.
+        /// </summary>
+        /// <param name="prevScene">The scene you are transitioning from.</param>
+        /// <param name="nextScene">The scene you are transitioning to.</param>
+        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
+        {
+            if (nextScene.name == "HealthWarning")
+            {
+                BeatSync.Paused = false;
+                var beatSync = new GameObject().AddComponent<BeatSync>();
+                GameObject.DontDestroyOnLoad(beatSync);
+            }
+            if (nextScene.name == "GameCore")
+                BeatSync.Paused = true;
+            else
+                BeatSync.Paused = false;
+        }
+
+        /// <summary>
+        /// Called when BSEvents.menuSceneLoadedFresh is triggered. UI creation is in here instead of
+        /// OnSceneLoaded because some settings won't work otherwise.
+        /// </summary>
+        public void MenuLoadedFresh()
+        {
+            {
+                Logger.log?.Debug("Creating plugin's UI");
+                UI.BeatSync_UI.CreateUI();
+                var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
+                try
+                {
+                    settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
+                }
+                catch (Exception ex)
+                {
+                    Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
+                }
+            }
+
+        }
+
+        private void SettingsMenu_didFinishEvent(SettingsFlowCoordinator sender, SettingsFlowCoordinator.FinishAction finishAction)
+        {
+            try
+            {
+                if (finishAction != SettingsFlowCoordinator.FinishAction.Cancel)
+                {
+                    Logger.log?.Debug("Saving settings.");
+                    configProvider.Store(config.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Critical($"Error saving settings.\n{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
 
         /// <summary>
         /// Runs at a fixed intervalue, generally used for physics calculations. 
@@ -98,44 +153,7 @@ namespace BeatSync
 
         }
 
-        /// <summary>
-        /// Called when the active scene is changed.
-        /// </summary>
-        /// <param name="prevScene">The scene you are transitioning from.</param>
-        /// <param name="nextScene">The scene you are transitioning to.</param>
-        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
-        {
-            if (nextScene.name == "HealthWarning")
-            {
-                BeatSync.Paused = false;
-                var beatSync = new GameObject().AddComponent<BeatSync>();
-                GameObject.DontDestroyOnLoad(beatSync);
 
-                var hashList = JsonConvert.DeserializeObject<Dictionary<string, SongCore.Data.SongHashData>>(File.ReadAllText(CachedHashDataPath));
-                var thing = hashList.Values.Where(h => h.songHash.Equals("CC2250FDB1C2020DAD112BAF54FC25A52FA56822")).ToList();
-                if (thing.Count > 0)
-                    Logger.log?.Debug($"---------------Found {thing.FirstOrDefault()}-------------");
-                else
-                    Logger.log?.Debug($"----------Couldn't find song------------------");
-            }
-            if (nextScene.name == "GameCore")
-                BeatSync.Paused = true;
-            else
-                BeatSync.Paused = false;
-        }
-
-        /// <summary>
-        /// Called when BSEvents.menuSceneLoadedFresh is triggered. UI creation is in here instead of
-        /// OnSceneLoaded because some settings won't work otherwise.
-        /// </summary>
-        public void MenuLoadedFresh()
-        {
-            {
-                Logger.log?.Debug("Creating plugin's UI");
-                UI.BeatSync_UI.CreateUI();
-            }
-
-        }
         /// <summary>
         /// Called when the a scene's assets are loaded.
         /// </summary>
