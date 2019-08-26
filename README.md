@@ -4,15 +4,23 @@ The following sources and feeds are currently supported:
  * Beast Saber: Bookmarks, Follows, Curator Recommended
  * Beat Saver: FavoriteMappers, Hot, Downloads
  * ScoreSaber: Trending, Top Ranked, Latest Ranked, Top Played
+# Installation
+* Extract the release zip to your Beat Saber folder (or manually place BeatSync.dll into your Plugins folder).
+* You must also have the following mods for BeatSync to function:
+  * BSIPA 
+  * SongCore
+  * CustomUI
+  * BeatSaverDownloader
 
 # Usage
 **First Run:**
-* Run Beat Saber after installing the mod and set the settings in-game (Settings > BeatSync) or in UserData\BeatSync.json.
+* Run Beat Saber after installing the mod and configure the settings in-game (Settings > BeatSync) or in UserData\BeatSync.json.
 * Beat Saber must be restarted for it use the modified settings to download songs.
 
 # Configuration
-Configuration is currently only available by editing BeatSync.json in the UserData folder.
-Each feed has the following options:
+Configuration can be done in-game in Settings > BeatSync or by (carefully) editing the BeatSync.json file in your UserData folder.
+
+__Each feed has the following options:__
 * Enabled: If true, BeatSync will use this feed to download songs.
 * MaxSongs: Maximum number of songs to download from that feed.
 * CreatePlaylist: Creates/Maintains a playlist using songs from the feed. Songs that are found by the feed but have already been downloaded are also added to the playlist.
@@ -85,3 +93,6 @@ __BeatSync.json__
 	* CreatePlaylist
 	* PlaylistStyle
 	* RankedOnly: If true, only get ranked songs.
+	
+# Additional Information
+* BeatSync maintains a history file for songs it finds in the feeds. This is used to prevent BeatSync from redownloading songs you've deleted. It is sorted in descending order by date the song was added to the history. This file can safely be deleted (or carefully edited) if you want BeatSync to download songs you've deleted in the past.
