@@ -83,7 +83,7 @@ namespace BeatSync
         /// Loads cached data from the file into the HashDictionary and ExistingSongs dictionary.
         /// Fails silently if the cache file doesn't exist. 
         /// </summary>
-        public void LoadCachedSongHashes()
+        public void LoadCachedSongHashes(bool keepMissing = true)
         {
             if (!File.Exists(SongCoreCachePath))
             {
@@ -101,10 +101,13 @@ namespace BeatSync
                     foreach (JProperty item in token.Children())
                     {
                         var songHashData = item.Value.ToObject<SongHashData>();
-                        var success = HashDictionary.TryAdd(Path.GetFullPath(item.Name), songHashData);
-                        ExistingSongs.TryAdd(songHashData.songHash, item.Name);
-                        if (!success)
-                            Logger.log?.Warn($"Couldn't add {item.Name} to the HashDictionary");
+                        if (keepMissing || File.Exists(Path.GetFullPath(item.Name)))
+                        {
+                            var success = HashDictionary.TryAdd(Path.GetFullPath(item.Name), songHashData);
+                            ExistingSongs.TryAdd(songHashData.songHash, item.Name);
+                            if (!success)
+                                Logger.log?.Warn($"Couldn't add {item.Name} to the HashDictionary");
+                        }
                     }
                     //var songHashes = ser.Deserialize<Dictionary<string, SongHashData>>(js);
                     //foreach (var songHash in songHashes)
@@ -151,7 +154,7 @@ namespace BeatSync
                     Logger.log?.Warn($"Directory {d.FullName} does not exist, this will [probably] never happen.");
                     return;
                 }
-                catch(ArgumentNullException)
+                catch (ArgumentNullException)
                 {
                     Logger.log?.Warn("Somehow the directory is null in AddMissingHashes, this will [probably] never happen.");
                     return;

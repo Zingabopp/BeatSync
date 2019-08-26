@@ -8,7 +8,7 @@ namespace BeatSync.Configs
         {
             FeedPlaylist = Playlists.BuiltInPlaylist.BeatSaverFavoriteMappers;
         }
-        public bool SeparateMapperPlaylists { get; set; }
+        //public bool SeparateMapperPlaylists { get; set; }
 
         public SongFeedReaders.BeatSaverFeedSettings ToFeedSettings()
         {

@@ -54,7 +54,6 @@ namespace BeatSyncTests.SongDownloader_Tests
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
                 BeatSaverHash = song.Hash,
-                Successful = false,
                 Song = song,
                 SongDirectory = null
             };
@@ -143,7 +142,6 @@ namespace BeatSyncTests.SongDownloader_Tests
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
                 BeatSaverHash = song.Hash,
-                Successful = true,
                 Song = song,
                 SongDirectory = null
             };
@@ -193,7 +191,6 @@ namespace BeatSyncTests.SongDownloader_Tests
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
                 BeatSaverHash = song.Hash,
-                Successful = false,
                 Song = song,
                 SongDirectory = null
             };

@@ -24,16 +24,16 @@ namespace BeatSync.Playlists
             //AvailablePlaylists.TryAdd("BeatSyncScoreSaberTopRanked", null);
             //AvailablePlaylists.TryAdd("BeatSyncFavoriteMappers", null);
             //AvailablePlaylists.TryAdd("BeatSyncRecent", null);
-            foreach (var key in DefaultPlaylists.Keys)
-            {
-                AvailablePlaylists.Add(key, null);
-            }
+            //foreach (var key in DefaultPlaylists.Keys)
+            //{
+            //    AvailablePlaylists.Add(key, null);
+            //}
 
         }
         public const string PlaylistPath = @"Playlists";
         public static readonly string ConvertedPlaylistPath = Path.Combine(PlaylistPath, "ConvertedSyncSaber");
         public static readonly string DisabledPlaylistsPath = Path.Combine(PlaylistPath, "DisabledPlaylists");
-        public  static readonly string[] PlaylistExtensions = new string[] { ".bplist", ".json" };
+        public static readonly string[] PlaylistExtensions = new string[] { ".bplist", ".json" };
 
         private static Dictionary<BuiltInPlaylist, Playlist> AvailablePlaylists; // Doesn't need to be concurrent, basically readonly
 
@@ -110,27 +110,26 @@ namespace BeatSync.Playlists
         public static Playlist GetPlaylist(BuiltInPlaylist builtInPlaylist)
         {
             Playlist playlist = null;
-            if (AvailablePlaylists.TryGetValue(builtInPlaylist, out playlist))
+            bool playlistExists = AvailablePlaylists.TryGetValue(builtInPlaylist, out playlist);
+            if (!playlistExists || playlist == null)
             {
-                if (playlist == null)
+                var defPlaylist = DefaultPlaylists[builtInPlaylist];
+                var path = FileIO.GetPlaylistFilePath(defPlaylist.FileName);
+                if (string.IsNullOrEmpty(path)) // If GetPlaylistFilePath returned null, the file doesn't exist
                 {
-                    var defPlaylist = DefaultPlaylists[builtInPlaylist];
-                    var path = FileIO.GetPlaylistFilePath(defPlaylist.FileName);
-                    if (string.IsNullOrEmpty(path)) // If GetPlaylistFilePath returned null, the file doesn't exist
-                    {
-                        if (AvailablePlaylists[builtInPlaylist] == null)
-                            AvailablePlaylists[builtInPlaylist] = defPlaylist;
-                        playlist = defPlaylist;
-                    }
-                    else
-                    {
-                        playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
-                        playlist.FileName = path;
-                        Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
-                    }
+                    //if (AvailablePlaylists[builtInPlaylist] == null)
+                    //    AvailablePlaylists[builtInPlaylist] = defPlaylist;
+                    playlist = defPlaylist;
                 }
+                else
+                {
+                    playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
+                    playlist.FileName = path;
+                    Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
+                }
+                AvailablePlaylists.Add(builtInPlaylist, playlist);
             }
-            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()}");
+            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()} with {playlist?.Songs?.Count} songs.");
             return playlist;
         }
 

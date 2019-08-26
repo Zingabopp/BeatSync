@@ -82,13 +82,30 @@ namespace BeatSync
             //var hashTask = Task.Run(() => AddMissingHashes());
             //Logger.log?.Info("Converting legacy playlists.");
             //PlaylistManager.ConvertLegacyPlaylists();
+            var recentPlaylist = Plugin.config.Value.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
+            if (recentPlaylist != null && Plugin.config.Value.RecentPlaylistDays > 0)
+            {
+                var minDate = DateTime.Now - new TimeSpan(Plugin.config.Value.RecentPlaylistDays, 0, 0, 0);
+                int removedCount = recentPlaylist.Songs.RemoveAll(s => s.DateAdded < minDate);
+                if (removedCount > 0)
+                {
+                    Logger.log?.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
+                }
+                else
+                    Logger.log?.Info("Didn't remove any songs from RecentPlaylist.");
+                
+            }
             StartCoroutine(HashSongsCoroutine());
             FavoriteMappers.Initialize();
         }
 
         public IEnumerator<WaitUntil> HashSongsCoroutine()
         {
-            SongHasher.LoadCachedSongHashes();
+            SongHasher.LoadCachedSongHashes(false);
+            yield return WaitForUnPause;
+            var hashingTask = Task.Run(() => SongHasher.AddMissingHashes());
+            var hashWait = new WaitUntil(() => hashingTask.IsCompleted);
+            yield return hashWait;
             yield return WaitForUnPause;
             StartCoroutine(ScrapeSongsCoroutine());
         }
@@ -100,7 +117,7 @@ namespace BeatSync
             var readTask = Downloader.RunReaders();
             var readWait = new WaitUntil(() => readTask.IsCompleted);
             yield return readWait;
-            var downloadTask = Downloader.RunDownloaderAsync();
+            var downloadTask = Downloader.RunDownloaderAsync(Plugin.config.Value.MaxConcurrentDownloads);
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
             PlaylistManager.WriteAllPlaylists();

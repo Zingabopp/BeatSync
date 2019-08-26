@@ -17,16 +17,16 @@ namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
-        
+
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
-        private ConcurrentQueue<PlaylistSong> DownloadQueue;
+        public ConcurrentQueue<PlaylistSong> DownloadQueue { get; private set; }
         private PluginConfig Config;
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
 
-        private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
+        //private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
 
         public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
@@ -43,13 +43,18 @@ namespace BeatSync.Downloader
             if (job.Successful)
             {
                 HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.Downloaded);
+                var recentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
+                recentPlaylist?.TryAdd(job.Song);
+                
             }
             else if (job.DownloadResult.Status != DownloadResultStatus.Success)
             {
                 if (job.DownloadResult.HttpStatusCode == 404)
                 {
                     // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
-                    HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.NotFound);
+                    Logger.log?.Debug($"Setting 404 flag for {job.Song.ToString()}");
+                    if (!HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.NotFound))
+                        Logger.log?.Debug($"Failed to update flag for {job.Song.ToString()}");
                     PlaylistManager.RemoveSongFromAll(job.Song);
                 }
                 else
@@ -58,30 +63,59 @@ namespace BeatSync.Downloader
                     HistoryManager.TryRemove(job.Song.Hash);
                 }
             }
-            else if (job.ZipResult.ResultStatus != ZipExtractResultStatus.Success)
+            else if (job.ZipResult?.ResultStatus != ZipExtractResultStatus.Success)
             {
                 // Unzipping failed for some reason, remove from history so it tries again.
                 HistoryManager.TryRemove(job.Song.Hash);
             }
         }
 
-        public async Task<List<JobResult>> RunDownloaderAsync()
+        public async Task<List<JobResult>> RunDownloaderAsync(int maxConcurrentDownloads)
         {
-            DownloadBatch = new TransformBlock<PlaylistSong, JobResult>(DownloadJob, new ExecutionDataflowBlockOptions()
+            var downloadBatch = new TransformBlock<PlaylistSong, JobResult>(DownloadJob, new ExecutionDataflowBlockOptions()
             {
                 BoundedCapacity = DownloadQueue.Count + 100,
-                MaxDegreeOfParallelism = Config.MaxConcurrentDownloads,
+                MaxDegreeOfParallelism = maxConcurrentDownloads,
                 EnsureOrdered = false
             });
             //Logger.log?.Info($"Starting downloader.");
             var jobResults = new List<JobResult>();
-            while (DownloadQueue.TryDequeue(out var song))
+            try
             {
-                if (BeatSync.Paused)
-                    await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                if (DownloadBatch.TryReceiveAll(out var jobs))
+                Logger.log?.Debug($"RunDownloaderAsync: {DownloadQueue.Count} songs in DownloadQueue.");
+                while (DownloadQueue.TryDequeue(out var song))
+                {//-----------------------------------------------------------
+                    if (downloadBatch.TryReceiveAll(out var jobs))
+                    {
+                        jobResults.AddRange(jobs.Select(r =>
+                        {
+                            if (r.Exception != null)
+                                return new JobResult() { Exception = r.Exception };
+                            return r.Output;
+                        }));
+						foreach (var job in jobResults)
+						{
+							if (BeatSync.Paused)
+								await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+							ProcessJob(job);
+							jobResults.Add(job);
+						}
+                    }
+                    await downloadBatch.SendAsync(song).ConfigureAwait(false);
+                }
+                downloadBatch.Complete();
+                Logger.log?.Debug($"Waiting for Completion.");
+                await downloadBatch.Completion.ConfigureAwait(false);
+                Logger.log?.Debug($"All downloads should be complete.");
+                if (downloadBatch.TryReceiveAll(out var jobsCompleted))
                 {
-                    foreach (var job in jobs)
+                    jobResults.AddRange(jobsCompleted.Select(r =>
+                    {
+                        if (r.Exception != null)
+                            return new JobResult() { Exception = r.Exception };
+                        return r.Output;
+                    }));
+					foreach (var job in jobResults)
                     {
                         if (BeatSync.Paused)
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
@@ -89,21 +123,9 @@ namespace BeatSync.Downloader
                         jobResults.Add(job);
                     }
                 }
-                await DownloadBatch.SendAsync(song).ConfigureAwait(false);
             }
-            DownloadBatch.Complete();
-            await DownloadBatch.Completion().ConfigureAwait(false);
-
-            if (DownloadBatch.TryReceiveAll(out var jobsCompleted))
-            {
-                foreach (var job in jobsCompleted)
-                {
-                    if (BeatSync.Paused)
-                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    ProcessJob(job);
-                    jobResults.Add(job);
-                }
-            }
+            catch (Exception ex)
+            { Logger.log?.Error(ex); }
             return jobResults;
         }
 
@@ -190,7 +212,6 @@ namespace BeatSync.Downloader
                 if (File.Exists(result.DownloadResult?.FilePath))
                     await FileIO.TryDeleteAsync(result.DownloadResult?.FilePath).ConfigureAwait(false);
             }
-            result.Successful = true;
             return result;
         }
 
@@ -234,35 +255,29 @@ namespace BeatSync.Downloader
             }
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
             var allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
-            var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
-            foreach (var scrapedSong in songsToDownload.Values)
+            
+            foreach (var pair in songsToDownload)
             {
-                var playlistSong = new PlaylistSong(scrapedSong.Hash, scrapedSong.SongName, scrapedSong.SongKey, scrapedSong.MapperName);
+                var playlistSong = new PlaylistSong(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
                 var notInHistory = HistoryManager.TryAdd(playlistSong, 0); // Make sure it's in HistoryManager even if it already exists.
-                var didntExist = HashSource.ExistingSongs.TryAdd(scrapedSong.Hash, "");
+                var didntExist = HashSource.ExistingSongs.TryAdd(pair.Value.Hash, "");
                 if (didntExist && notInHistory)
                 {
-                    Logger.log?.Info($"Queuing {scrapedSong.SongKey} - {scrapedSong.SongName} by {scrapedSong.MapperName} for download.");
+                    //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
+
                     DownloadQueue.Enqueue(playlistSong);
                 }
-                else if (!didntExist && HistoryManager.TryGetValue(scrapedSong.Hash, out var value))
+                else if (!didntExist && HistoryManager.TryGetValue(pair.Value.Hash, out var value))
                 {
                     if (value.Flag == HistoryFlag.None)
-                        HistoryManager.TryUpdateFlag(scrapedSong.Hash, HistoryFlag.PreExisting);
+                        HistoryManager.TryUpdateFlag(pair.Value.Hash, HistoryFlag.PreExisting);
                 }
 
                 allPlaylist?.TryAdd(playlistSong);
-                recentPlaylist?.TryAdd(playlistSong);
+                
             }
             allPlaylist?.TryWriteFile();
-            if (recentPlaylist != null && config.RecentPlaylistDays > 0)
-            {
-                var minDate = DateTime.Now - new TimeSpan(config.RecentPlaylistDays, 0, 0, 0);
-                int removedCount = recentPlaylist.Songs.RemoveAll(s => s.DateAdded < minDate);
-                if (removedCount > 0)
-                    Logger.log?.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
-                recentPlaylist.TryWriteFile();
-            }
+            
         }
 
         public async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist = null)
