@@ -1,6 +1,7 @@
 ﻿using BeatSync.Playlists;
 using BeatSync.Utilities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -81,15 +82,49 @@ namespace BeatSync
             SongHistory.Clear();
             if (File.Exists(HistoryPath))
             {
-                JsonConvert.PopulateObject(FileIO.LoadStringFromFile(HistoryPath), SongHistory);
-            }
-            else
-            {
-                SongHistory = new ConcurrentDictionary<string, HistoryEntry>();
+                var histStr = FileIO.LoadStringFromFile(HistoryPath);
+                var token = JToken.Parse(histStr);
+                foreach (JObject entry in token.Children())
+                {
+                    var historyEntry = new HistoryEntry();
+                    var hash = entry["Key"].Value<string>();
+                    historyEntry.SongInfo = entry["Value"]["SongInfo"].Value<string>();
+                    historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
+                    historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
+
+                    SongHistory.TryAdd(hash, historyEntry);
+                }
+
             }
             IsInitialized = true;
         }
-        
+
+
+        /// <summary>
+        /// Writes the contents of HistoryPath to file. Throws an exception if it fails.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
+        /// <exception cref="IOException">Thrown when there's a file system problem writing to file.</exception>
+        public void WriteToFile()
+        {
+            if (!IsInitialized)
+                throw new InvalidOperationException("HistoryManager is not initialized.");
+            if (File.Exists(HistoryPath))
+            {
+                File.Copy(HistoryPath, HistoryPath + ".bak", true);
+                File.Delete(HistoryPath);
+            }
+            var file = new FileInfo(HistoryPath);
+            file.Directory.Create();
+            var orderedDictionary = SongHistory.OrderByDescending(kvp => kvp.Value.Date).ToArray();
+            using (var sw = File.CreateText(HistoryPath))
+            {
+                var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
+                serializer.Serialize(sw, orderedDictionary);
+            }
+            File.Delete(HistoryPath + ".bak");
+        }
+
         /// <summary>
         /// Tries to add the provided songHash and songInfo to the history. Returns false if the hash is null/empty.
         /// </summary>
@@ -133,6 +168,7 @@ namespace BeatSync
             if (!SongHistory.ContainsKey(songHash))
                 return false;
             SongHistory[songHash].Flag = flag;
+            SongHistory[songHash].Date = DateTime.Now;
             return true;
         }
 
@@ -191,30 +227,22 @@ namespace BeatSync
             return SongHistory.TryRemove(songHash.ToUpper(), out _);
         }
 
-        /// <summary>
-        /// Writes the contents of HistoryPath to file. Throws an exception if it fails.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        /// <exception cref="IOException">Thrown when there's a file system problem writing to file.</exception>
-        public void WriteToFile()
+        public bool TryUpdateDate(string songHash, DateTime newDate)
         {
-            if (!IsInitialized)
-                throw new InvalidOperationException("HistoryManager is not initialized.");
-            if (File.Exists(HistoryPath))
-            {
-                File.Copy(HistoryPath, HistoryPath + ".bak", true);
-                File.Delete(HistoryPath);
-            }
-            var file = new FileInfo(HistoryPath);
-            file.Directory.Create();
-            using (var sw = File.CreateText(HistoryPath))
-            {
-                var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
-                serializer.Serialize(sw, SongHistory);
-            }
-            File.Delete(HistoryPath + ".bak");
+            songHash = songHash.ToUpper();
+            if (!SongHistory.ContainsKey(songHash))
+                return false;
+            SongHistory[songHash].Date = newDate;
+            return true;
         }
-        
+
+        public bool TryUpdateDate(PlaylistSong song, DateTime newDate)
+        {
+            if (song == null)
+                return false;
+            return TryUpdateDate(song.Hash, newDate);
+        }
+
 
     }
 
@@ -225,16 +253,19 @@ namespace BeatSync
         {
             SongInfo = songInfo;
             Flag = flag;
+            Date = DateTime.Now;
         }
 
         public HistoryEntry(PlaylistSong song, HistoryFlag flag = 0)
         {
             SongInfo = song.ToString();
             Flag = flag;
+            Date = DateTime.Now;
         }
 
         public string SongInfo { get; set; }
         public HistoryFlag Flag { get; set; }
+        public DateTime Date { get; set; }
     }
 
     public enum HistoryFlag
@@ -263,6 +294,6 @@ namespace BeatSync
         /// Not found on Beat Saver.
         /// </summary>
         NotFound = 404
-        
+
     }
 }

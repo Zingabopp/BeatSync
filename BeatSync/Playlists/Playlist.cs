@@ -14,6 +14,7 @@ namespace BeatSync.Playlists
     [Serializable]
     public class Playlist
     {
+        [JsonIgnore]
         public bool IsDirty { get; private set; }
         public Playlist() { }
         public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor, string image)
@@ -33,7 +34,7 @@ namespace BeatSync.Playlists
         /// <returns>True if the song was added.</returns>
         public bool TryAdd(PlaylistSong song)
         {
-            if (!Songs.Contains(song))
+            if (!Songs.Any(s => s.Hash.Equals(song.Hash)))
             {
                 Songs.Add(song);
                 IsDirty = true;
@@ -84,7 +85,10 @@ namespace BeatSync.Playlists
             var count = Songs.Count;
             Songs = Songs.Distinct().ToList();
             if (count != Songs.Count)
+            {
+                Logger.log?.Warn($"Duplicate songs detected in playlist {Title}.");
                 IsDirty = true;
+            }
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
-        
+
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
@@ -43,13 +43,18 @@ namespace BeatSync.Downloader
             if (job.Successful)
             {
                 HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.Downloaded);
+                var recentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
+                recentPlaylist?.TryAdd(job.Song);
+                
             }
             else if (job.DownloadResult.Status != DownloadResultStatus.Success)
             {
                 if (job.DownloadResult.HttpStatusCode == 404)
                 {
                     // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
-                    HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.NotFound);
+                    Logger.log?.Debug($"Setting 404 flag for {job.Song.ToString()}");
+                    if (!HistoryManager.TryUpdateFlag(job.Song, HistoryFlag.NotFound))
+                        Logger.log?.Debug($"Failed to update flag for {job.Song.ToString()}");
                     PlaylistManager.RemoveSongFromAll(job.Song);
                 }
                 else
@@ -77,27 +82,35 @@ namespace BeatSync.Downloader
             var jobResults = new List<JobResult>();
             try
             {
-                Logger.log?.Info($"RunDownloaderAsync: {DownloadQueue.Count} songs in DownloadQueue.");
+                Logger.log?.Debug($"RunDownloaderAsync: {DownloadQueue.Count} songs in DownloadQueue.");
                 while (DownloadQueue.TryDequeue(out var song))
                 {
-                    Logger.log?.Info($"Dequeuing {song.ToString()}.");
                     if (downloadBatch.TryReceiveAll(out var jobs))
                     {
-                        jobResults.AddRange(jobs);
+                        jobResults.AddRange(jobs.Select(r =>
+                        {
+                            if (r.Exception != null)
+                                return new JobResult() { Exception = r.Exception };
+                            return r.Output;
+                        }));
                     }
-                    Logger.log?.Info($"Waiting to send to block {song.ToString()}.");
                     await downloadBatch.SendAsync(song).ConfigureAwait(false);
-                    Logger.log?.Info($"Send to block {song.ToString()}.");
                 }
                 downloadBatch.Complete();
-                Logger.log?.Info($"Waiting for Completion.");
-                await downloadBatch.Completion().ConfigureAwait(false);
-                Logger.log?.Info($"Everything should be complete.");
+                Logger.log?.Debug($"Waiting for Completion.");
+                await downloadBatch.Completion.ConfigureAwait(false);
+                Logger.log?.Debug($"All downloads should be complete.");
                 if (downloadBatch.TryReceiveAll(out var jobsCompleted))
                 {
-                    jobResults.AddRange(jobsCompleted);
+                    jobResults.AddRange(jobsCompleted.Select(r =>
+                    {
+                        if (r.Exception != null)
+                            return new JobResult() { Exception = r.Exception };
+                        return r.Output;
+                    }));
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             { Logger.log?.Error(ex); }
             return jobResults;
         }
@@ -185,7 +198,6 @@ namespace BeatSync.Downloader
                 if (File.Exists(result.DownloadResult?.FilePath))
                     await FileIO.TryDeleteAsync(result.DownloadResult?.FilePath).ConfigureAwait(false);
             }
-            result.Successful = true;
             return result;
         }
 
@@ -229,7 +241,7 @@ namespace BeatSync.Downloader
             }
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
             var allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
-            var recentPlaylist = config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
+            
             foreach (var pair in songsToDownload)
             {
                 var playlistSong = new PlaylistSong(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
@@ -237,7 +249,7 @@ namespace BeatSync.Downloader
                 var didntExist = HashSource.ExistingSongs.TryAdd(pair.Value.Hash, "");
                 if (didntExist && notInHistory)
                 {
-                    Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
+                    //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
 
                     DownloadQueue.Enqueue(playlistSong);
                 }
@@ -248,17 +260,10 @@ namespace BeatSync.Downloader
                 }
 
                 allPlaylist?.TryAdd(playlistSong);
-                recentPlaylist?.TryAdd(playlistSong);
+                
             }
             allPlaylist?.TryWriteFile();
-            if (recentPlaylist != null && config.RecentPlaylistDays > 0)
-            {
-                var minDate = DateTime.Now - new TimeSpan(config.RecentPlaylistDays, 0, 0, 0);
-                int removedCount = recentPlaylist.Songs.RemoveAll(s => s.DateAdded < minDate);
-                if (removedCount > 0)
-                    Logger.log?.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
-                recentPlaylist.TryWriteFile();
-            }
+            
         }
 
         public async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist = null)

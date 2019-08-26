@@ -124,27 +124,24 @@ namespace BeatSync.Utilities
         }
 
         /// <summary>
-        /// Gets the path to the provided playlist file name.
+        /// Gets the path to the provided playlist file name. TODO: This needs work
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
         public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
         {
-
-            //if (PlaylistExtensions.Any(e => fileName.EndsWith(e)))
-            //{
-            //    // fileName already has a valid extension
-            //    return fileName.Contains(@"Playlists\") ? fileName : Path.Combine(PlaylistPath, fileName);
-            //}
-            if (File.Exists(fileName))
-                return Path.GetFullPath(fileName);
+            var path = Path.Combine(PlaylistManager.PlaylistPath, fileName);
+            if (File.Exists(path))
+                return Path.GetFullPath(path);
             else if (!getDisabled)
                 return null;
 
-            var path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
+            path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
             if (string.IsNullOrEmpty(path))
                 return null;
-            return path;
+            if (File.Exists(path))
+                return path;
+            return null;
 
         }
 
@@ -248,7 +245,7 @@ namespace BeatSync.Utilities
                 SourceZip = zipPath,
                 ResultStatus = ZipExtractResultStatus.NotStarted
             };
-            
+
             string createdDirectory = null;
             var createdFiles = new List<string>();
             try
@@ -325,9 +322,9 @@ namespace BeatSync.Utilities
                                 result.Exception = ex;
                                 result.ResultStatus = ZipExtractResultStatus.DestinationFailed;
                                 result.ExtractedFiles = createdFiles.ToArray();
-                                
+
                             }
-                            if(result.Exception != null)
+                            if (result.Exception != null)
                             {
                                 foreach (var file in createdFiles)
                                 {
@@ -372,7 +369,7 @@ namespace BeatSync.Utilities
                 {
                     // Failed at cleanup
                 }
-                
+
                 result.Exception = ex;
                 result.ResultStatus = ZipExtractResultStatus.SourceFailed;
                 return result;
