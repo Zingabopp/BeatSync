@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using SongFeedReaders.Logging;
+using System;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using SongFeedReaders.Logging;
 
 namespace BeatSync.Logging
 {

@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using BeatSync.Configs;
+using BeatSync.Logging;
 using IPA;
 using IPA.Config;
 using IPA.Utilities;
-using UnityEngine.SceneManagement;
-using UnityEngine;
-using IPALogger = IPA.Logging.Logger;
-using BeatSync.Logging;
+using System;
 using System.IO;
-using BeatSync.Configs;
-using SongCore;
-using Newtonsoft.Json;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using IPALogger = IPA.Logging.Logger;
 
 namespace BeatSync
 {

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BeatSync.Utilities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using BeatSync;
-using BeatSync.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BeatSync.Playlists
 {

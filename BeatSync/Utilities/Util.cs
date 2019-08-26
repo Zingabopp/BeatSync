@@ -1,14 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using TMPro;
 using System.IO;
-using System.Security.Cryptography;
-using Newtonsoft.Json.Linq;
-using SongCore;
+using System.Linq;
+using UnityEngine;
 
 namespace BeatSync.Utilities
 {

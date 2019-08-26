@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using UnityEngine;
-using TMPro;
+﻿using BeatSync.Utilities;
 using CustomUI.BeatSaber;
-using BeatSync.Utilities;
+using TMPro;
+using UnityEngine;
 
 namespace BeatSync.UI
 {

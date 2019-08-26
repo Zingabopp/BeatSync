@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using BeatSync.Configs;
 using CustomUI.Settings;
-using CustomUI.GameplaySettings;
-using BeatSync.Configs;
 
 namespace BeatSync.UI
 {

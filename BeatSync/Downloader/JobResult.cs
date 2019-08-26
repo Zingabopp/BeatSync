@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BeatSync.Playlists;
+﻿using BeatSync.Playlists;
 using BeatSync.Utilities;
+using System;
 
 namespace BeatSync.Downloader
 {

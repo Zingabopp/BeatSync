@@ -1,7 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
 // Option to delete songs downloaded from certain feeds after x amount of days?
-// Maybe a flag for the AllBeatSyncSongs playlist?
 // public bool DeleteOldVersions { get; set; } not yet supported
 // public bool DeleteDuplicateSongs { get; set; }
 namespace BeatSync.Configs

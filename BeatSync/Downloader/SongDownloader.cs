@@ -1,7 +1,6 @@
 ﻿using BeatSync.Configs;
 using BeatSync.Playlists;
 using BeatSync.Utilities;
-using SongCore.Data;
 using SongFeedReaders;
 using SongFeedReaders.DataflowAlternative;
 using System;
@@ -10,7 +9,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BeatSync.Downloader
@@ -128,6 +126,12 @@ namespace BeatSync.Downloader
             }
             catch (Exception ex)
             { Logger.log?.Error(ex); }
+            try
+            {
+                if(Directory.Exists(SongTempPath))
+                    Directory.Delete(SongTempPath, true);
+            }
+            catch (Exception) { }
             return jobResults;
         }
 

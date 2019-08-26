@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSync</RootNamespace>
     <AssemblyName>BeatSync</AssemblyName>
-    <AssemblyVersion>0.0.2</AssemblyVersion>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PathMap>$(SolutionDir)=C:\</PathMap>
@@ -54,11 +54,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>References\Managed\0Harmony.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="BeatSaberCustomUI, Version=1.5.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\BeatSaberCustomUI.dll</HintPath>
@@ -91,9 +86,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp">
@@ -135,15 +127,6 @@
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>References\Managed\UnityEngine.UIModule.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestWWWModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>References\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="UnityEngine.VRModule">
-      <HintPath>References\Managed\UnityEngine.VRModule.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -234,7 +217,7 @@
       <Reference Include="System.IO" />
       <Using Namespace="System.IO.Compression" />
       <Using Namespace="System.IO" />
-	  <Using Namespace="System.Threading" />
+      <Using Namespace="System.Threading" />
       <Code Type="Fragment" Language="cs"><![CDATA[
         try
         {

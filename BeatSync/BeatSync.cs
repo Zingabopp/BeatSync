@@ -1,22 +1,11 @@
-﻿using System;
+﻿using BeatSync.Configs;
+using BeatSync.Downloader;
+using BeatSync.Playlists;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
-using SongFeedReaders;
-using BeatSync.Configs;
-using Newtonsoft.Json;
-using SongCore.Data;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Diagnostics;
-using BeatSync.Playlists;
-using BeatSync.Utilities;
-using SongFeedReaders.DataflowAlternative;
-using System.IO.Compression;
-using BeatSaverDownloader;
-using BeatSync.Downloader;
 
 namespace BeatSync
 {
