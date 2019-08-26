@@ -100,7 +100,7 @@ namespace BeatSync
             var readTask = Downloader.RunReaders();
             var readWait = new WaitUntil(() => readTask.IsCompleted);
             yield return readWait;
-            var downloadTask = Downloader.RunDownloaderAsync();
+            var downloadTask = Downloader.RunDownloaderAsync(Plugin.config.Value.MaxConcurrentDownloads);
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
             // For each song

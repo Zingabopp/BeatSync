@@ -71,7 +71,7 @@ namespace BeatSync
             SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
             SongFeedReaders.Utilities.Logger = readerLogger;
             SongFeedReaders.WebUtils.Logger = readerLogger;
-            SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;
+            //SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;
 
         }
 

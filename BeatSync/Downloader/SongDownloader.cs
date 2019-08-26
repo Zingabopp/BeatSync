@@ -21,12 +21,12 @@ namespace BeatSync.Downloader
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
-        private ConcurrentQueue<PlaylistSong> DownloadQueue;
+        public ConcurrentQueue<PlaylistSong> DownloadQueue { get; private set; }
         private PluginConfig Config;
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
 
-        private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
+        //private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
 
         public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
@@ -65,12 +65,12 @@ namespace BeatSync.Downloader
             }
         }
 
-        public async Task<List<JobResult>> RunDownloaderAsync()
+        public async Task<List<JobResult>> RunDownloaderAsync(int maxConcurrentDownloads)
         {
-            DownloadBatch = new TransformBlock<PlaylistSong, JobResult>(async s => await DownloadJob(s).ConfigureAwait(false), new ExecutionDataflowBlockOptions()
+            var downloadBatch = new TransformBlock<PlaylistSong, JobResult>(DownloadJob, new ExecutionDataflowBlockOptions()
             {
                 BoundedCapacity = DownloadQueue.Count + 100,
-                MaxDegreeOfParallelism = Config.MaxConcurrentDownloads,
+                MaxDegreeOfParallelism = maxConcurrentDownloads,
                 EnsureOrdered = false
             });
             //Logger.log?.Info($"Starting downloader.");
@@ -81,19 +81,19 @@ namespace BeatSync.Downloader
                 while (DownloadQueue.TryDequeue(out var song))
                 {
                     Logger.log?.Info($"Dequeuing {song.ToString()}.");
-                    if (DownloadBatch.TryReceiveAll(out var jobs))
+                    if (downloadBatch.TryReceiveAll(out var jobs))
                     {
                         jobResults.AddRange(jobs);
                     }
                     Logger.log?.Info($"Waiting to send to block {song.ToString()}.");
-                    await DownloadBatch.SendAsync(song).ConfigureAwait(false);
+                    await downloadBatch.SendAsync(song).ConfigureAwait(false);
                     Logger.log?.Info($"Send to block {song.ToString()}.");
                 }
-                DownloadBatch.Complete();
+                downloadBatch.Complete();
                 Logger.log?.Info($"Waiting for Completion.");
-                await DownloadBatch.Completion().ConfigureAwait(false);
+                await downloadBatch.Completion().ConfigureAwait(false);
                 Logger.log?.Info($"Everything should be complete.");
-                if (DownloadBatch.TryReceiveAll(out var jobsCompleted))
+                if (downloadBatch.TryReceiveAll(out var jobsCompleted))
                 {
                     jobResults.AddRange(jobsCompleted);
                 }
