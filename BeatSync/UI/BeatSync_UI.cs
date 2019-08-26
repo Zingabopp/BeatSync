@@ -37,6 +37,7 @@ namespace BeatSync.UI
             timeoutInt.SetValue += delegate (int value)
             {
                 Config.DownloadTimeout = value;
+                Config.ConfigChanged = true;
             };
 
             var maxConcurrentDownloads = parent.AddInt("Max Concurrent Downloads",
@@ -46,6 +47,7 @@ namespace BeatSync.UI
             maxConcurrentDownloads.SetValue += delegate (int value)
             {
                 Config.MaxConcurrentDownloads = value;
+                Config.ConfigChanged = true;
             };
 
             var recentPlaylistDays = parent.AddInt("Recent Playlist Days",
@@ -55,6 +57,7 @@ namespace BeatSync.UI
             recentPlaylistDays.SetValue += delegate (int value)
             {
                 Config.RecentPlaylistDays = value;
+                Config.ConfigChanged = true;
             };
 
             var allBeatSyncSongs = parent.AddBool("Enable All BeatSync Songs",
@@ -63,6 +66,7 @@ namespace BeatSync.UI
             allBeatSyncSongs.SetValue += delegate (bool value)
             {
                 Config.AllBeatSyncSongsPlaylist = value;
+                Config.ConfigChanged = true;
             };
         }
 
@@ -78,6 +82,7 @@ namespace BeatSync.UI
             maxConcurrentPageChecks.SetValue += delegate (int value)
             {
                 sourceConfig.MaxConcurrentPageChecks = value;
+                Config.ConfigChanged = true;
             };
 
             var username = parent.AddString("Username", "Your BeastSaber username. Required to use the Bookmarks and Follows feeds");
@@ -85,6 +90,7 @@ namespace BeatSync.UI
             username.SetValue += delegate (string value)
             {
                 sourceConfig.Username = value;
+                Config.ConfigChanged = true;
             };
 
             var bookmarks = CreateFeedSettings("Bookmarks", sourceName, sourceConfig.Bookmarks, parent);
@@ -104,6 +110,7 @@ namespace BeatSync.UI
             maxConcurrentPageChecks.SetValue += delegate (int value)
             {
                 sourceConfig.MaxConcurrentPageChecks = value;
+                Config.ConfigChanged = true;
             };
 
             var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserDate\\FavoriteMappers.ini.");
@@ -125,6 +132,7 @@ namespace BeatSync.UI
             trendingRankedOnly.SetValue += delegate (bool value)
             {
                 sourceConfig.Trending.RankedOnly = value;
+                Config.ConfigChanged = true;
             };
             var topPlayed = CreateFeedSettings("Top Played", sourceName, sourceConfig.TopPlayed, parent);
             var topPlayedRankedOnly = topPlayed.AddBool("Ranked Only",
@@ -133,6 +141,7 @@ namespace BeatSync.UI
             topPlayedRankedOnly.SetValue += delegate (bool value)
             {
                 sourceConfig.TopPlayed.RankedOnly = value;
+                Config.ConfigChanged = true;
             };
         }
 
@@ -144,6 +153,7 @@ namespace BeatSync.UI
             enabled.SetValue += delegate (bool value)
             {
                 sourceConfig.Enabled = value;
+                Config.ConfigChanged = true;
             };
 
         }
@@ -159,6 +169,7 @@ namespace BeatSync.UI
             enabled.SetValue += delegate (bool value)
             {
                 feedConfig.Enabled = value;
+                Config.ConfigChanged = true;
             };
 
             var maxSongs = feedSubMenu.AddInt("Max Songs",
@@ -168,6 +179,7 @@ namespace BeatSync.UI
             maxSongs.SetValue += delegate (int value)
             {
                 feedConfig.MaxSongs = value;
+                Config.ConfigChanged = true;
             };
 
             var createPlaylist = feedSubMenu.AddBool("Create Playlist",
@@ -176,6 +188,7 @@ namespace BeatSync.UI
             createPlaylist.SetValue += delegate (bool value)
             {
                 feedConfig.CreatePlaylist = value;
+                Config.ConfigChanged = true;
             };
             return feedSubMenu;
         }
@@ -219,33 +232,4 @@ namespace BeatSync.UI
     }
 
 
-}
-
-namespace BeatSync
-{
-    /// <summary>
-    /// Adds .ToFloatAry() method to instances of the UnityEngine.Color class, and .ToColor() to float arrays.
-    /// </summary>
-    public static class ColorExtensions
-    {
-        /// <summary>
-        /// Converts a color to a float array. Ex: float[] colorAry = color.ToFloat()
-        /// </summary>
-        /// <param name="color">Color to convert to a float array</param>
-        /// <returns>Float array with the color values</returns>
-        public static float[] ToFloatAry(this UnityEngine.Color color)
-        {
-            return new float[] { color.r, color.g, color.b, color.a };
-        }
-
-        /// <summary>
-        /// Converts a float array to a color. Ex: Color color = floatAry.ToColor()
-        /// </summary>
-        /// <param name="rgbaVals">Float[4] array with the values [Red, Green, Blue, Alpha] </param>
-        /// <returns>A UnityEngine.Color</returns>
-        public static UnityEngine.Color ToColor(this float[] rgbaVals)
-        {
-            return new UnityEngine.Color(rgbaVals[0], rgbaVals[1], rgbaVals[2], rgbaVals[3]);
-        }
-    }
 }

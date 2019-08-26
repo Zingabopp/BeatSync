@@ -12,6 +12,8 @@ namespace BeatSync.Configs
         [JsonIgnore]
         private bool _regenerateConfig = true;
         [JsonIgnore]
+        public bool ConfigChanged = false;
+        [JsonIgnore]
         private int _maxConcurrentDownloads = 3;
         [JsonIgnore]
         private int _recentPlaylistDays = 7;

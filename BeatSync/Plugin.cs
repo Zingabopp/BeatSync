@@ -24,10 +24,6 @@ namespace BeatSync
         internal static IConfigProvider configProvider;
         private bool customUIExists = false;
 
-        #region Setting Properties
-
-        #endregion
-
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
             IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.All;
@@ -119,12 +115,16 @@ namespace BeatSync
 
         private void SettingsMenu_didFinishEvent(SettingsFlowCoordinator sender, SettingsFlowCoordinator.FinishAction finishAction)
         {
+            
             try
             {
+                if (!config.Value.ConfigChanged)
+                    return;
                 if (finishAction != SettingsFlowCoordinator.FinishAction.Cancel)
                 {
                     Logger.log?.Debug("Saving settings.");
                     configProvider.Store(config.Value);
+                    config.Value.ConfigChanged = false;
                 }
             }
             catch (Exception ex)
