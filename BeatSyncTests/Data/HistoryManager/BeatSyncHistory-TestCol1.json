@@ -1,34 +1,66 @@
-{
-  "LAKSDJFLK23LKJF23LKJ23R": {
-    "SongInfo": "Test song 1 by whoever",
-    "Flag": 0
+[
+  {
+    "Key": "LAKSDJFLK23LKJF23LKJ23R",
+    "Value": {
+      "SongInfo": "Test song 1 by whoever",
+      "Flag": 0,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "ASDFALKSDJFLKAJSDFLKJAS": {
-    "SongInfo": "Test song 2 by whoever",
-    "Flag": 0
+  {
+    "Key": "ASDFALKSDJFLKAJSDFLKJAS",
+    "Value": {
+      "SongInfo": "Test song 2 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "AVCIJASLDKVJAVLSKDJLKAJ": {
-    "SongInfo": "Test song 3 by whoever",
-    "Flag": 0
+  {
+    "Key": "AVCIJASLDKVJAVLSKDJLKAJ",
+    "Value": {
+      "SongInfo": "Test song 3 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "ASDLVKJASVLDKJALKSDJFLK": {
-    "SongInfo": "Test song 4 by whoever",
-    "Flag": 0
+  {
+    "Key": "ASDLVKJASVLDKJALKSDJFLK",
+    "Value": {
+      "SongInfo": "Test song 4 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "QWEORIUQWEORIUQOWIEURAO": {
-    "SongInfo": "Test song 5 by whoever",
-    "Flag": 0
+  {
+    "Key": "QWEORIUQWEORIUQOWIEURAO",
+    "Value": {
+      "SongInfo": "Test song 5 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "ZXCVPOZIXCVPOIZXCVPOVIV": {
-    "SongInfo": "Test song 6 by whoever",
-    "Flag": 0
+  {
+    "Key": "ZXCVPOZIXCVPOIZXCVPOVIV",
+    "Value": {
+      "SongInfo": "Test song 6 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "QLQFWHJLNKFLKNMWLQKCNML": {
-    "SongInfo": "Test song 7 by whoever",
-    "Flag": 0
+  {
+    "Key": "QLQFWHJLNKFLKNMWLQKCNML",
+    "Value": {
+      "SongInfo": "Test song 7 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "TBRNEMNTMRBEBNMTEERVCVB": {
-    "SongInfo": "Test song 8 by whoever",
-    "Flag": 0
+  {
+    "Key": "TBRNEMNTMRBEBNMTEERVCVB",
+    "Value": {
+      "SongInfo": "Test song 8 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   }
-}
+]

@@ -1,18 +1,34 @@
-{
-  "QWEMNRBQENMQBWERNBQWXCV": {
-    "SongInfo": "Test song 9 by whoever",
-    "Flag": 0
+[
+  {
+    "Key": "QWEMNRBQENMQBWERNBQWXCV",
+    "Value": {
+      "SongInfo": "Test song 9 by whoever",
+      "Flag": 0,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "ZXCVOIUZXCOVIUZXCVUIOZZ": {
-    "SongInfo": "Test song 10 by whoever",
-    "Flag": 0
+  {
+    "Key": "ZXCVOIUZXCOVIUZXCVUIOZZ",
+    "Value": {
+      "SongInfo": "Test song 10 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "YXXCVBYIUXCVBIUYXCVBIUY": {
-    "SongInfo": "Test song 11 by whoever",
-    "Flag": 0
+  {
+    "Key": "YXXCVBYIUXCVBIUYXCVBIUY",
+    "Value": {
+      "SongInfo": "Test song 11 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   },
-  "MNBWMENRTBMQNWEBTMNQBWE": {
-    "SongInfo": "Test song 12 by whoever",
-    "Flag": 0
+  {
+    "Key": "MNBWMENRTBMQNWEBTMNQBWE",
+    "Value": {
+      "SongInfo": "Test song 12 by whoever",
+      "Flag": 1,
+      "Date": "2019-08-26T01:37:18.4662591-05:00"
+    }
   }
-}
+]
