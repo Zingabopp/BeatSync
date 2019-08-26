@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using System.Diagnostics;
 // Option to delete songs downloaded from certain feeds after x amount of days?
 // public bool DeleteOldVersions { get; set; } not yet supported
 // public bool DeleteDuplicateSongs { get; set; }
@@ -11,8 +12,9 @@ namespace BeatSync.Configs
 
         [JsonIgnore]
         private bool _regenerateConfig = true;
+
         [JsonIgnore]
-        public bool ConfigChanged = false;
+        public bool ConfigChanged { get; set; }
         [JsonIgnore]
         private int _maxConcurrentDownloads = 3;
         [JsonIgnore]
@@ -37,7 +39,8 @@ namespace BeatSync.Configs
             }
         }
         [JsonProperty(Order = -70)]
-        public int RecentPlaylistDays {
+        public int RecentPlaylistDays
+        {
             get { return _recentPlaylistDays; }
             set
             {
@@ -71,10 +74,10 @@ namespace BeatSync.Configs
             {
                 Enabled = false,
                 MaxConcurrentPageChecks = 5,
-                Hot = new BeatSaverHot() { Enabled = false, MaxSongs = 10, CreatePlaylist = true },
-                Downloads = new BeatSaverDownloads() { Enabled = false, MaxSongs = 20, CreatePlaylist = true },
+                Hot = new BeatSaverHot() { Enabled = false, MaxSongs = 10, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
+                Downloads = new BeatSaverDownloads() { Enabled = false, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
                 // , SeparateMapperPlaylists = false
-                FavoriteMappers = new BeatSaverFavoriteMappers() { Enabled = true, MaxSongs = 0, CreatePlaylist = true }
+                FavoriteMappers = new BeatSaverFavoriteMappers() { Enabled = true, MaxSongs = 0, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append }
             };
 
             BeastSaber = new BeastSaberConfig()
@@ -82,18 +85,18 @@ namespace BeatSync.Configs
                 Enabled = true,
                 MaxConcurrentPageChecks = 5,
                 Username = "",
-                Bookmarks = new BeastSaberBookmarks() { Enabled = true, MaxSongs = 0, CreatePlaylist = true },
-                Follows = new BeastSaberFollowings() { Enabled = true, MaxSongs = 20, CreatePlaylist = true },
-                CuratorRecommended = new BeastSaberCuratorRecommended() { Enabled = false, MaxSongs = 20, CreatePlaylist = true }
+                Bookmarks = new BeastSaberBookmarks() { Enabled = true, MaxSongs = 0, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
+                Follows = new BeastSaberFollowings() { Enabled = true, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
+                CuratorRecommended = new BeastSaberCuratorRecommended() { Enabled = false, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append }
             };
 
             ScoreSaber = new ScoreSaberConfig()
             {
                 Enabled = false,
-                Trending = new ScoreSaberTrending() { Enabled = true, MaxSongs = 20, RankedOnly = false, CreatePlaylist = true },
-                TopRanked = new ScoreSaberTopRanked() { Enabled = false, MaxSongs = 20, CreatePlaylist = true },
-                LatestRanked = new ScoreSaberLatestRanked() { Enabled = true, MaxSongs = 20, CreatePlaylist = true },
-                TopPlayed = new ScoreSaberTopPlayed() { Enabled = false, MaxSongs = 20, RankedOnly = false, CreatePlaylist = true }
+                TopRanked = new ScoreSaberTopRanked() { Enabled = false, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Replace },
+                LatestRanked = new ScoreSaberLatestRanked() { Enabled = true, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Replace },
+                Trending = new ScoreSaberTrending() { Enabled = true, MaxSongs = 20, RankedOnly = false, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
+                TopPlayed = new ScoreSaberTopPlayed() { Enabled = false, MaxSongs = 20, RankedOnly = false, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append }
             };
             return this;
         }

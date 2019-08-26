@@ -4,8 +4,10 @@ using IPA;
 using IPA.Config;
 using IPA.Utilities;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using IPALogger = IPA.Logging.Logger;
@@ -96,26 +98,23 @@ namespace BeatSync
         /// </summary>
         public void MenuLoadedFresh()
         {
+            Logger.log?.Debug("Creating BeatSync's UI");
+            UI.BeatSync_UI.CreateUI();
+            config.Value.ConfigChanged = false;
+            var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
+            try
             {
-                Logger.log?.Debug("Creating BeatSync's UI");
-                UI.BeatSync_UI.CreateUI();
-                var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
-                try
-                {
-                    settingsMenu.didFinishEvent -= SettingsMenu_didFinishEvent;
-                    settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
-                }
-                catch (Exception ex)
-                {
-                    Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
-                }
+                settingsMenu.didFinishEvent -= SettingsMenu_didFinishEvent;
+                settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
             }
-
+            catch (Exception ex)
+            {
+                Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
+            }
         }
 
         private void SettingsMenu_didFinishEvent(SettingsFlowCoordinator sender, SettingsFlowCoordinator.FinishAction finishAction)
         {
-            
             try
             {
                 if (!config.Value.ConfigChanged)

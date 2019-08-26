@@ -37,11 +37,11 @@ namespace BeatSync.Configs
     public class ScoreSaberConfig : SourceConfigBase
     {
         [JsonProperty(Order = -60)]
-        public ScoreSaberTrending Trending { get; set; }
-        [JsonProperty(Order = -50)]
         public ScoreSaberTopRanked TopRanked { get; set; }
-        [JsonProperty(Order = -40)]
+        [JsonProperty(Order = -50)]
         public ScoreSaberLatestRanked LatestRanked { get; set; }
+        [JsonProperty(Order = -40)]
+        public ScoreSaberTrending Trending { get; set; }
         [JsonProperty(Order = -30)]
         public ScoreSaberTopPlayed TopPlayed { get; set; }
     }

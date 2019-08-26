@@ -36,6 +36,8 @@ namespace BeatSync.UI
             timeoutInt.GetValue += delegate { return Config.DownloadTimeout; };
             timeoutInt.SetValue += delegate (int value)
             {
+                if (Config.DownloadTimeout == value)
+                    return;
                 Config.DownloadTimeout = value;
                 Config.ConfigChanged = true;
             };
@@ -46,6 +48,8 @@ namespace BeatSync.UI
             maxConcurrentDownloads.GetValue += delegate { return Config.MaxConcurrentDownloads; };
             maxConcurrentDownloads.SetValue += delegate (int value)
             {
+                if (Config.MaxConcurrentDownloads == value)
+                    return;
                 Config.MaxConcurrentDownloads = value;
                 Config.ConfigChanged = true;
             };
@@ -56,6 +60,8 @@ namespace BeatSync.UI
             recentPlaylistDays.GetValue += delegate { return Config.RecentPlaylistDays; };
             recentPlaylistDays.SetValue += delegate (int value)
             {
+                if (Config.RecentPlaylistDays == value)
+                    return;
                 Config.RecentPlaylistDays = value;
                 Config.ConfigChanged = true;
             };
@@ -65,6 +71,8 @@ namespace BeatSync.UI
             allBeatSyncSongs.GetValue += delegate { return Config.AllBeatSyncSongsPlaylist; };
             allBeatSyncSongs.SetValue += delegate (bool value)
             {
+                if (Config.AllBeatSyncSongsPlaylist == value)
+                    return;
                 Config.AllBeatSyncSongsPlaylist = value;
                 Config.ConfigChanged = true;
             };
@@ -81,6 +89,8 @@ namespace BeatSync.UI
             maxConcurrentPageChecks.GetValue += delegate { return sourceConfig.MaxConcurrentPageChecks; };
             maxConcurrentPageChecks.SetValue += delegate (int value)
             {
+                if (sourceConfig.MaxConcurrentPageChecks == value)
+                    return;
                 sourceConfig.MaxConcurrentPageChecks = value;
                 Config.ConfigChanged = true;
             };
@@ -89,6 +99,8 @@ namespace BeatSync.UI
             username.GetValue += delegate { return sourceConfig.Username ?? ""; };
             username.SetValue += delegate (string value)
             {
+                if (sourceConfig.Username == value)
+                    return;
                 sourceConfig.Username = value;
                 Config.ConfigChanged = true;
             };
@@ -109,11 +121,13 @@ namespace BeatSync.UI
             maxConcurrentPageChecks.GetValue += delegate { return sourceConfig.MaxConcurrentPageChecks; };
             maxConcurrentPageChecks.SetValue += delegate (int value)
             {
+                if (sourceConfig.MaxConcurrentPageChecks == value)
+                    return;
                 sourceConfig.MaxConcurrentPageChecks = value;
                 Config.ConfigChanged = true;
             };
 
-            var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserDate\\FavoriteMappers.ini.");
+            var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserDate\\FavoriteMappers.ini. Max Songs is per mapper.");
             var hot = CreateFeedSettings("Hot", sourceName, sourceConfig.Hot, parent);
             var downloads = CreateFeedSettings("Downloads", sourceName, sourceConfig.Downloads, parent);
         }
@@ -131,6 +145,8 @@ namespace BeatSync.UI
             trendingRankedOnly.GetValue += delegate { return sourceConfig.Trending.RankedOnly; };
             trendingRankedOnly.SetValue += delegate (bool value)
             {
+                if (sourceConfig.Trending.RankedOnly == value)
+                    return;
                 sourceConfig.Trending.RankedOnly = value;
                 Config.ConfigChanged = true;
             };
@@ -140,6 +156,8 @@ namespace BeatSync.UI
             topPlayedRankedOnly.GetValue += delegate { return sourceConfig.TopPlayed.RankedOnly; };
             topPlayedRankedOnly.SetValue += delegate (bool value)
             {
+                if (sourceConfig.TopPlayed.RankedOnly == value)
+                    return;
                 sourceConfig.TopPlayed.RankedOnly = value;
                 Config.ConfigChanged = true;
             };
@@ -152,6 +170,8 @@ namespace BeatSync.UI
             enabled.GetValue += delegate { return sourceConfig.Enabled; };
             enabled.SetValue += delegate (bool value)
             {
+                if (sourceConfig.Enabled == value)
+                    return;
                 sourceConfig.Enabled = value;
                 Config.ConfigChanged = true;
             };
@@ -168,6 +188,8 @@ namespace BeatSync.UI
             enabled.GetValue += delegate { return feedConfig.Enabled; };
             enabled.SetValue += delegate (bool value)
             {
+                if (feedConfig.Enabled == value)
+                    return;
                 feedConfig.Enabled = value;
                 Config.ConfigChanged = true;
             };
@@ -178,6 +200,8 @@ namespace BeatSync.UI
             maxSongs.GetValue += delegate { return feedConfig.MaxSongs; };
             maxSongs.SetValue += delegate (int value)
             {
+                if (feedConfig.MaxSongs == value)
+                    return;
                 feedConfig.MaxSongs = value;
                 Config.ConfigChanged = true;
             };
@@ -187,7 +211,21 @@ namespace BeatSync.UI
             createPlaylist.GetValue += delegate { return feedConfig.CreatePlaylist; };
             createPlaylist.SetValue += delegate (bool value)
             {
+                if (feedConfig.CreatePlaylist == value)
+                    return;
                 feedConfig.CreatePlaylist = value;
+                Config.ConfigChanged = true;
+            };
+            
+            string[] textSegmentOptions = new string[] { "Append", "Replace" };
+            var textSegmentsExample = feedSubMenu.AddTextSegments("Playlist Style", "Select 'Append' to add new songs to playlist, 'Replace' to create a fresh playlist with songs read from the feed this session.", textSegmentOptions);
+            textSegmentsExample.GetValue += delegate { return feedConfig.PlaylistStyle == PlaylistStyle.Append ? 0 : 1; };
+            textSegmentsExample.SetValue += delegate (int value)
+            {
+                PlaylistStyle newStyle = value == 0 ? PlaylistStyle.Append : PlaylistStyle.Replace;
+                if (feedConfig.PlaylistStyle == newStyle)
+                    return;
+                feedConfig.PlaylistStyle = newStyle;
                 Config.ConfigChanged = true;
             };
             return feedSubMenu;

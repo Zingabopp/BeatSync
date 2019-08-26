@@ -82,7 +82,7 @@ namespace BeatSync
                 }
                 else
                     Logger.log?.Info("Didn't remove any songs from RecentPlaylist.");
-                
+
             }
             StartCoroutine(HashSongsCoroutine());
             FavoriteMappers.Initialize();
@@ -117,22 +117,23 @@ namespace BeatSync
             StartCoroutine(UpdateLevelPacks());
         }
 
-        
+
 
         public IEnumerator<WaitUntil> UpdateLevelPacks()
         {
             yield return WaitForUnPause;
             BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
-            if (!SongCore.Loader.AreSongsLoaded && SongCore.Loader.AreSongsLoading)
+            if (!SongCore.Loader.AreSongsLoaded)
+            {
+                yield break;
+            }
+            if (SongCore.Loader.AreSongsLoading)
             {
                 while (SongCore.Loader.AreSongsLoading)
                     yield return null;
             }
-            else
-            {
-                SongCore.Loader.Instance?.RefreshLevelPacks();
-                SongCore.Loader.Instance?.RefreshSongs(true);
-            }
+            SongCore.Loader.Instance?.RefreshLevelPacks();
+            SongCore.Loader.Instance?.RefreshSongs(true);
         }
     }
 }

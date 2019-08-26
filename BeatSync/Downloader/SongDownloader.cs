@@ -286,11 +286,13 @@ namespace BeatSync.Downloader
 
         }
 
-        public async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist = null)
+        public async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist, PlaylistStyle playlistStyle)
         {
             var feedName = reader.GetFeedName(settings);
             Logger.log?.Info($"Getting songs from {feedName} feed.");
             var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
+            if (songs.Count > 0 && playlistStyle == PlaylistStyle.Replace)
+                feedPlaylist.Clear();
             foreach (var scrapedSong in songs.Reverse()) // Reverse so the last songs have the oldest DateTime
             {
                 if (HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry)
@@ -350,9 +352,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.Bookmarks.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Bookmarks.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.Bookmarks.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (ArgumentException ex)
@@ -375,9 +378,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.Follows.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Follows.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.Follows.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (ArgumentException ex)
@@ -398,9 +402,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.CuratorRecommended.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.CuratorRecommended.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.CuratorRecommended.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (Exception ex)
@@ -447,9 +452,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.FavoriteMappers.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.FavoriteMappers.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.FavoriteMappers.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (InvalidCastException ex)
@@ -476,9 +482,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.Hot.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Hot.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.Hot.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (InvalidCastException ex)
@@ -503,9 +510,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.Downloads.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Downloads.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.Downloads.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (InvalidCastException ex)
@@ -559,9 +567,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.TopRanked.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.TopRanked.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.TopRanked.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (Exception ex)
@@ -579,9 +588,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.Trending.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Trending.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.Trending.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (Exception ex)
@@ -599,9 +609,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.TopPlayed.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.TopPlayed.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.TopPlayed.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (Exception ex)
@@ -619,9 +630,10 @@ namespace BeatSync.Downloader
                     var feedPlaylist = config.LatestRanked.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.LatestRanked.FeedPlaylist)
                         : null;
+                    var playlistStyle = config.LatestRanked.PlaylistStyle;
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
-                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist).ConfigureAwait(false);
+                    var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                     readerSongs.Merge(songs);
                 }
                 catch (Exception ex)

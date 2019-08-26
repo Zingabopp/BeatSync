@@ -100,6 +100,17 @@ namespace BeatSync.Playlists
         }
 
         /// <summary>
+        /// Removes all songs from the playlist.
+        /// </summary>
+        public void Clear()
+        {
+            if (Songs.Count == 0)
+                return;
+            Songs.Clear();
+            IsDirty = true;
+        }
+
+        /// <summary>
         /// Tries to write the playlist to a file. Before the file is written, the songs are ordered by DateAdded in descending order.
         /// If the write fails, returns false and provides the exception in the out parameter.
         /// </summary>
