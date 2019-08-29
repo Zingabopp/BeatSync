@@ -46,7 +46,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             var songHasher = new SongHasher(DefaultSongsPath, DefaultHashCachePath);
             historyManager.Initialize();
             var downloader = new SongDownloader(defaultConfig, historyManager, songHasher, DefaultSongsPath);
-            var exists = new PlaylistSong("d375405d047d6a2a4dd0f4d40d8da77554f1f677", "Doesn't Exist", "ffff", "Who knows");
+            var exists = new PlaylistSong("d375405d047d6a2a4dd0f4d40d8da77554f1f677", "Does Exist", "5e20", "ejiejidayo");
             historyManager.TryAdd(exists, 0); // Song is added before it gets to DownloadJob
             var result = downloader.DownloadJob(exists).Result;
             Assert.AreEqual(exists.Hash, result.HashAfterDownload);

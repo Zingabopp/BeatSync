@@ -293,7 +293,9 @@ namespace BeatSync.Downloader
             var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
             if (songs.Count > 0 && playlistStyle == PlaylistStyle.Replace)
                 feedPlaylist.Clear();
-            foreach (var scrapedSong in songs.Reverse()) // Reverse so the last songs have the oldest DateTime
+            var addDate = DateTime.Now;
+            var decrement = new TimeSpan(1);
+            foreach (var scrapedSong in songs)
             {
                 if (HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry)
                     && (historyEntry.Flag == HistoryFlag.NotFound
@@ -301,21 +303,24 @@ namespace BeatSync.Downloader
                 {
                     continue;
                 }
-                if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
-                {
-                    try
-                    {
-                        // ScrapedSong doesn't have a Beat Saver key associated with it, probably scraped from ScoreSaber
-                        scrapedSong.Value.UpdateFrom(await BeatSaverReader.GetSongByHashAsync(scrapedSong.Key), false);
-                    }
-                    catch (ArgumentNullException)
-                    {
-                        Logger.log?.Warn($"Unable to find {scrapedSong.Value?.SongName} by {scrapedSong.Value?.MapperName} on Beat Saver ({scrapedSong.Key})");
-                    }
-                }
+                //if (string.IsNullOrEmpty(scrapedSong.Value.SongKey))
+                //{
+                //    try
+                //    {
+                //        //Logger.log?.Info($"Grabbing key from BeatSaver: {scrapedSong.Value.SongName} by {scrapedSong.Value.MapperName}");
+                //        // ScrapedSong doesn't have a Beat Saver key associated with it, probably scraped from ScoreSaber
+                //        scrapedSong.Value.UpdateFrom(await BeatSaverReader.GetSongByHashAsync(scrapedSong.Key), false);
+                //    }
+                //    catch (ArgumentNullException)
+                //    {
+                //        Logger.log?.Warn($"Unable to find {scrapedSong.Value?.SongName} by {scrapedSong.Value?.MapperName} on Beat Saver ({scrapedSong.Key})");
+                //    }
+                //}
                 var song = new PlaylistSong(scrapedSong.Value.Hash, scrapedSong.Value.SongName, scrapedSong.Value.SongKey, scrapedSong.Value.MapperName);
+                song.DateAdded = addDate;
 
                 feedPlaylist?.TryAdd(song);
+                addDate = addDate - decrement;
             }
             feedPlaylist?.TryWriteFile();
             var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();

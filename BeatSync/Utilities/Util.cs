@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEngine;
 
 namespace BeatSync.Utilities
@@ -76,29 +77,29 @@ namespace BeatSync.Utilities
                 }
             }
 
-            string hash = SongCore.Utilities.Hashing.CreateSha1FromBytes(combinedBytes.ToArray());
+            string hash = CreateSha1FromBytes(combinedBytes.ToArray());
             if (!string.IsNullOrEmpty(existingHash) && existingHash != hash)
                 Logger.log?.Warn($"Hash doesn't match the existing hash for {songDirectory}");
             return hash;
         }
 
-        ///// <summary>
-        ///// Returns the Sha1 hash of the provided byte array.
-        ///// Uses Kylemc1413's implementation from SongCore.
-        ///// https://github.com/Kylemc1413/SongCore
-        ///// </summary>
-        ///// <param name="input">Byte array to hash.</param>
-        ///// <returns>Sha1 hash of the byte array.</returns>
-        //public static string CreateSha1FromBytes(byte[] input)
-        //{
-        //    using (var sha1 = SHA1.Create())
-        //    {
-        //        var inputBytes = input;
-        //        var hashBytes = sha1.ComputeHash(inputBytes);
+        /// <summary>
+        /// Returns the Sha1 hash of the provided byte array.
+        /// Uses Kylemc1413's implementation from SongCore.
+        /// https://github.com/Kylemc1413/SongCore
+        /// </summary>
+        /// <param name="input">Byte array to hash.</param>
+        /// <returns>Sha1 hash of the byte array.</returns>
+        public static string CreateSha1FromBytes(byte[] input)
+        {
+            using (var sha1 = SHA1.Create())
+            {
+                var inputBytes = input;
+                var hashBytes = sha1.ComputeHash(inputBytes);
 
-        //        return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-        //    }
-        //}
+                return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+            }
+        }
 
         /// <summary>
         /// Generates a quick hash of a directory's contents. Does NOT match SongCore.
