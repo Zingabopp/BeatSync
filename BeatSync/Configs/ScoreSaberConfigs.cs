@@ -20,7 +20,6 @@ namespace BeatSync.Configs
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.Trending)
             {
                 MaxSongs = this.MaxSongs,
-                SongsPerPage = this.MaxSongs,
                 RankedOnly = this.RankedOnly
             };
         }
@@ -36,8 +35,7 @@ namespace BeatSync.Configs
         {
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.LatestRanked)
             {
-                MaxSongs = this.MaxSongs,
-                SongsPerPage = this.MaxSongs,
+                MaxSongs = this.MaxSongs
             };
         }
     }
@@ -56,7 +54,6 @@ namespace BeatSync.Configs
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.TopPlayed)
             {
                 MaxSongs = this.MaxSongs,
-                SongsPerPage = this.MaxSongs,
                 RankedOnly = this.RankedOnly
             };
         }
@@ -72,8 +69,7 @@ namespace BeatSync.Configs
         {
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.TopRanked)
             {
-                MaxSongs = this.MaxSongs,
-                SongsPerPage = this.MaxSongs,
+                MaxSongs = this.MaxSongs
             };
         }
     }
