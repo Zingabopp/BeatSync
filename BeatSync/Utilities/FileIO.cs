@@ -161,30 +161,36 @@ namespace BeatSync.Utilities
                 return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0);
             if (!overwrite && File.Exists(path))
                 return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
-            using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, 30, 2).ConfigureAwait(false))
+            try
             {
-                statusCode = response?.StatusCode ?? 0;
-                if (!(response?.IsSuccessStatusCode ?? false))
-                    return new DownloadResult(null, DownloadResultStatus.NetFailed, statusCode, response.ReasonPhrase);
-                try
+                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, 30, 2).ConfigureAwait(false))
                 {
-                    Directory.GetParent(path).Create();
-                    actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
+                    statusCode = response?.StatusCode ?? 0;
+                    if (!(response?.IsSuccessStatusCode ?? false))
+                        return new DownloadResult(null, DownloadResultStatus.NetFailed, statusCode, response.ReasonPhrase, response.Exception);
+                    try
+                    {
+                        Directory.GetParent(path).Create();
+                        actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
+                    }
+                    catch (IOException ex)
+                    {
+                        // Also catches DirectoryNotFoundException
+                        return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        // File already exists and overwrite is false.
+                        return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
+                    }
                 }
-                catch (IOException ex)
-                {
-                    // Also catches DirectoryNotFoundException
-                    return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    // File already exists and overwrite is false.
-                    return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
-                }
-                catch (Exception ex)
-                {
-                    return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
-                }
+            }catch(Exception ex)
+            {
+                return new DownloadResult(null, DownloadResultStatus.NetFailed, 0, ex?.Message, ex);
             }
             return new DownloadResult(actualPath, DownloadResultStatus.Success, statusCode);
         }

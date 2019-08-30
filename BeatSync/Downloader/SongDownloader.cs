@@ -152,7 +152,6 @@ namespace BeatSync.Downloader
 
 
         /// <summary>
-        /// This should be redone, return a DownloadResult so other things can take action with regards to HistoryManager.
         /// Attempts to delete the downloaded zip when finished.
         /// </summary>
         /// <param name="song"></param>

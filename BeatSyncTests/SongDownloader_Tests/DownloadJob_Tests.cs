@@ -18,6 +18,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             TestSetup.Initialize();
             defaultConfig = new PluginConfig().SetDefaults();
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            SongFeedReaders.WebUtils.WebClient.Timeout = 500;
             
         }
 
@@ -29,6 +30,9 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void SongDoesntExist()
         {
+            //Assert.AreEqual(1, SongFeedReaders.WebUtils.WebClient.Timeout);
+            //var response = SongFeedReaders.WebUtils.WebClient.GetAsync(@"http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-live-server-amd64.iso").Result;
+            //var dResult = response.Content.ReadAsFileAsync("ubuntu.iso", true).Result;
             var historyManager = new HistoryManager(DefaultHistoryPath);
             var songHasher = new SongHasher(DefaultSongsPath, DefaultHashCachePath);
             historyManager.Initialize();
