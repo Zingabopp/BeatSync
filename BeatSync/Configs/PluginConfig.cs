@@ -16,7 +16,6 @@ namespace BeatSync.Configs
             if (fillDefaults)
             {
                 FillDefaults();
-                ResetConfigChanged();
             }
         }
         #region Private Fields
