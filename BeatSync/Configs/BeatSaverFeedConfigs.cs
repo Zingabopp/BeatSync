@@ -1,18 +1,33 @@
-﻿using System;
+﻿using BeatSync.Playlists;
+using SongFeedReaders;
+using System;
 
 namespace BeatSync.Configs
 {
     public class BeatSaverFavoriteMappers : FeedConfigBase
     {
-        public BeatSaverFavoriteMappers()
-        {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeatSaverFavoriteMappers;
-        }
+        #region Defaults
+        protected override bool DefaultEnabled => true;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverFavoriteMappers;
+        #endregion
         //public bool SeparateMapperPlaylists { get; set; }
 
-        public SongFeedReaders.BeatSaverFeedSettings ToFeedSettings()
+        public override void FillDefaults()
         {
-            return new SongFeedReaders.BeatSaverFeedSettings((int)SongFeedReaders.BeatSaverFeed.Author)
+            base.FillDefaults();
+            // var _ = SeparateMapperPlaylists;
+        }
+
+        public override IFeedSettings ToFeedSettings()
+        {
+            return new BeatSaverFeedSettings((int)BeatSaverFeed.Author)
             {
                 Authors = FavoriteMappers.Mappers,
                 MaxSongs = this.MaxSongs
@@ -22,13 +37,21 @@ namespace BeatSync.Configs
 
     public class BeatSaverLatest : FeedConfigBase
     {
-        public BeatSaverLatest()
+        #region Defaults
+        protected override bool DefaultEnabled => false;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverLatest;
+        #endregion
+
+        public override IFeedSettings ToFeedSettings()
         {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeatSaverLatest;
-        }
-        public SongFeedReaders.BeatSaverFeedSettings ToFeedSettings()
-        {
-            return new SongFeedReaders.BeatSaverFeedSettings((int)SongFeedReaders.BeatSaverFeed.Latest)
+            return new BeatSaverFeedSettings((int)BeatSaverFeed.Latest)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -37,13 +60,21 @@ namespace BeatSync.Configs
 
     public class BeatSaverHot : FeedConfigBase
     {
-        public BeatSaverHot()
+        #region Defaults
+        protected override bool DefaultEnabled => false;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverHot;
+        #endregion
+
+        public override  IFeedSettings ToFeedSettings()
         {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeatSaverHot;
-        }
-        public SongFeedReaders.BeatSaverFeedSettings ToFeedSettings()
-        {
-            return new SongFeedReaders.BeatSaverFeedSettings((int)SongFeedReaders.BeatSaverFeed.Hot)
+            return new BeatSaverFeedSettings((int)BeatSaverFeed.Hot)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -53,13 +84,21 @@ namespace BeatSync.Configs
     [Obsolete("Only has really old play data.")]
     public class BeatSaverPlays : FeedConfigBase
     {
-        public BeatSaverPlays()
+        #region Defaults
+        protected override bool DefaultEnabled => false;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverPlays;
+        #endregion
+
+        public override IFeedSettings ToFeedSettings()
         {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeatSaverPlays;
-        }
-        public SongFeedReaders.BeatSaverFeedSettings ToFeedSettings()
-        {
-            return new SongFeedReaders.BeatSaverFeedSettings((int)SongFeedReaders.BeatSaverFeed.Plays)
+            return new BeatSaverFeedSettings((int)BeatSaverFeed.Plays)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -68,13 +107,21 @@ namespace BeatSync.Configs
 
     public class BeatSaverDownloads : FeedConfigBase
     {
-        public BeatSaverDownloads()
+        #region Defaults
+        protected override bool DefaultEnabled => false;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverDownloads;
+        #endregion
+
+        public override IFeedSettings ToFeedSettings()
         {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeatSaverDownloads;
-        }
-        public SongFeedReaders.BeatSaverFeedSettings ToFeedSettings()
-        {
-            return new SongFeedReaders.BeatSaverFeedSettings((int)SongFeedReaders.BeatSaverFeed.Downloads)
+            return new BeatSaverFeedSettings((int)BeatSaverFeed.Downloads)
             {
                 MaxSongs = this.MaxSongs
             };

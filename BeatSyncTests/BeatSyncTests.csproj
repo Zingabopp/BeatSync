@@ -56,6 +56,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config_Tests\ScoreSaberConfig_Tests.cs" />
+    <Compile Include="Config_Tests\BeatSaverConfig_Tests.cs" />
+    <Compile Include="Config_Tests\BeastSaberConfig_Tests.cs" />
+    <Compile Include="Config_Tests\PluginConfig_Tests.cs" />
+    <Compile Include="Config_Tests\ScoreSaberFeed_Tests\Trending_Tests.cs" />
+    <Compile Include="Config_Tests\UnitTest1.cs" />
     <Compile Include="SongDownloader_Tests\ProcessJob_Tests.cs" />
     <Compile Include="BeatSync_Tests\UnitTest1.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />

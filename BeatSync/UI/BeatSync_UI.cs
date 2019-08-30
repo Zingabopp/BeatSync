@@ -39,7 +39,7 @@ namespace BeatSync.UI
                 if (Config.DownloadTimeout == value)
                     return;
                 Config.DownloadTimeout = value;
-                Config.ConfigChanged = true;
+                //Config.SetConfigChanged();
             };
 
             var maxConcurrentDownloads = parent.AddInt("Max Concurrent Downloads",
@@ -51,7 +51,7 @@ namespace BeatSync.UI
                 if (Config.MaxConcurrentDownloads == value)
                     return;
                 Config.MaxConcurrentDownloads = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var recentPlaylistDays = parent.AddInt("Recent Playlist Days",
@@ -63,7 +63,7 @@ namespace BeatSync.UI
                 if (Config.RecentPlaylistDays == value)
                     return;
                 Config.RecentPlaylistDays = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var allBeatSyncSongs = parent.AddBool("Enable All BeatSync Songs",
@@ -74,7 +74,7 @@ namespace BeatSync.UI
                 if (Config.AllBeatSyncSongsPlaylist == value)
                     return;
                 Config.AllBeatSyncSongsPlaylist = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
         }
 
@@ -92,7 +92,7 @@ namespace BeatSync.UI
                 if (sourceConfig.MaxConcurrentPageChecks == value)
                     return;
                 sourceConfig.MaxConcurrentPageChecks = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var username = parent.AddString("Username", "Your BeastSaber username. Required to use the Bookmarks and Follows feeds");
@@ -102,7 +102,7 @@ namespace BeatSync.UI
                 if (sourceConfig.Username == value)
                     return;
                 sourceConfig.Username = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var bookmarks = CreateFeedSettings("Bookmarks", sourceName, sourceConfig.Bookmarks, parent);
@@ -124,7 +124,7 @@ namespace BeatSync.UI
                 if (sourceConfig.MaxConcurrentPageChecks == value)
                     return;
                 sourceConfig.MaxConcurrentPageChecks = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserDate\\FavoriteMappers.ini. Max Songs is per mapper.");
@@ -148,7 +148,7 @@ namespace BeatSync.UI
                 if (sourceConfig.Trending.RankedOnly == value)
                     return;
                 sourceConfig.Trending.RankedOnly = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
             var topPlayed = CreateFeedSettings("Top Played", sourceName, sourceConfig.TopPlayed, parent);
             var topPlayedRankedOnly = topPlayed.AddBool("Ranked Only",
@@ -159,7 +159,7 @@ namespace BeatSync.UI
                 if (sourceConfig.TopPlayed.RankedOnly == value)
                     return;
                 sourceConfig.TopPlayed.RankedOnly = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
         }
 
@@ -173,7 +173,7 @@ namespace BeatSync.UI
                 if (sourceConfig.Enabled == value)
                     return;
                 sourceConfig.Enabled = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
         }
@@ -191,7 +191,7 @@ namespace BeatSync.UI
                 if (feedConfig.Enabled == value)
                     return;
                 feedConfig.Enabled = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var maxSongs = feedSubMenu.AddInt("Max Songs",
@@ -203,7 +203,7 @@ namespace BeatSync.UI
                 if (feedConfig.MaxSongs == value)
                     return;
                 feedConfig.MaxSongs = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
 
             var createPlaylist = feedSubMenu.AddBool("Create Playlist",
@@ -214,7 +214,7 @@ namespace BeatSync.UI
                 if (feedConfig.CreatePlaylist == value)
                     return;
                 feedConfig.CreatePlaylist = value;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
             
             string[] textSegmentOptions = new string[] { "Append", "Replace" };
@@ -226,7 +226,7 @@ namespace BeatSync.UI
                 if (feedConfig.PlaylistStyle == newStyle)
                     return;
                 feedConfig.PlaylistStyle = newStyle;
-                Config.ConfigChanged = true;
+                // Config.ConfigChanged = true;
             };
             return feedSubMenu;
         }

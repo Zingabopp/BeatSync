@@ -3,19 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SongFeedReaders;
+using BeatSync.Playlists;
 
 namespace BeatSync.Configs
 {
     public class BeastSaberFollowings : FeedConfigBase
     {
-        public BeastSaberFollowings()
-        {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeastSaberFollows;
-        }
+        #region Defaults
+        protected override bool DefaultEnabled => false;
 
-        public SongFeedReaders.BeastSaberFeedSettings ToFeedSettings()
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeastSaberFollows;
+        #endregion
+
+        public override IFeedSettings ToFeedSettings()
         {
-            return new SongFeedReaders.BeastSaberFeedSettings((int)SongFeedReaders.BeastSaberFeed.Following)
+            return new BeastSaberFeedSettings((int)BeastSaberFeed.Following)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -24,13 +33,21 @@ namespace BeatSync.Configs
 
     public class BeastSaberBookmarks : FeedConfigBase
     {
-        public BeastSaberBookmarks()
+        #region Defaults
+        protected override bool DefaultEnabled => false;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeastSaberBookmarks;
+        #endregion
+
+        public override IFeedSettings ToFeedSettings()
         {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeastSaberBookmarks;
-        }
-        public SongFeedReaders.BeastSaberFeedSettings ToFeedSettings()
-        {
-            return new SongFeedReaders.BeastSaberFeedSettings((int)SongFeedReaders.BeastSaberFeed.Bookmarks)
+            return new BeastSaberFeedSettings((int)BeastSaberFeed.Bookmarks)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -39,13 +56,21 @@ namespace BeatSync.Configs
 
     public class BeastSaberCuratorRecommended : FeedConfigBase
     {
-        public BeastSaberCuratorRecommended()
+        #region Defaults
+        protected override bool DefaultEnabled => false;
+
+        protected override int DefaultMaxSongs => 20;
+
+        protected override bool DefaultCreatePlaylist => true;
+
+        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeastSaberCurator;
+        #endregion
+
+        public override IFeedSettings ToFeedSettings()
         {
-            FeedPlaylist = Playlists.BuiltInPlaylist.BeastSaberCurator;
-        }
-        public SongFeedReaders.BeastSaberFeedSettings ToFeedSettings()
-        {
-            return new SongFeedReaders.BeastSaberFeedSettings((int)SongFeedReaders.BeastSaberFeed.CuratorRecommended)
+            return new BeastSaberFeedSettings((int)BeastSaberFeed.CuratorRecommended)
             {
                 MaxSongs = this.MaxSongs
             };

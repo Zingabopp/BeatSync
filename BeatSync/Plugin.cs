@@ -37,7 +37,7 @@ namespace BeatSync
                 // Build new config file if it doesn't exist or RegenerateConfig is true
                 if (v.Value == null || v.Value.RegenerateConfig)
                 {
-                    p.Store(v.Value = new PluginConfig().SetDefaults());
+                    p.Store(v.Value = new PluginConfig(true));
                 }
                 config = v;
             });
@@ -100,7 +100,8 @@ namespace BeatSync
         {
             Logger.log?.Debug("Creating BeatSync's UI");
             UI.BeatSync_UI.CreateUI();
-            config.Value.ConfigChanged = false;
+            config.Value.ResetConfigChanged();
+            config.Value.FillDefaults();
             var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
             try
             {
@@ -123,7 +124,7 @@ namespace BeatSync
                 {
                     Logger.log?.Debug("Saving settings.");
                     configProvider.Store(config.Value);
-                    config.Value.ConfigChanged = false;
+                    config.Value.ResetConfigChanged();
                 }
             }
             catch (Exception ex)
