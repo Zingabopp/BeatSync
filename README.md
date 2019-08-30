@@ -75,12 +75,12 @@ __BeatSync.json__
     * Enabled
 	* MaxSongs
 	* CreatePlaylist
-	* PlaylistStyle
+	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs gets removed.
   * LatestRanked: Get ScoreSaber's ranked songs, most recently ranked first (more or less).
     * Enabled
 	* MaxSongs
 	* CreatePlaylist
-	* PlaylistStyle
+	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs gets removed.
   * Trending: Get songs using ScoreSaber's "Trending" ordering.
     * Enabled
 	* MaxSongs
