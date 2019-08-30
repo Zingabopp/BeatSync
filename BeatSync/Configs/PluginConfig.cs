@@ -72,9 +72,14 @@ namespace BeatSync.Configs
             }
             set
             {
-                if (_downloadTimeout == value)
+                int newAdjustedVal = value;
+                if (value < 1)
+                    newAdjustedVal = 1;
+                if (value != newAdjustedVal)
+                    SetConfigChanged();
+                if (_downloadTimeout == newAdjustedVal)
                     return;
-                _downloadTimeout = value;
+                _downloadTimeout = newAdjustedVal;
                 SetConfigChanged();
             }
         }
@@ -97,8 +102,8 @@ namespace BeatSync.Configs
                     newAdjustedVal = 1;
                 else if (value > 10)
                     newAdjustedVal = 10;
-                else
-                    newAdjustedVal = value;
+                if (value != newAdjustedVal)
+                    SetConfigChanged();
                 if (_maxConcurrentDownloads == newAdjustedVal)
                     return;
                 _maxConcurrentDownloads = newAdjustedVal;
@@ -122,6 +127,8 @@ namespace BeatSync.Configs
                 int newAdjustedVal = value;
                 if (value < 0)
                     newAdjustedVal = 0;
+                if (value != newAdjustedVal)
+                    SetConfigChanged();
                 if (_recentPlaylistDays == newAdjustedVal)
                     return;
                 _recentPlaylistDays = newAdjustedVal;

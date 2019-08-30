@@ -130,9 +130,15 @@ namespace BeatSync.Configs
             }
             set
             {
-                if (_maxSongs == value)
+                int newAdjustedVal = value;
+                if (value < 0)
+                {
+                    newAdjustedVal = 0;
+                    SetConfigChanged();
+                }                    
+                if (_maxSongs == newAdjustedVal)
                     return;
-                _maxSongs = value;
+                _maxSongs = newAdjustedVal;
                 SetConfigChanged();
             }
         }

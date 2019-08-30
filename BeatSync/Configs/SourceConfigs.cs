@@ -34,7 +34,10 @@ namespace BeatSync.Configs
             {
                 int newAdjustedVal = value;
                 if (value <= 0)
+                {
                     newAdjustedVal = 1;
+                    SetConfigChanged();
+                }
                 if (_maxConcurrentPageChecks == newAdjustedVal)
                     return;
                 _maxConcurrentPageChecks = newAdjustedVal;
