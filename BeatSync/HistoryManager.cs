@@ -268,7 +268,7 @@ namespace BeatSync
     public enum HistoryFlag
     {
         /// <summary>
-        /// Not set.
+        /// Not set, should mean the song is in the download queue or is in progress.
         /// </summary>
         None = 0,
         /// <summary>

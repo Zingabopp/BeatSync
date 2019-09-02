@@ -282,8 +282,7 @@ namespace BeatSync.Downloader
                 var notInHistory = HistoryManager.TryAdd(playlistSong, HistoryFlag.None); // Make sure it's in HistoryManager even if it already exists.
                 HistoryManager.TryGetValue(pair.Value.Hash, out var historyEntry);
                 var didntExist = HashSource.ExistingSongs.TryAdd(pair.Value.Hash, "");
-                if (didntExist && (historyEntry.Flag == HistoryFlag.None
-                    || historyEntry.Flag == HistoryFlag.Error))
+                if (didntExist && (notInHistory || historyEntry.Flag == HistoryFlag.Error))
                 {
                     //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
 
