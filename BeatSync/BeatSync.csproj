@@ -157,6 +157,7 @@
     <Compile Include="UI\BeatSync_UI.cs" />
     <Compile Include="UI\FloatingText.cs" />
     <Compile Include="Utilities\FileLock.cs" />
+    <Compile Include="Utilities\PlaylistSongExtensions.cs" />
     <Compile Include="Utilities\TaskExtensions.cs" />
     <Compile Include="Utilities\Util.cs" />
   </ItemGroup>

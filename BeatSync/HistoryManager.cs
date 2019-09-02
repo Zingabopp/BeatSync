@@ -288,6 +288,10 @@ namespace BeatSync
         /// </summary>
         PreExisting = 4,
         /// <summary>
+        /// Error during download/extractions.
+        /// </summary>
+        Error = 5,
+        /// <summary>
         /// Not found on Beat Saver.
         /// </summary>
         NotFound = 404

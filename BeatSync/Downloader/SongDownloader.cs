@@ -128,7 +128,7 @@ namespace BeatSync.Downloader
             { Logger.log?.Error(ex); }
             try
             {
-                if(Directory.Exists(SongTempPath))
+                if (Directory.Exists(SongTempPath))
                     Directory.Delete(SongTempPath, true);
             }
             catch (Exception) { }
@@ -143,10 +143,20 @@ namespace BeatSync.Downloader
         /// <returns></returns>
         public static async Task<DownloadResult> DownloadSongAsync(PlaylistSong song, string target)
         {
-            DownloadResult result;
-            var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
-            var downloadTarget = Path.Combine(target, song.Key);
-            result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
+            DownloadResult result = null;
+            try
+            {
+                var downloadUri = new Uri(BeatSaverDownloadUrlBase + song.Hash.ToLower());
+                var downloadTarget = Path.Combine(target, song.Key ?? song.Hash);
+                result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Error($"Error downloading song {song.Key ?? song.Hash}.\n{ex.Message}");
+                Logger.log?.Debug(ex);
+                if (result == null)
+                    result = new DownloadResult(null, DownloadResultStatus.Unknown, 0, ex.Message, ex);
+            }
             return result;
         }
 
@@ -165,6 +175,8 @@ namespace BeatSync.Downloader
             string extractDirectory = null;
             try
             {
+                if (string.IsNullOrEmpty(song?.Key))
+                    await song.UpdateSongKeyAsync().ConfigureAwait(false);
                 var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelsPath, song.DirectoryName));
                 directoryCreated = !Directory.Exists(songDirPath);
                 // Won't remove if it fails, why bother with the HashDictionary TryAdd check if we're overwriting/incrementing folder name
@@ -210,7 +222,10 @@ namespace BeatSync.Downloader
             }
             catch (Exception ex)
             {
-                Logger.log?.Error($"Error downloading {song.Key}: {ex.Message}");
+                Logger.log?.Error($"Error downloading {song.Key ?? song.Hash}: {ex.Message}");
+                Logger.log?.Debug(ex);
+                if (result.Exception == null)
+                    result.Exception = ex;
             }
             finally
             {

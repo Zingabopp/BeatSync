@@ -58,7 +58,7 @@ namespace BeatSync.Playlists
                 {
                     // BeatSaverDownloader's method of naming the directory.
                     string basePath = Key + " (" + Name + " - " + LevelAuthorName + ")";
-                    basePath = string.Join("", basePath.Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
+                    basePath = string.Join("", basePath.Trim().Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
                     _directoryName = basePath;
                 }
                 return _directoryName;
