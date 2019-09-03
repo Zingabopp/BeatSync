@@ -45,8 +45,11 @@ namespace BeatSync
                 else
                 {
                     v.Value.RegenerateConfig = false;
-                    p.Store(v.Value);
-                    v.Value.ResetConfigChanged();
+                    if (v.Value.ConfigChanged)
+                    {
+                        p.Store(v.Value);
+                        v.Value.ResetConfigChanged();
+                    }
                 }
                 config = v;
             });
@@ -129,11 +132,12 @@ namespace BeatSync
         {
             try
             {
-                if (!config.Value.ConfigChanged)
+                if (!config.Value.ConfigChanged && !config.Value.RegenerateConfig) // Don't skip if RegenerateConfig is true
                     return;
                 if (finishAction != SettingsFlowCoordinator.FinishAction.Cancel)
                 {
                     Logger.log?.Debug("Saving settings.");
+                    config.Value.RegenerateConfig = false;
                     configProvider.Store(config.Value);
                     config.Value.ResetConfigChanged();
                 }

@@ -12,7 +12,7 @@ namespace BeatSync.Configs
 
         public PluginConfig()
         {
-            _regenerateConfig = false;
+
         }
         public PluginConfig(bool fillDefaults)
             : this()
@@ -49,10 +49,10 @@ namespace BeatSync.Configs
             {
                 if (_regenerateConfig == null)
                 {
-                    _regenerateConfig = true;
+                    _regenerateConfig = false;
                     SetConfigChanged();
                 }
-                return _regenerateConfig ?? true;
+                return _regenerateConfig ?? false;
             }
             set
             {
