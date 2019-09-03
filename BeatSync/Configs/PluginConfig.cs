@@ -10,7 +10,10 @@ namespace BeatSync.Configs
     {
         public static PluginConfig DefaultConfig = new PluginConfig().SetDefaults();
 
-        public PluginConfig() { }
+        public PluginConfig()
+        {
+            _regenerateConfig = false;
+        }
         public PluginConfig(bool fillDefaults)
         {
             if (fillDefaults)

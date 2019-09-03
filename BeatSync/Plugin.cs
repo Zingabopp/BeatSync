@@ -38,6 +38,7 @@ namespace BeatSync
                 // Build new config file if it doesn't exist or RegenerateConfig is true
                 if (v.Value == null || v.Value.RegenerateConfig)
                 {
+
                     p.Store(v.Value = new PluginConfig(true));
                     v.Value.ResetConfigChanged();
                 }

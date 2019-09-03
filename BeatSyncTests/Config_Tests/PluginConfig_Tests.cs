@@ -18,7 +18,7 @@ namespace BeatSyncTests.Config_Tests
             Assert.IsTrue(c.ConfigChanged); // Getting defaults from unassigned properties changes config.
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
-            Assert.AreEqual(c.RegenerateConfig, true);
+            Assert.AreEqual(c.RegenerateConfig, false);
             Assert.AreEqual(c.DownloadTimeout, 30);
             Assert.AreEqual(c.MaxConcurrentDownloads, 3);
             Assert.AreEqual(c.RecentPlaylistDays, 7);
@@ -33,8 +33,8 @@ namespace BeatSyncTests.Config_Tests
         public void Changed_RegenerateConfig()
         {
             var c = new PluginConfig();
-            var defaultValue = true;
-            var newValue = false;
+            var defaultValue = false;
+            var newValue = true;
             Assert.AreEqual(defaultValue, c.RegenerateConfig);
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
@@ -163,7 +163,7 @@ namespace BeatSyncTests.Config_Tests
         public void Unchanged_RegenerateConfig()
         {
             var c = new PluginConfig();
-            var defaultValue = true;
+            var defaultValue = false;
             Assert.AreEqual(defaultValue, c.RegenerateConfig);
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
