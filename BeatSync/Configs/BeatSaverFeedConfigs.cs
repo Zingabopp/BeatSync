@@ -1,4 +1,5 @@
 ﻿using BeatSync.Playlists;
+using Newtonsoft.Json;
 using SongFeedReaders;
 using System;
 
@@ -16,13 +17,35 @@ namespace BeatSync.Configs
         protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
 
         protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverFavoriteMappers;
+
+        protected bool DefaultSeparateMapperPlaylists => false;
         #endregion
-        //public bool SeparateMapperPlaylists { get; set; }
+        [JsonIgnore]
+        private bool? _separateMapperPlaylists;
+
+        public bool SeparateMapperPlaylists {
+            get
+            {
+                if (_separateMapperPlaylists == null)
+                {
+                    _separateMapperPlaylists = DefaultSeparateMapperPlaylists;
+                    SetConfigChanged();
+                }
+                return _separateMapperPlaylists ?? DefaultSeparateMapperPlaylists;
+            }
+            set
+            {
+                if (_separateMapperPlaylists == value)
+                    return;
+                _separateMapperPlaylists = value;
+                SetConfigChanged();
+            }
+        }
 
         public override void FillDefaults()
         {
             base.FillDefaults();
-            // var _ = SeparateMapperPlaylists;
+            var _ = SeparateMapperPlaylists;
         }
 
         public override IFeedSettings ToFeedSettings()
