@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -56,7 +57,9 @@ namespace BeatSync
             if (customUIExists)
                 CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
             // Called to set the WebClient SongFeedReaders uses
+            var userAgent = $"BeatSync/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
 
             // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);

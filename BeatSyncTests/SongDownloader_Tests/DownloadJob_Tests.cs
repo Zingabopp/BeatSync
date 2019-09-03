@@ -6,6 +6,7 @@ using BeatSync.Playlists;
 using BeatSync.Configs;
 using BeatSync.Downloader;
 using System.IO;
+using System.Reflection;
 
 namespace BeatSyncTests.SongDownloader_Tests
 {
@@ -17,9 +18,12 @@ namespace BeatSyncTests.SongDownloader_Tests
         {
             TestSetup.Initialize();
             defaultConfig = new PluginConfig().SetDefaults();
+            var userAgent = $"BeatSyncTests/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
             SongFeedReaders.WebUtils.WebClient.Timeout = 500;
-            
+            //SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper(userAgent));
+
         }
 
         public static PluginConfig defaultConfig;
