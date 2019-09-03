@@ -15,6 +15,7 @@ namespace BeatSync.Configs
             _regenerateConfig = false;
         }
         public PluginConfig(bool fillDefaults)
+            : this()
         {
             if (fillDefaults)
             {

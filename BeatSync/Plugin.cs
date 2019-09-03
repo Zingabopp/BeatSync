@@ -42,6 +42,12 @@ namespace BeatSync
                     p.Store(v.Value = new PluginConfig(true));
                     v.Value.ResetConfigChanged();
                 }
+                else
+                {
+                    v.Value.RegenerateConfig = false;
+                    p.Store(v.Value);
+                    v.Value.ResetConfigChanged();
+                }
                 config = v;
             });
         }
