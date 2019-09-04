@@ -21,5 +21,10 @@ namespace BeatSync.Utilities
             song.Key = scrape.SongKey;
             return true;
         }
+
+        public static PlaylistSong ToPlaylistSong(this ScrapedSong song)
+        {
+            return new PlaylistSong(song.Hash, song.SongName, song.SongKey, song.MapperName);
+        }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using BeatSync.Utilities;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -8,31 +11,19 @@ namespace BeatSync.Playlists
 {
     public static class PlaylistManager
     {
-        static PlaylistManager()
-        {
-            AvailablePlaylists = new Dictionary<BuiltInPlaylist, Playlist>();
-
-            //AvailablePlaylists.TryAdd("BeatSyncPlaylist", null);
-            //AvailablePlaylists.TryAdd("BeatSyncBSaberBookmarks", null);
-            //AvailablePlaylists.TryAdd("BeatSyncBSaberFollows", null);
-            //AvailablePlaylists.TryAdd("BeatSyncBSaberCuratorRecommended", null);
-            //AvailablePlaylists.TryAdd("BeatSyncScoreSaberTopRanked", null);
-            //AvailablePlaylists.TryAdd("BeatSyncFavoriteMappers", null);
-            //AvailablePlaylists.TryAdd("BeatSyncRecent", null);
-            //foreach (var key in DefaultPlaylists.Keys)
-            //{
-            //    AvailablePlaylists.Add(key, null);
-            //}
-
-        }
         public const string PlaylistPath = @"Playlists";
         public static readonly string ConvertedPlaylistPath = Path.Combine(PlaylistPath, "ConvertedSyncSaber");
         public static readonly string DisabledPlaylistsPath = Path.Combine(PlaylistPath, "DisabledPlaylists");
         public static readonly string[] PlaylistExtensions = new string[] { ".bplist", ".json" };
 
-        private static Dictionary<BuiltInPlaylist, Playlist> AvailablePlaylists; // Doesn't need to be concurrent, basically readonly
+        private static Dictionary<BuiltInPlaylist, Playlist> AvailablePlaylists = new Dictionary<BuiltInPlaylist, Playlist>(); // Doesn't need to be concurrent, basically readonly
 
-        public static Dictionary<BuiltInPlaylist, Playlist> DefaultPlaylists = new Dictionary<BuiltInPlaylist, Playlist>()
+        /// <summary>
+        /// Key is the file name in lowercase.
+        /// </summary>
+        private static ConcurrentDictionary<string, Playlist> CustomPlaylists = new ConcurrentDictionary<string, Playlist>();
+
+        public static readonly ReadOnlyDictionary<BuiltInPlaylist, Playlist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, Playlist>(new Dictionary<BuiltInPlaylist, Playlist>()
         {
             {BuiltInPlaylist.BeatSyncAll, new Playlist("BeatSyncPlaylist.bplist", "BeatSync Playlist", "BeatSync", "1") },
             {BuiltInPlaylist.BeastSaberBookmarks, new Playlist("BeatSyncBSaberBookmarks.bplist", "BeastSaber Bookmarks", "BeatSync", "1") },
@@ -48,7 +39,7 @@ namespace BeatSync.Playlists
             {BuiltInPlaylist.BeatSaverPlays, new Playlist("BeatSyncBeatSaverPlays.bplist", "Beat Saver Plays", "BeatSync", "1") },
             {BuiltInPlaylist.BeatSaverDownloads, new Playlist("BeatSyncBeatSaverDownloads.bplist", "Beat Saver Downloads", "BeatSync", "1") },
             {BuiltInPlaylist.BeatSyncRecent, new Playlist("BeatSyncRecent.bplist", "BeatSync Recent Songs", "BeatSync", "1") }
-        };
+        });
 
         public static Dictionary<int, Playlist> LegacyPlaylists = new Dictionary<int, Playlist>()
         {
@@ -72,6 +63,11 @@ namespace BeatSync.Playlists
                     continue;
                 playlist.TryRemove(hash);
             }
+            var customPlaylistKeys = CustomPlaylists.Keys;
+            foreach (var key in customPlaylistKeys)
+            {
+                CustomPlaylists[key].TryRemove(hash);
+            }
         }
 
         /// <summary>
@@ -91,8 +87,17 @@ namespace BeatSync.Playlists
                     continue;
                 if (playlist.IsDirty)
                 {
-                    Logger.log?.Debug($"Writing {playlist.Title} to file.");
+                    Logger.log?.Debug($"Writing {playlist.FileName} to file.");
                     playlist.TryWriteFile();
+                }
+            }
+            var customPlaylistKeys = CustomPlaylists.Keys;
+            foreach (var key in customPlaylistKeys)
+            {
+                if (CustomPlaylists[key].IsDirty)
+                {
+                    Logger.log?.Debug($"Writing {CustomPlaylists[key].FileName} to file.");
+                    CustomPlaylists[key].TryWriteFile();
                 }
             }
         }
@@ -118,9 +123,9 @@ namespace BeatSync.Playlists
                 }
                 else
                 {
-                    playlist = JsonConvert.DeserializeObject<Playlist>(File.ReadAllText(path));
+                    playlist = FileIO.ReadPlaylist(path);
                     playlist.FileName = path;
-                    Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
+                    Logger.log?.Debug($"Playlist loaded from file: {playlist.FileName} with {playlist.Songs?.Count ?? 0} songs.");
                 }
                 AvailablePlaylists.Add(builtInPlaylist, playlist);
             }
@@ -128,6 +133,69 @@ namespace BeatSync.Playlists
             return playlist;
         }
 
+        /// <summary>
+        /// Retrieves the specified playlist. If the playlist doesn't exist, returns null.
+        /// </summary>
+        /// <param name="builtInPlaylist"></param>
+        /// <returns></returns>
+        public static Playlist GetPlaylist(string playlistFileName)
+        {
+            Playlist playlist = null;
+            // Check if the playlist is one of the built in ones.
+            foreach (var defaultPlaylist in DefaultPlaylists)
+            {
+                if(defaultPlaylist.Value.FileName == playlistFileName)
+                {
+                    playlist = GetPlaylist(defaultPlaylist.Key);
+                }
+            }
+            
+
+            // Check if this playlist exists in CustomPlaylists
+            if (playlist == null && CustomPlaylists.ContainsKey(playlistFileName.ToLower()))
+            {
+                playlist = CustomPlaylists[playlistFileName.ToLower()];
+            }
+
+            // Check if the playlistFileName exists
+            if(playlist == null)
+            {
+                var existingFile = FileIO.GetPlaylistFilePath(playlistFileName);
+                if(!string.IsNullOrEmpty(existingFile))
+                {
+                    playlist = FileIO.ReadPlaylist(existingFile);
+                    playlist.FileName = playlistFileName;
+                    CustomPlaylists.TryAdd(playlistFileName, playlist);
+                    Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
+                }
+            }
+            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} with {playlist?.Songs?.Count} songs.");
+            return playlist;
+        }
+
+        public static bool TryAdd(Playlist playlist)
+        {
+            return CustomPlaylists.TryAdd(playlist.FileName.ToLower(), playlist);
+        }
+
+        public static Playlist GetOrAdd(string playlistFileName, Func<Playlist> newPlaylist)
+        {
+            var playlist = GetPlaylist(playlistFileName);
+            if (playlist == null)
+            {
+                playlist = newPlaylist();
+                if (playlist != null)
+                {
+                    if (!string.IsNullOrEmpty(playlist.FileName))
+                        CustomPlaylists.TryAdd(playlist.FileName?.ToLower() ?? "", playlist);
+                    else
+                        Logger.log?.Warn($"Invalid playlist file name in playlist function given to PlaylistManager.GetOrAdd()");
+                }
+                else
+                    Logger.log?.Warn($"Playlist function returned a null playlist in PlaylistManager.GetOrAdd()");
+            }
+            return playlist;
+        }
 
 
         public static void ConvertLegacyPlaylists()

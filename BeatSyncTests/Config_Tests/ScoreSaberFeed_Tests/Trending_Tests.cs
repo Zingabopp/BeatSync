@@ -112,6 +112,9 @@ namespace BeatSyncTests.Config_Tests.ScoreSaberFeed_Tests
             Assert.IsTrue(c.ConfigChanged);
         }
 
+        /// <summary>
+        /// Changing FeedPlaylist should not affect ConfigChanged.
+        /// </summary>
         [TestMethod]
         public void Changed_FeedPlaylist()
         {
@@ -128,8 +131,8 @@ namespace BeatSyncTests.Config_Tests.ScoreSaberFeed_Tests
             c.FeedPlaylist = newVal;
 
             Assert.AreEqual(newVal, c.FeedPlaylist);
-            Assert.IsTrue(pc.ConfigChanged);
-            Assert.IsTrue(c.ConfigChanged);
+            Assert.IsFalse(pc.ConfigChanged);
+            Assert.IsFalse(c.ConfigChanged);
         }
 
         [TestMethod]

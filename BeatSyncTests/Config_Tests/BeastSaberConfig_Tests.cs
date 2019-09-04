@@ -20,6 +20,7 @@ namespace BeatSyncTests.Config_Tests
             Assert.IsTrue(c.ConfigChanged); // Getting defaults from unassigned properties changes config.
             pc.ResetConfigChanged();
             c.ResetConfigChanged();
+            pc.FillDefaults();
             Assert.IsFalse(pc.ConfigChanged);
             Assert.IsFalse(c.ConfigChanged);
 

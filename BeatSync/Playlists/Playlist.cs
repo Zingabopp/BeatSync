@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace BeatSync.Playlists
 {
@@ -110,6 +111,12 @@ namespace BeatSync.Playlists
             IsDirty = true;
         }
 
+        [OnDeserialized]
+        internal void OnDeserialized(StreamingContext context)
+        {
+            IsDirty = false;
+        }
+
         /// <summary>
         /// Tries to write the playlist to a file. Before the file is written, the songs are ordered by DateAdded in descending order.
         /// If the write fails, returns false and provides the exception in the out parameter.
@@ -141,8 +148,8 @@ namespace BeatSync.Playlists
         public bool TryWriteFile()
         {
             var retVal = TryWriteFile(out var ex);
-            //if (ex != null)
-            //Logger.log?.Error(ex);
+            if (ex != null)
+                Logger.log?.Error($"Error writing playlist {FileName}: {ex.Message}");
             return retVal;
         }
 

@@ -108,6 +108,7 @@ namespace BeatSync.Utilities
             var bakFile = new FileInfo(path + ".bak");
             if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
             {
+                Logger.log?.Debug($"Found backup playlist file {bakFile}, using this instead.");
                 bakFile.CopyTo(path, true);
                 bakFile.Delete();
             }
@@ -117,7 +118,7 @@ namespace BeatSync.Utilities
                 playlist = (Playlist)serializer.Deserialize(sr, typeof(Playlist));
             }
             playlist.FileName = fileName;
-            Logger.log?.Info($"Found Playlist {playlist.Title}");
+            Logger.log?.Debug($"ReadPlaylist(): Found Playlist {playlist.Title}");
 
             return playlist;
         }
@@ -129,6 +130,8 @@ namespace BeatSync.Utilities
         /// <returns></returns>
         public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
         {
+            if (File.Exists(fileName))
+                return Path.GetFullPath(fileName);
             var path = Path.Combine(PlaylistManager.PlaylistPath, fileName);
             if (File.Exists(path))
                 return Path.GetFullPath(path);
