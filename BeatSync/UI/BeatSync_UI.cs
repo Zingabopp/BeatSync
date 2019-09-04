@@ -128,6 +128,15 @@ namespace BeatSync.UI
             };
 
             var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserDate\\FavoriteMappers.ini. Max Songs is per mapper.");
+            var separateMapperPlaylists = favoriteMappers.AddBool("Separate Mapper Playlists",
+                            $"Create a playlist for each mapper in FavoriteMappers.ini (must also have CreatePlaylist enabled).");
+            separateMapperPlaylists.GetValue += delegate { return sourceConfig.FavoriteMappers.SeparateMapperPlaylists; };
+            separateMapperPlaylists.SetValue += delegate (bool value)
+            {
+                if (sourceConfig.FavoriteMappers.SeparateMapperPlaylists == value)
+                    return;
+                sourceConfig.FavoriteMappers.SeparateMapperPlaylists = value;
+            };
             var hot = CreateFeedSettings("Hot", sourceName, sourceConfig.Hot, parent);
             var downloads = CreateFeedSettings("Downloads", sourceName, sourceConfig.Downloads, parent);
         }
