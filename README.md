@@ -64,6 +64,7 @@ __BeatSync.json__
 	* MaxSongs
 	* CreatePlaylist
 	* PlaylistStyle
+	* SeparateMapperPlaylists: Creates a playlist for each mapper specified in FavoriteMappers.ini (Must also have CreatePlaylist enabled).
   * Downloads: Get songs by most downloaded from Beat Saver
     * Enabled
 	* MaxSongs
