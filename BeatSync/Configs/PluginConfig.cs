@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 // Option to delete songs downloaded from certain feeds after x amount of days?
 // public bool DeleteOldVersions { get; set; } not yet supported
@@ -228,6 +231,8 @@ namespace BeatSync.Configs
         {
             get
             {
+                //var reasons = base.ChangedValues.Concat(BeatSaver.ChangedValues).Concat(BeastSaber.ChangedValues).Concat(ScoreSaber.ChangedValues);
+                //Logger.log?.Info($"ChangedValues: {string.Join(", ", reasons)}");
                 return (base.ConfigChanged || BeatSaver.ConfigChanged || BeastSaber.ConfigChanged || ScoreSaber.ConfigChanged);
             }
             protected set => base.ConfigChanged = value;
@@ -292,6 +297,12 @@ namespace BeatSync.Configs
             //};
             return this;
         }
+
+        //[OnDeserialized]
+        //internal void OnDeserialized(StreamingContext context)
+        //{
+        //    //ResetConfigChanged();
+        //}
 
     }
 }

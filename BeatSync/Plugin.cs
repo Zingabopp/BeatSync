@@ -36,19 +36,24 @@ namespace BeatSync
             config = configProvider.MakeLink<PluginConfig>((p, v) =>
             {
                 // Build new config file if it doesn't exist or RegenerateConfig is true
+
                 if (v.Value == null || v.Value.RegenerateConfig)
                 {
-
+                    string reason = v.Value == null ? "BeatSync.json was not found." : "RegenerateConfig is true.";
+                    Logger.log?.Debug($"Creating new config because {reason}");
                     p.Store(v.Value = new PluginConfig(true));
                     v.Value.ResetConfigChanged();
                 }
                 else
                 {
-                    v.Value.RegenerateConfig = false;
+                    //v.Value.RegenerateConfig = false;
+                    v.Value.ResetConfigChanged();
+                    v.Value.FillDefaults();
                     if (v.Value.ConfigChanged)
                     {
-                        p.Store(v.Value);
+                        Logger.log?.Debug("Plugin.Init(): Saving settings.");
                         v.Value.ResetConfigChanged();
+                        p.Store(v.Value);
                     }
                 }
                 config = v;
@@ -133,7 +138,10 @@ namespace BeatSync
             try
             {
                 if (!config.Value.ConfigChanged && !config.Value.RegenerateConfig) // Don't skip if RegenerateConfig is true
+                {
+                    Logger.log?.Debug($"BeatSync settings not changed.");
                     return;
+                }
                 if (finishAction != SettingsFlowCoordinator.FinishAction.Cancel)
                 {
                     Logger.log?.Debug("Saving settings.");

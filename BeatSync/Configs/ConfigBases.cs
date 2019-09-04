@@ -1,21 +1,41 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace BeatSync.Configs
 {
     public abstract class NotifyOnChange
     {
         [JsonIgnore]
+        private List<string> _changedValues = new List<string>();
+        [JsonIgnore]
+        public string[] ChangedValues { get { return _changedValues.ToArray(); } }
+        [JsonIgnore]
         public virtual bool ConfigChanged { get; protected set; }
 
-        public virtual void SetConfigChanged(bool changed = true)
+        public virtual void SetConfigChanged(bool changed = true, [CallerMemberName] string member = "")
         {
+            if (!string.IsNullOrEmpty(member))
+            {
+                //Logger.log?.Info($"Setting ConfigChanged in {this.GetType().ToString()} due to {member}");
+                _changedValues.Add($"{this.GetType()}:{member}");
+            }
             ConfigChanged = changed;
         }
 
         public virtual void ResetConfigChanged()
         {
+            _changedValues.Clear();
             if(ConfigChanged)
-                SetConfigChanged(false);
+                SetConfigChanged(false, "");
+        }
+
+        [OnDeserialized]
+        internal void OnDeserialized(StreamingContext context)
+        {
+            ResetConfigChanged();
         }
 
         /// <summary>
@@ -190,7 +210,7 @@ namespace BeatSync.Configs
                 if (_feedPlaylist == null)
                 {
                     _feedPlaylist = DefaultFeedPlaylist;
-                    SetConfigChanged();
+                    //SetConfigChanged();
                 }
                 return _feedPlaylist ?? DefaultFeedPlaylist;
             }
@@ -199,7 +219,7 @@ namespace BeatSync.Configs
                 if (_feedPlaylist == value)
                     return;
                 _feedPlaylist = value;
-                SetConfigChanged();
+                //SetConfigChanged();
             }
         }
 

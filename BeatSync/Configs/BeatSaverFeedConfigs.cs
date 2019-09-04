@@ -52,7 +52,6 @@ namespace BeatSync.Configs
         {
             return new BeatSaverFeedSettings((int)BeatSaverFeed.Author)
             {
-                Authors = FavoriteMappers.Mappers,
                 MaxSongs = this.MaxSongs
             };
         }
