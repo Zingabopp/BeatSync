@@ -26,6 +26,7 @@ namespace BeatSync
         internal static Ref<PluginConfig> config;
         internal static IConfigProvider configProvider;
         private bool customUIExists = false;
+        private bool beatSyncCreated = false;
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
@@ -67,23 +68,32 @@ namespace BeatSync
             Logger.log?.Debug("OnApplicationStart");
             //SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
             // Check if CustomUI is installed.
-            customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
-            // If Custom UI is installed, create the UI
-            if (customUIExists)
-                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
-            // Called to set the WebClient SongFeedReaders uses
-            var userAgent = $"BeatSync/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
-            SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
-            SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
+            try
+            {
 
-            // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
-            var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
-            SongFeedReaders.BeastSaberReader.Logger = readerLogger;
-            SongFeedReaders.BeatSaverReader.Logger = readerLogger;
-            SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
-            SongFeedReaders.Utilities.Logger = readerLogger;
-            SongFeedReaders.WebUtils.Logger = readerLogger;
-            //SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;
+
+                customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
+                // If Custom UI is installed, create the UI
+                if (customUIExists)
+                    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+                // Called to set the WebClient SongFeedReaders uses
+                var userAgent = $"BeatSync/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
+                SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+                SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
+
+                // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
+                var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
+                SongFeedReaders.BeastSaberReader.Logger = readerLogger;
+                SongFeedReaders.BeatSaverReader.Logger = readerLogger;
+                SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
+                SongFeedReaders.Utilities.Logger = readerLogger;
+                SongFeedReaders.WebUtils.Logger = readerLogger;
+                //SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Error(ex);
+            }
 
         }
 
@@ -99,16 +109,32 @@ namespace BeatSync
         /// <param name="nextScene">The scene you are transitioning to.</param>
         public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
         {
-            if (nextScene.name == "HealthWarning")
+            Logger.log?.Debug($"OnActiveSceneChanged: {nextScene.name}");
+            try
             {
-                BeatSync.Paused = false;
-                var beatSync = new GameObject().AddComponent<BeatSync>();
-                GameObject.DontDestroyOnLoad(beatSync);
+                if (nextScene.name == "HealthWarning")
+                {
+                    BeatSync.Paused = false;
+                    var beatSync = new GameObject().AddComponent<BeatSync>();
+                    beatSyncCreated = true;
+                    GameObject.DontDestroyOnLoad(beatSync);
+                }
+                if (!beatSyncCreated && nextScene.name == "MenuCore")
+                {
+                    BeatSync.Paused = false;
+                    var beatSync = new GameObject().AddComponent<BeatSync>();
+                    beatSyncCreated = true;
+                    GameObject.DontDestroyOnLoad(beatSync);
+                }
+                if (nextScene.name == "GameCore")
+                    BeatSync.Paused = true;
+                else
+                    BeatSync.Paused = false;
             }
-            if (nextScene.name == "GameCore")
-                BeatSync.Paused = true;
-            else
-                BeatSync.Paused = false;
+            catch (Exception ex)
+            {
+                Logger.log?.Error(ex);
+            }
         }
 
         /// <summary>
@@ -117,19 +143,26 @@ namespace BeatSync
         /// </summary>
         public void MenuLoadedFresh()
         {
-            Logger.log?.Debug("Creating BeatSync's UI");
-            UI.BeatSync_UI.CreateUI();
-            config.Value.ResetConfigChanged();
-            config.Value.FillDefaults();
-            var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
             try
             {
-                settingsMenu.didFinishEvent -= SettingsMenu_didFinishEvent;
-                settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
+                Logger.log?.Debug("Creating BeatSync's UI");
+                UI.BeatSync_UI.CreateUI();
+                config.Value.ResetConfigChanged();
+                config.Value.FillDefaults();
+                var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
+                try
+                {
+                    settingsMenu.didFinishEvent -= SettingsMenu_didFinishEvent;
+                    settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
+                }
+                catch (Exception ex)
+                {
+                    Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
+                }
             }
             catch (Exception ex)
             {
-                Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
+                Logger.log?.Error(ex);
             }
         }
 
