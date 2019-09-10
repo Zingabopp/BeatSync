@@ -279,6 +279,8 @@ namespace BeatSync.Downloader
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
             var allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
 
+            // TODO: Don't use HistoryManager to stop the same song from being added to the download queue, too many problems.
+
             foreach (var pair in songsToDownload)
             {
                 var playlistSong = new PlaylistSong(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
