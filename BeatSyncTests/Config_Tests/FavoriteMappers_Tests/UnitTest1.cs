@@ -4,7 +4,7 @@ using BeatSync.Configs;
 using SongFeedReaders;
 using BeatSync.Playlists;
 
-namespace BeatSyncTests.Config_Tests
+namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
 {
     //[TestClass]
     public class UnitTest1

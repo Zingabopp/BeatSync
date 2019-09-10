@@ -7,11 +7,12 @@ using System.IO;
 
 namespace BeatSync.Configs
 {
-    public static class FavoriteMappers
+    public class FavoriteMappers
     {
-        private static readonly string FilePath = Path.GetFullPath(Path.Combine("UserData", "FavoriteMappers.ini"));
-        private static string[] _mappers;
-        public static string[] Mappers
+        private static readonly string DefaultFilePath = Path.GetFullPath(Path.Combine("UserData", "FavoriteMappers.ini"));
+        public string FilePath { get; private set; }
+        private string[] _mappers;
+        public string[] Mappers
         {
             get
             {
@@ -21,22 +22,38 @@ namespace BeatSync.Configs
             }
         }
 
-        public static void Initialize()
+        public FavoriteMappers(string filePath = null)
+        {
+            if (string.IsNullOrEmpty(filePath))
+                filePath = DefaultFilePath;
+            FilePath = filePath;
+        }
+
+        public void Initialize()
         {
             _mappers = ReadFromFile().ToArray();
         }
 
-        private static List<string> ReadFromFile()
+        public List<string> ReadFromFile()
         {
             var mapperList = new List<string>();
             if (!File.Exists(FilePath))
             {
-                Logger.log?.Debug($"Couldn't find FavoriteMappers.ini in the UserData folder, skipping");
+                Logger.log?.Debug($"Couldn't find {FilePath}, skipping");
                 return mapperList;
             }
             try
             {
-                mapperList.AddRange(File.ReadAllLines(FilePath));
+                using (var sr = File.OpenText(FilePath))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        var line = sr.ReadLine();
+                        line = line?.Trim();
+                        if (!string.IsNullOrEmpty(line))
+                            mapperList.Add(line);
+                    }
+                }
                 Logger.log?.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");
             }
             catch (Exception ex)

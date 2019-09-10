@@ -23,6 +23,7 @@ namespace BeatSync.Downloader
         private PluginConfig Config;
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
+        public FavoriteMappers FavoriteMappers { get; private set; }
 
         //private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
 
@@ -33,6 +34,8 @@ namespace BeatSync.Downloader
             HashSource = hashSource;
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
             HistoryManager = historyManager;
+            FavoriteMappers = new FavoriteMappers();
+            FavoriteMappers.Initialize();
             Config = config;
         }
 

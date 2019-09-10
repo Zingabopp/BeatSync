@@ -51,8 +51,12 @@ namespace BeatSync
 
         public void Awake()
         {
+            //Logger.log?.Debug("BeatSync Awake()");
             if (Instance != null)
+            {
+                Logger.log?.Debug("BeatSync component already exists, destroying this one.");
                 GameObject.DestroyImmediate(this);
+            }
             Instance = this;
             //FinishedHashing += OnHashingFinished;
         }
@@ -85,7 +89,6 @@ namespace BeatSync
 
             }
             StartCoroutine(HashSongsCoroutine());
-            FavoriteMappers.Initialize();
         }
 
         public IEnumerator<WaitUntil> HashSongsCoroutine()

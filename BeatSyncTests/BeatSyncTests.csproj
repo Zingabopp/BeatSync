@@ -56,6 +56,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config_Tests\FavoriteMappers_Tests\ReadFromFile_Tests.cs" />
+    <Compile Include="Config_Tests\FavoriteMappers_Tests\UnitTest1.cs" />
     <Compile Include="Config_Tests\ScoreSaberConfig_Tests.cs" />
     <Compile Include="Config_Tests\BeatSaverConfig_Tests.cs" />
     <Compile Include="Config_Tests\BeastSaberConfig_Tests.cs" />
@@ -96,6 +98,27 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_PostfixedSpaces.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_PrefixedSpaces.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_NewLineAtMiddle.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_NewLineAtStart.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_NewLineAtEnd.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_Expected.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_Empty.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\HistoryManager\BeatSyncHistory-TestCol1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
