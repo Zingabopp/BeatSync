@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 // Option to delete songs downloaded from certain feeds after x amount of days?
 // public bool DeleteOldVersions { get; set; } not yet supported
 // public bool DeleteDuplicateSongs { get; set; }
+// TODO: Add Clone function so threaded SongDownloader doesn't break if the config is changed while it's running
 namespace BeatSync.Configs
 {
     public class PluginConfig

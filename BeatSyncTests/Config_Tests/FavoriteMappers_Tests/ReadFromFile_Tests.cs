@@ -42,6 +42,17 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
         }
 
         [TestMethod]
+        public void NonexistantFile()
+        {
+            var fileName = "FavoriteMappers_DoesntExist.ini";
+            var filePath = Path.Combine(DataPath, fileName);
+            Assert.IsFalse(File.Exists(filePath));
+            var favoriteMappers = new FavoriteMappers(filePath);
+            favoriteMappers.Initialize();
+            Assert.AreEqual(0, favoriteMappers.Mappers.Length);
+        }
+
+        [TestMethod]
         public void NewLineAtStart()
         {
             var fileName = "FavoriteMappers_NewLineAtStart.ini";
