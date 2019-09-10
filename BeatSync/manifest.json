@@ -6,6 +6,7 @@
   "id": "BeatSync",
   "name": "BeatSync",
   "version": "0.2.3",
+  "icon": "BeatSync.Icons.BeatSyncLogoSmall.png",
   "dependsOn": {
     "BSIPA": "^3.13.2",
     "SongCore": "^2.1.0",
