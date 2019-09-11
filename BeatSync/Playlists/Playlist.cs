@@ -125,6 +125,11 @@ namespace BeatSync.Playlists
         /// <returns></returns>
         public bool TryWriteFile(out Exception exception)
         {
+            if (Songs.Count == 0)
+            {
+                exception = new InvalidOperationException($"Playlist {Title} has no songs.");
+                return false;
+            }
             //Logger.log?.Error($"Writing {FileName} to file.");
             exception = null;
             try
