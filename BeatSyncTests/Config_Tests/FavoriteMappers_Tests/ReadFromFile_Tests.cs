@@ -23,7 +23,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(6, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(6, favoriteMappers.Mappers.Count);
             foreach (var mapper in DefaultMappers)
             {
                 Assert.IsTrue(favoriteMappers.Mappers.Contains(mapper));
@@ -38,7 +38,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(0, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(0, favoriteMappers.Mappers.Count);
         }
 
         [TestMethod]
@@ -49,7 +49,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsFalse(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(0, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(0, favoriteMappers.Mappers.Count);
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(6, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(6, favoriteMappers.Mappers.Count);
             foreach (var mapper in DefaultMappers)
             {
                 Assert.IsTrue(favoriteMappers.Mappers.Contains(mapper));
@@ -75,7 +75,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(6, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(6, favoriteMappers.Mappers.Count);
             foreach (var mapper in DefaultMappers)
             {
                 Assert.IsTrue(favoriteMappers.Mappers.Contains(mapper));
@@ -90,7 +90,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(6, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(6, favoriteMappers.Mappers.Count);
             foreach (var mapper in DefaultMappers)
             {
                 Assert.IsTrue(favoriteMappers.Mappers.Contains(mapper));
@@ -105,7 +105,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(6, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(6, favoriteMappers.Mappers.Count);
             foreach (var mapper in DefaultMappers)
             {
                 Assert.IsTrue(favoriteMappers.Mappers.Contains(mapper));
@@ -120,7 +120,7 @@ namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
             Assert.IsTrue(File.Exists(filePath));
             var favoriteMappers = new FavoriteMappers(filePath);
             favoriteMappers.Initialize();
-            Assert.AreEqual(6, favoriteMappers.Mappers.Length);
+            Assert.AreEqual(6, favoriteMappers.Mappers.Count);
             foreach (var mapper in DefaultMappers)
             {
                 Assert.IsTrue(favoriteMappers.Mappers.Contains(mapper));

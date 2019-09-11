@@ -6,18 +6,14 @@ using Newtonsoft.Json;
 // Option to delete songs downloaded from certain feeds after x amount of days?
 // public bool DeleteOldVersions { get; set; } not yet supported
 // public bool DeleteDuplicateSongs { get; set; }
-// TODO: Add Clone function so threaded SongDownloader doesn't break if the config is changed while it's running
 namespace BeatSync.Configs
 {
     public class PluginConfig
-        : NotifyOnChange
+        : ConfigBase
     {
         public static PluginConfig DefaultConfig = new PluginConfig().SetDefaults();
 
-        public PluginConfig()
-        {
-
-        }
+        public PluginConfig() { }
         public PluginConfig(bool fillDefaults)
             : this()
         {
@@ -257,6 +253,35 @@ namespace BeatSync.Configs
             BeatSaver.FillDefaults();
             BeastSaber.FillDefaults();
             ScoreSaber.FillDefaults();
+        }
+
+        public PluginConfig Clone()
+        {
+            return JsonConvert.DeserializeObject<PluginConfig>(JsonConvert.SerializeObject(this));
+        }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is PluginConfig castOther)
+            {
+                if (DownloadTimeout != castOther.DownloadTimeout)
+                    return false;
+                if (MaxConcurrentDownloads != castOther.MaxConcurrentDownloads)
+                    return false;
+                if (RecentPlaylistDays != castOther.RecentPlaylistDays)
+                    return false;
+                if (AllBeatSyncSongsPlaylist != castOther.AllBeatSyncSongsPlaylist)
+                    return false;
+                if (!BeastSaber.ConfigMatches(castOther.BeastSaber))
+                    return false;
+                if (!BeatSaver.ConfigMatches(castOther.BeatSaver))
+                    return false;
+                if (!ScoreSaber.ConfigMatches(castOther.ScoreSaber))
+                    return false;
+            }
+            else
+                return false;
+            return true;
         }
 
         public PluginConfig SetDefaults()

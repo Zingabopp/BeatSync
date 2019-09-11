@@ -134,6 +134,28 @@ namespace BeatSync.Configs
             base.FillDefaults();
             var __ = MaxConcurrentPageChecks;
         }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if(other is BeatSaverConfig castOther)
+            {
+                if (!base.ConfigMatches(castOther))
+                    return false;
+                if (MaxConcurrentPageChecks != castOther.MaxConcurrentPageChecks)
+                    return false;
+                if (!FavoriteMappers.ConfigMatches(castOther.FavoriteMappers))
+                    return false;
+                if (!Hot.ConfigMatches(castOther.Hot))
+                    return false;
+                if (!Downloads.ConfigMatches(castOther.Downloads))
+                    return false;
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        }
     }
 
     public class BeastSaberConfig : SourceConfigBase
@@ -256,6 +278,30 @@ namespace BeatSync.Configs
                 _curatorRecommended = value;
                 SetConfigChanged();
             }
+        }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is BeastSaberConfig castOther)
+            {
+                if (!base.ConfigMatches(castOther))
+                    return false;
+                if (MaxConcurrentPageChecks != castOther.MaxConcurrentPageChecks)
+                    return false;
+                if (Username != castOther.Username)
+                    return false;
+                if (!Bookmarks.ConfigMatches(castOther.Bookmarks))
+                    return false;
+                if (!Follows.ConfigMatches(castOther.Follows))
+                    return false;
+                if (!CuratorRecommended.ConfigMatches(castOther.CuratorRecommended))
+                    return false;
+            }
+            else
+            {
+                return false;
+            }
+            return true;
         }
 
         [JsonIgnore]
@@ -408,6 +454,28 @@ namespace BeatSync.Configs
             Trending.FillDefaults();
             TopPlayed.FillDefaults();
             base.FillDefaults();
+        }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is ScoreSaberConfig castOther)
+            {
+                if (!base.ConfigMatches(castOther))
+                    return false;
+                if (!TopRanked.ConfigMatches(castOther.TopRanked))
+                    return false;
+                if (!LatestRanked.ConfigMatches(castOther.LatestRanked))
+                    return false;
+                if (!Trending.ConfigMatches(castOther.Trending))
+                    return false;
+                if (!TopPlayed.ConfigMatches(castOther.TopPlayed))
+                    return false;
+            }
+            else
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

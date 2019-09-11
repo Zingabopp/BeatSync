@@ -23,7 +23,8 @@ namespace BeatSync.Configs
         [JsonIgnore]
         private bool? _separateMapperPlaylists;
 
-        public bool SeparateMapperPlaylists {
+        public bool SeparateMapperPlaylists
+        {
             get
             {
                 if (_separateMapperPlaylists == null)
@@ -54,6 +55,20 @@ namespace BeatSync.Configs
             {
                 MaxSongs = this.MaxSongs
             };
+        }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is BeatSaverFavoriteMappers castOther)
+            {
+                if (!base.ConfigMatches(castOther))
+                    return false;
+                if (SeparateMapperPlaylists != castOther.SeparateMapperPlaylists)
+                    return false;
+            }
+            else
+                return false;
+            return true;
         }
     }
 
@@ -94,7 +109,7 @@ namespace BeatSync.Configs
         protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverHot;
         #endregion
 
-        public override  IFeedSettings ToFeedSettings()
+        public override IFeedSettings ToFeedSettings()
         {
             return new BeatSaverFeedSettings((int)BeatSaverFeed.Hot)
             {

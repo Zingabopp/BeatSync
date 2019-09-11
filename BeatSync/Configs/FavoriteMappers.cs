@@ -11,13 +11,13 @@ namespace BeatSync.Configs
     {
         private static readonly string DefaultFilePath = Path.GetFullPath(Path.Combine("UserData", "FavoriteMappers.ini"));
         public string FilePath { get; private set; }
-        private string[] _mappers;
-        public string[] Mappers
+        private List<string> _mappers;
+        public List<string> Mappers
         {
             get
             {
                 if (_mappers == null)
-                    _mappers = ReadFromFile().ToArray();
+                    _mappers = new List<string>();
                 return _mappers;
             }
         }
@@ -31,7 +31,7 @@ namespace BeatSync.Configs
 
         public void Initialize()
         {
-            _mappers = ReadFromFile().ToArray();
+            _mappers = ReadFromFile();
         }
 
         public List<string> ReadFromFile()

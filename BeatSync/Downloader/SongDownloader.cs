@@ -36,7 +36,7 @@ namespace BeatSync.Downloader
             HistoryManager = historyManager;
             FavoriteMappers = new FavoriteMappers();
             FavoriteMappers.Initialize();
-            Config = config;
+            Config = config.Clone();
         }
 
         public void ProcessJob(JobResult job)

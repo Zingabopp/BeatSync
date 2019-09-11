@@ -52,6 +52,20 @@ namespace BeatSync.Configs
             var _ = RankedOnly;
         }
 
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is ScoreSaberTrending castOther)
+            {
+                if (!base.ConfigMatches(castOther))
+                    return false;
+                if (RankedOnly != castOther.RankedOnly)
+                    return false;
+            }
+            else
+                return false;
+            return true;
+        }
+
         public override SongFeedReaders.IFeedSettings ToFeedSettings()
         {
             return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.Trending)
@@ -127,6 +141,20 @@ namespace BeatSync.Configs
         {
             base.FillDefaults();
             var _ = RankedOnly;
+        }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is ScoreSaberTopPlayed castOther)
+            {
+                if (!base.ConfigMatches(castOther))
+                    return false;
+                if (RankedOnly != castOther.RankedOnly)
+                    return false;
+            }
+            else
+                return false;
+            return true;
         }
 
         public override SongFeedReaders.IFeedSettings ToFeedSettings()

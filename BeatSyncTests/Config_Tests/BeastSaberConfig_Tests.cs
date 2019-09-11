@@ -274,5 +274,32 @@ namespace BeatSyncTests.Config_Tests
         }
         #endregion
 
+
+        [TestMethod]
+        public void Clone()
+        {
+            var defaultConfig = new PluginConfig();
+            defaultConfig.FillDefaults();
+            defaultConfig.ResetConfigChanged();
+
+            var editedConfig = new PluginConfig();
+            editedConfig.FillDefaults();
+            editedConfig.ResetConfigChanged();
+            Assert.IsTrue(editedConfig.ConfigMatches(defaultConfig));
+            editedConfig.DownloadTimeout = defaultConfig.DownloadTimeout + 3;
+            editedConfig.AllBeatSyncSongsPlaylist = !defaultConfig.AllBeatSyncSongsPlaylist;
+            editedConfig.BeastSaber.Enabled = !defaultConfig.BeastSaber.Enabled;
+            editedConfig.BeastSaber.Username = "TestUser";
+            editedConfig.BeastSaber.Bookmarks.MaxSongs = defaultConfig.BeastSaber.Bookmarks.MaxSongs + 3;
+            editedConfig.BeatSaver.MaxConcurrentPageChecks = defaultConfig.BeatSaver.MaxConcurrentPageChecks + 2;
+            editedConfig.BeatSaver.FavoriteMappers.SeparateMapperPlaylists = !defaultConfig.BeatSaver.FavoriteMappers.SeparateMapperPlaylists;
+            editedConfig.BeatSaver.Hot.Enabled = !defaultConfig.BeatSaver.Hot.Enabled;
+            editedConfig.ScoreSaber.Enabled = !defaultConfig.ScoreSaber.Enabled;
+            editedConfig.ScoreSaber.Trending.RankedOnly = !defaultConfig.ScoreSaber.Trending.RankedOnly;
+            editedConfig.ScoreSaber.Trending.Enabled = !defaultConfig.ScoreSaber.Trending.Enabled;
+            Assert.IsFalse(editedConfig.ConfigMatches(defaultConfig));
+            var clonedConfig = editedConfig.Clone();
+            Assert.IsTrue(editedConfig.ConfigMatches(clonedConfig));
+        }
     }
 }

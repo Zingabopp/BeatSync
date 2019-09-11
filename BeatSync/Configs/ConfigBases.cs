@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -6,7 +7,7 @@ using System.Runtime.Serialization;
 
 namespace BeatSync.Configs
 {
-    public abstract class NotifyOnChange
+    public abstract class ConfigBase
     {
         [JsonIgnore]
         private List<string> _changedValues = new List<string>();
@@ -42,10 +43,12 @@ namespace BeatSync.Configs
         /// Sets any properties with a null value to their default.
         /// </summary>
         public abstract void FillDefaults();
+
+        public abstract bool ConfigMatches(ConfigBase other);
     }
 
     public abstract class SourceConfigBase
-        : NotifyOnChange
+        : ConfigBase
     {
         [JsonIgnore]
         protected bool? _enabled;
@@ -78,10 +81,22 @@ namespace BeatSync.Configs
         {
             var _ = Enabled;
         }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is SourceConfigBase castOther)
+            {
+                if (Enabled != castOther.Enabled)
+                    return false;
+            }
+            else
+                return false;
+            return true;
+        }
     }
 
     public abstract class FeedConfigBase
-        : NotifyOnChange
+        : ConfigBase
     {
 
         public override void FillDefaults()
@@ -224,6 +239,24 @@ namespace BeatSync.Configs
         }
 
         public abstract SongFeedReaders.IFeedSettings ToFeedSettings();
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            if (other is FeedConfigBase castOther)
+            {
+                if (Enabled != castOther.Enabled)
+                    return false;
+                if (MaxSongs != castOther.MaxSongs)
+                    return false;
+                if (CreatePlaylist != castOther.CreatePlaylist)
+                    return false;
+                if (PlaylistStyle != castOther.PlaylistStyle)
+                    return false;
+            }
+            else
+                return false;
+            return true;
+        }
     }
 
     public enum PlaylistStyle
