@@ -188,6 +188,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Icons\BeatSyncLogoBanner.png" />
     <Content Include="Icons\BeatSyncLogo.png" />
   </ItemGroup>
   <ItemGroup>
