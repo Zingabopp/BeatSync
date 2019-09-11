@@ -35,8 +35,8 @@ namespace BeatSync.Configs
                 int newAdjustedVal = value;
                 if (value <= 0)
                 {
-                    newAdjustedVal = 1;
-                    SetConfigChanged();
+                    newAdjustedVal = 5;
+                    SetInvalidInputFixed();
                 }
                 if (_maxConcurrentPageChecks == newAdjustedVal)
                     return;
@@ -126,6 +126,14 @@ namespace BeatSync.Configs
             ConfigChanged = false;
         }
 
+        public override void ResetFlags()
+        {
+            FavoriteMappers.ResetFlags();
+            Hot.ResetFlags();
+            Downloads.ResetFlags();
+            base.ResetFlags();
+        }
+
         public override void FillDefaults()
         {
             FavoriteMappers.FillDefaults();
@@ -211,10 +219,13 @@ namespace BeatSync.Configs
             {
                 int newAdjustedVal = value;
                 if (value < 0)
-                    newAdjustedVal = 0;
+                {
+                    newAdjustedVal = 5;
+                    SetInvalidInputFixed();
+                }
                 if (_maxConcurrentPageChecks == newAdjustedVal)
                     return;
-                _maxConcurrentPageChecks = newAdjustedVal;
+                _maxConcurrentPageChecks = newAdjustedVal;                    
                 SetConfigChanged();
             }
         }
@@ -320,6 +331,14 @@ namespace BeatSync.Configs
             Follows.ResetConfigChanged();
             CuratorRecommended.ResetConfigChanged();
             base.ConfigChanged = false;
+        }
+
+        public override void ResetFlags()
+        {
+            Bookmarks.ResetFlags();
+            Follows.ResetFlags();
+            CuratorRecommended.ResetFlags();
+            base.ResetFlags();
         }
 
         public override void FillDefaults()
@@ -445,6 +464,15 @@ namespace BeatSync.Configs
             Trending.ResetConfigChanged();
             TopPlayed.ResetConfigChanged();
             ConfigChanged = false;
+        }
+
+        public override void ResetFlags()
+        {
+            TopRanked.ResetFlags();
+            LatestRanked.ResetFlags();
+            Trending.ResetFlags();
+            TopPlayed.ResetFlags();
+            base.ResetFlags();
         }
 
         public override void FillDefaults()

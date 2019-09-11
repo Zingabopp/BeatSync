@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSync.Configs;
 using SongFeedReaders;
 using BeatSync.Playlists;
+using System.Linq;
 
 namespace BeatSyncTests.Config_Tests.ScoreSaberFeed_Tests
 {
@@ -269,6 +270,35 @@ namespace BeatSyncTests.Config_Tests.ScoreSaberFeed_Tests
             Assert.AreEqual(defaultVal, c.CreatePlaylist);
             Assert.IsFalse(pc.ConfigChanged);
             Assert.IsFalse(c.ConfigChanged);
+        }
+        #endregion
+
+        #region Invalid Inputs
+        [TestMethod]
+        public void Invalid_MaxSongs()
+        {
+            var defaultValue = 20;
+            var newValue = -10;
+            var pc = new PluginConfig();
+            var c = pc.ScoreSaber.Trending;
+            pc.FillDefaults();
+            pc.ResetConfigChanged();
+            Assert.AreEqual(defaultValue, c.MaxSongs);
+            c.ResetConfigChanged();
+            Assert.IsFalse(pc.ConfigChanged);
+
+            c.MaxSongs = newValue;
+
+            Assert.IsTrue(c.InvalidInputFixed);
+            Assert.IsTrue(pc.ConfigChanged);
+            Assert.IsTrue(c.ConfigChanged);
+            Assert.AreEqual(defaultValue, c.MaxSongs);
+            var changedInput = "BeatSync.Configs.ScoreSaberTrending:MaxSongs";
+            Assert.AreEqual(changedInput, c.InvalidInputs.First());
+            pc.ResetFlags();
+            Assert.AreEqual(0, c.InvalidInputs.Length);
+            Assert.IsFalse(c.InvalidInputFixed);
+            Assert.IsFalse(pc.ConfigChanged);
         }
         #endregion
 

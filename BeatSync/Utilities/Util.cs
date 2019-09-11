@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 
 namespace BeatSync.Utilities
@@ -43,6 +44,33 @@ namespace BeatSync.Utilities
             }
             //yield return waitFunc;
 
+        }
+
+
+        /// <summary>
+        /// Outputs a TimeSpan in hours, minutes, and seconds.
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <returns></returns>
+        public static string TimeSpanToString(TimeSpan timeSpan)
+        {
+            var sb = new StringBuilder();
+            if (timeSpan.Days > 0)
+                if (timeSpan.Days == 1)
+                    sb.Append("1 day ");
+                else
+                    sb.Append($"{(int)Math.Floor(timeSpan.TotalDays)} days ");
+            if (timeSpan.Minutes > 0)
+                if (timeSpan.Minutes == 1)
+                    sb.Append("1 min ");
+                else
+                    sb.Append($"{timeSpan.Minutes} mins ");
+            if (timeSpan.Seconds > 0)
+                if (timeSpan.Seconds == 1)
+                    sb.Append("1 sec ");
+                else
+                    sb.Append($"{timeSpan.Seconds} secs ");
+            return sb.ToString().Trim();
         }
 
         /// <summary>

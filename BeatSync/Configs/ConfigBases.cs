@@ -14,7 +14,22 @@ namespace BeatSync.Configs
         [JsonIgnore]
         public string[] ChangedValues { get { return _changedValues.ToArray(); } }
         [JsonIgnore]
-        public virtual bool ConfigChanged { get; protected set; }
+        private List<string> _fixedInvalidInputs = new List<string>();
+        [JsonIgnore]
+        public string[] InvalidInputs { get { return _fixedInvalidInputs.ToArray(); } }
+        [JsonIgnore]
+        private bool _configChanged;
+        [JsonIgnore]
+        public virtual bool ConfigChanged
+        {
+            get { return _configChanged || InvalidInputFixed == true; }
+            protected set
+            {
+                _configChanged = value;
+            }
+        }
+        [JsonIgnore]
+        public virtual bool InvalidInputFixed { get; protected set; }
 
         public virtual void SetConfigChanged(bool changed = true, [CallerMemberName] string member = "")
         {
@@ -26,11 +41,34 @@ namespace BeatSync.Configs
             ConfigChanged = changed;
         }
 
+        public virtual void SetInvalidInputFixed(bool invalidFixed = true, [CallerMemberName] string member = "")
+        {
+            if (!string.IsNullOrEmpty(member))
+            {
+                //Logger.log?.Info($"Setting ConfigChanged in {this.GetType().ToString()} due to {member}");
+                _fixedInvalidInputs.Add($"{this.GetType()}:{member}");
+            }
+            InvalidInputFixed = invalidFixed;
+        }
+
         public virtual void ResetConfigChanged()
         {
             _changedValues.Clear();
-            if(ConfigChanged)
+            if (ConfigChanged)
                 SetConfigChanged(false, "");
+        }
+
+        public virtual void ResetInvalidInputsFixed()
+        {
+            _fixedInvalidInputs.Clear();
+            if (InvalidInputFixed)
+                SetInvalidInputFixed(false, "");
+        }
+
+        public virtual void ResetFlags()
+        {
+            ResetConfigChanged();
+            ResetInvalidInputsFixed();
         }
 
         [OnDeserialized]
@@ -168,9 +206,9 @@ namespace BeatSync.Configs
                 int newAdjustedVal = value;
                 if (value < 0)
                 {
-                    newAdjustedVal = 0;
-                    SetConfigChanged();
-                }                    
+                    newAdjustedVal = DefaultMaxSongs;
+                    SetInvalidInputFixed();
+                }
                 if (_maxSongs == newAdjustedVal)
                     return;
                 _maxSongs = newAdjustedVal;

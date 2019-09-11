@@ -43,7 +43,7 @@ namespace BeatSync
                     string reason = v.Value == null ? "BeatSync.json was not found." : "RegenerateConfig is true.";
                     Logger.log?.Debug($"Creating new config because {reason}");
                     p.Store(v.Value = new PluginConfig(true));
-                    v.Value.ResetConfigChanged();
+                    v.Value.ResetFlags();
                 }
                 else
                 {
@@ -53,8 +53,8 @@ namespace BeatSync
                     if (v.Value.ConfigChanged)
                     {
                         Logger.log?.Debug("Plugin.Init(): Saving settings.");
-                        v.Value.ResetConfigChanged();
                         p.Store(v.Value);
+                        v.Value.ResetFlags();
                     }
                 }
                 config = v;
@@ -180,7 +180,7 @@ namespace BeatSync
                     Logger.log?.Debug("Saving settings.");
                     config.Value.RegenerateConfig = false;
                     configProvider.Store(config.Value);
-                    config.Value.ResetConfigChanged();
+                    config.Value.ResetFlags();
                 }
             }
             catch (Exception ex)

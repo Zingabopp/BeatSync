@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
@@ -34,11 +35,15 @@ namespace BeatSync.Configs
         [JsonIgnore]
         private bool? _allBeatSyncSongsPlaylist;
         [JsonIgnore]
+        private SyncInterval _timeBetweenSyncs;
+        [JsonIgnore]
         private BeastSaberConfig _beastSaber;
         [JsonIgnore]
         private BeatSaverConfig _beatSaver;
         [JsonIgnore]
         private ScoreSaberConfig _scoreSaber;
+        [JsonIgnore]
+        private DateTime? _lastRun;
 
         #endregion
         #region Public Properties
@@ -78,9 +83,9 @@ namespace BeatSync.Configs
             {
                 int newAdjustedVal = value;
                 if (value < 1)
-                    newAdjustedVal = 1;
+                    newAdjustedVal = 30;
                 if (value != newAdjustedVal)
-                    SetConfigChanged();
+                    SetInvalidInputFixed();
                 if (_downloadTimeout == newAdjustedVal)
                     return;
                 _downloadTimeout = newAdjustedVal;
@@ -107,7 +112,7 @@ namespace BeatSync.Configs
                 else if (value > 10)
                     newAdjustedVal = 10;
                 if (value != newAdjustedVal)
-                    SetConfigChanged();
+                    SetInvalidInputFixed();
                 if (_maxConcurrentDownloads == newAdjustedVal)
                     return;
                 _maxConcurrentDownloads = newAdjustedVal;
@@ -132,13 +137,39 @@ namespace BeatSync.Configs
                 if (value < 0)
                     newAdjustedVal = 0;
                 if (value != newAdjustedVal)
-                    SetConfigChanged();
+                    SetInvalidInputFixed();
                 if (_recentPlaylistDays == newAdjustedVal)
                     return;
                 _recentPlaylistDays = newAdjustedVal;
                 SetConfigChanged();
             }
         } // Remember to change SyncSaberService to add date to playlist entry
+
+        [JsonProperty(Order = -65)]
+        public SyncInterval TimeBetweenSyncs
+        {
+            get
+            {
+                if (_timeBetweenSyncs == null)
+                {
+                    _timeBetweenSyncs = new SyncInterval();
+                    SetConfigChanged();
+                }
+                return _timeBetweenSyncs;
+            }
+            set
+            {
+                if (_timeBetweenSyncs == value)
+                    return;
+                if (_timeBetweenSyncs.ConfigMatches(value))
+                {
+                    _timeBetweenSyncs = value;
+                    return;
+                }
+                _timeBetweenSyncs = value;
+                SetConfigChanged();
+            }
+        }
 
         [JsonProperty(Order = -60)]
         public bool AllBeatSyncSongsPlaylist
@@ -220,7 +251,26 @@ namespace BeatSync.Configs
                 SetConfigChanged();
             }
         }
-
+        [JsonProperty(Order = 100)]
+        public DateTime LastRun
+        {
+            get
+            {
+                if (_lastRun == null)
+                {
+                    _lastRun = DateTime.MinValue;
+                    SetConfigChanged();
+                }
+                return _lastRun ?? DateTime.MinValue;
+            }
+            set
+            {
+                if (_lastRun == value)
+                    return;
+                _lastRun = value;
+                SetConfigChanged();
+            }
+        }
         #endregion
 
         [JsonIgnore]
@@ -230,17 +280,27 @@ namespace BeatSync.Configs
             {
                 //var reasons = base.ChangedValues.Concat(BeatSaver.ChangedValues).Concat(BeastSaber.ChangedValues).Concat(ScoreSaber.ChangedValues);
                 //Logger.log?.Info($"ChangedValues: {string.Join(", ", reasons)}");
-                return (base.ConfigChanged || BeatSaver.ConfigChanged || BeastSaber.ConfigChanged || ScoreSaber.ConfigChanged);
+                return (base.ConfigChanged || TimeBetweenSyncs.ConfigChanged || BeatSaver.ConfigChanged || BeastSaber.ConfigChanged || ScoreSaber.ConfigChanged);
             }
             protected set => base.ConfigChanged = value;
         }
 
         public override void ResetConfigChanged()
         {
+            TimeBetweenSyncs.ResetConfigChanged();
             BeastSaber.ResetConfigChanged();
             BeatSaver.ResetConfigChanged();
             ScoreSaber.ResetConfigChanged();
-            ConfigChanged = false;
+            base.ResetConfigChanged();
+        }
+
+        public override void ResetFlags()
+        {
+            TimeBetweenSyncs.ResetFlags();
+            BeastSaber.ResetFlags();
+            BeatSaver.ResetFlags();
+            ScoreSaber.ResetFlags();
+            base.ResetFlags();
         }
 
         public override void FillDefaults()
@@ -250,6 +310,8 @@ namespace BeatSync.Configs
             var ___ = MaxConcurrentDownloads;
             var ____ = AllBeatSyncSongsPlaylist;
             var _____ = RecentPlaylistDays;
+            var ______ = LastRun;
+            TimeBetweenSyncs.FillDefaults();
             BeatSaver.FillDefaults();
             BeastSaber.FillDefaults();
             ScoreSaber.FillDefaults();
@@ -330,5 +392,108 @@ namespace BeatSync.Configs
         //    //ResetConfigChanged();
         //}
 
+    }
+
+    public class SyncInterval
+        : ConfigBase
+    {
+        [JsonIgnore]
+        private int? _hours;
+        [JsonIgnore]
+        private int? _minutes;
+
+        public SyncInterval()
+        { }
+
+        public SyncInterval(int hours, int minutes)
+        {
+            Hours = hours;
+            Minutes = minutes;
+            ResetConfigChanged();
+        }
+
+        [JsonProperty("Hours")]
+        public int Hours
+        {
+            get
+            {
+                if (_hours == null)
+                {
+                    _hours = 0;
+                    SetConfigChanged();
+                }
+                return _hours ?? 0;
+            }
+            set
+            {
+                int newAdjustedVal = value;
+                if (value < 0)
+                {
+                    newAdjustedVal = 0;
+                    SetInvalidInputFixed();
+                }
+                if (_hours == newAdjustedVal)
+                    return;
+                _hours = newAdjustedVal;
+                SetConfigChanged();
+            }
+        }
+        [JsonProperty("Minutes")]
+        public int Minutes
+        {
+            get
+            {
+                if (_minutes == null)
+                {
+                    _minutes = 10;
+                    SetConfigChanged();
+                }
+                return _minutes ?? 10;
+            }
+            set
+            {
+                int newAdjustedVal = value;
+                if (value < 0)
+                {
+                    newAdjustedVal = 10;
+                    SetInvalidInputFixed();
+                }
+                if (_minutes == newAdjustedVal)
+                    return;
+                _minutes = newAdjustedVal;
+                SetConfigChanged();
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{(Hours == 1 ? "1 hour" : $"{Hours} hours")} {(Minutes == 1 ? "1 minute" : $"{Minutes} minutes")}";
+
+        }
+
+        public override void FillDefaults()
+        {
+            var _ = Hours;
+            var __ = Minutes;
+        }
+
+        public override bool ConfigMatches(ConfigBase other)
+        {
+            return this.Equals(other);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj != null && obj is SyncInterval other)
+            {
+                if (Hours != other.Hours)
+                    return false;
+                if (Minutes != other.Minutes)
+                    return false;
+            }
+            else
+                return false;
+            return true;
+        }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSync.Configs;
 using SongFeedReaders;
 using BeatSync.Playlists;
+using System.Linq;
 
 namespace BeatSyncTests.Config_Tests
 {
@@ -274,32 +275,34 @@ namespace BeatSyncTests.Config_Tests
         }
         #endregion
 
-
+        #region Invalid Inputs
         [TestMethod]
-        public void Clone()
+        public void Invalid_MaxConcurrentPageChecks()
         {
-            var defaultConfig = new PluginConfig();
-            defaultConfig.FillDefaults();
-            defaultConfig.ResetConfigChanged();
+            var pc = new PluginConfig();
+            pc.FillDefaults();
+            pc.ResetConfigChanged();
+            var c = pc.BeastSaber;
+            var defaultValue = 5;
+            var newValue = -1;
+            Assert.AreEqual(defaultValue, c.MaxConcurrentPageChecks);
+            c.ResetConfigChanged();
+            Assert.IsFalse(pc.ConfigChanged);
 
-            var editedConfig = new PluginConfig();
-            editedConfig.FillDefaults();
-            editedConfig.ResetConfigChanged();
-            Assert.IsTrue(editedConfig.ConfigMatches(defaultConfig));
-            editedConfig.DownloadTimeout = defaultConfig.DownloadTimeout + 3;
-            editedConfig.AllBeatSyncSongsPlaylist = !defaultConfig.AllBeatSyncSongsPlaylist;
-            editedConfig.BeastSaber.Enabled = !defaultConfig.BeastSaber.Enabled;
-            editedConfig.BeastSaber.Username = "TestUser";
-            editedConfig.BeastSaber.Bookmarks.MaxSongs = defaultConfig.BeastSaber.Bookmarks.MaxSongs + 3;
-            editedConfig.BeatSaver.MaxConcurrentPageChecks = defaultConfig.BeatSaver.MaxConcurrentPageChecks + 2;
-            editedConfig.BeatSaver.FavoriteMappers.SeparateMapperPlaylists = !defaultConfig.BeatSaver.FavoriteMappers.SeparateMapperPlaylists;
-            editedConfig.BeatSaver.Hot.Enabled = !defaultConfig.BeatSaver.Hot.Enabled;
-            editedConfig.ScoreSaber.Enabled = !defaultConfig.ScoreSaber.Enabled;
-            editedConfig.ScoreSaber.Trending.RankedOnly = !defaultConfig.ScoreSaber.Trending.RankedOnly;
-            editedConfig.ScoreSaber.Trending.Enabled = !defaultConfig.ScoreSaber.Trending.Enabled;
-            Assert.IsFalse(editedConfig.ConfigMatches(defaultConfig));
-            var clonedConfig = editedConfig.Clone();
-            Assert.IsTrue(editedConfig.ConfigMatches(clonedConfig));
+            c.MaxConcurrentPageChecks = newValue;
+
+            Assert.IsTrue(c.InvalidInputFixed);
+            Assert.IsTrue(pc.ConfigChanged);
+            Assert.IsTrue(c.ConfigChanged);
+            Assert.AreEqual(defaultValue, c.MaxConcurrentPageChecks);
+            var changedInput = "BeatSync.Configs.BeastSaberConfig:MaxConcurrentPageChecks";
+            Assert.AreEqual(changedInput, c.InvalidInputs.First());
+            pc.ResetFlags();
+            Assert.AreEqual(0, c.InvalidInputs.Length);
+            Assert.IsFalse(c.InvalidInputFixed);
+            Assert.IsFalse(pc.ConfigChanged);
         }
+        #endregion
+
     }
 }

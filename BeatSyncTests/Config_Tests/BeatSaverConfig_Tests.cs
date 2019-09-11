@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSync.Configs;
 using SongFeedReaders;
 using BeatSync.Playlists;
+using System.Linq;
 
 namespace BeatSyncTests.Config_Tests
 {
@@ -225,6 +226,35 @@ namespace BeatSyncTests.Config_Tests
 
             Assert.IsFalse(c.ConfigChanged);
             Assert.AreEqual(defaultValue, c.Downloads);
+        }
+        #endregion
+
+        #region Invalid Inputs
+        [TestMethod]
+        public void Invalid_MaxConcurrentPageChecks()
+        {
+            var pc = new PluginConfig();
+            pc.FillDefaults();
+            pc.ResetConfigChanged();
+            var c = pc.BeatSaver;
+            var defaultValue = 5;
+            var newValue = -1;
+            Assert.AreEqual(defaultValue, c.MaxConcurrentPageChecks);
+            c.ResetConfigChanged();
+            Assert.IsFalse(pc.ConfigChanged);
+           
+            c.MaxConcurrentPageChecks = newValue;
+
+            Assert.IsTrue(c.InvalidInputFixed);
+            Assert.IsTrue(pc.ConfigChanged);
+            Assert.IsTrue(c.ConfigChanged);
+            Assert.AreEqual(defaultValue, c.MaxConcurrentPageChecks);
+            var changedInput = "BeatSync.Configs.BeatSaverConfig:MaxConcurrentPageChecks";
+            Assert.AreEqual(changedInput, c.InvalidInputs.First());
+            pc.ResetFlags();
+            Assert.AreEqual(0, c.InvalidInputs.Length);
+            Assert.IsFalse(c.InvalidInputFixed);
+            Assert.IsFalse(pc.ConfigChanged);
         }
         #endregion
 

@@ -20,12 +20,8 @@ namespace BeatSync.UI
             ////This will create a menu tab in the settings menu for your plugin
             var pluginSettingsSubmenu = SettingsUI.CreateSubMenu("BeatSync");
             CreateBeatSyncSettingsUI(pluginSettingsSubmenu);
-            var beastSaber = pluginSettingsSubmenu.AddSubMenu("BeastSaber", "Settings for the BeastSaber feed source.", true);
-            CreateBeastSaberSettingsUI(beastSaber, Config.BeastSaber);
-            var beatSaver = pluginSettingsSubmenu.AddSubMenu("Beat Saver", "Settings for the BeatSaver feed source.", true);
-            CreateBeatSaverSettingsUI(beatSaver, Config.BeatSaver);
-            var scoreSaber = pluginSettingsSubmenu.AddSubMenu("ScoreSaber", "Settings for the ScoreSaber feed source.", true);
-            CreateScoreSaberSettingsUI(scoreSaber, Config.ScoreSaber);
+            var sourceSettings = pluginSettingsSubmenu.AddSubMenu("Source Settings", "Settings to configure song sources.", true);
+            CreateSourceSettingsUI(sourceSettings);
         }
 
         public static void CreateBeatSyncSettingsUI(SubMenu parent)
@@ -76,6 +72,38 @@ namespace BeatSync.UI
                 Config.AllBeatSyncSongsPlaylist = value;
                 // Config.ConfigChanged = true;
             };
+
+            var timeBetweenSyncs = parent.AddSubMenu("Time Between Syncs",
+                "Minimum amount of time between BeatSync syncs (Set both to 0 to run BeatSync every time the game is started).", true);
+            var hours = timeBetweenSyncs.AddInt("Hours", "Number of hours between BeatSync syncs.", 0, 100, 1);
+            hours.GetValue += delegate { return Config.TimeBetweenSyncs.Hours; };
+            hours.SetValue += delegate (int value)
+            {
+                if (Config.TimeBetweenSyncs.Hours == value)
+                    return;
+                Config.TimeBetweenSyncs.Hours = value;
+                // Config.ConfigChanged = true;
+            };
+
+            var minutes = timeBetweenSyncs.AddInt("Minutes", "Number of minutes between BeatSync syncs.", 0, 59, 1);
+            minutes.GetValue += delegate { return Config.TimeBetweenSyncs.Minutes; };
+            minutes.SetValue += delegate (int value)
+            {
+                if (Config.TimeBetweenSyncs.Minutes == value)
+                    return;
+                Config.TimeBetweenSyncs.Minutes = value;
+                // Config.ConfigChanged = true;
+            };
+        }
+
+        public static void CreateSourceSettingsUI(SubMenu parent)
+        {
+            var beastSaber = parent.AddSubMenu("BeastSaber", "Settings for the BeastSaber feed source.", true);
+            CreateBeastSaberSettingsUI(beastSaber, Config.BeastSaber);
+            var beatSaver = parent.AddSubMenu("Beat Saver", "Settings for the BeatSaver feed source.", true);
+            CreateBeatSaverSettingsUI(beatSaver, Config.BeatSaver);
+            var scoreSaber = parent.AddSubMenu("ScoreSaber", "Settings for the ScoreSaber feed source.", true);
+            CreateScoreSaberSettingsUI(scoreSaber, Config.ScoreSaber);
         }
 
         public static void CreateBeastSaberSettingsUI(SubMenu parent, BeastSaberConfig sourceConfig)
