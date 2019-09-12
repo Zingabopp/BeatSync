@@ -155,7 +155,7 @@ namespace BeatSync.UI
                 // Config.ConfigChanged = true;
             };
 
-            var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserDate\\FavoriteMappers.ini. Max Songs is per mapper.");
+            var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserData\\FavoriteMappers.ini. Max Songs is per mapper.");
             var separateMapperPlaylists = favoriteMappers.AddBool("Separate Mapper Playlists",
                             $"Create a playlist for each mapper in FavoriteMappers.ini (must also have CreatePlaylist enabled).");
             separateMapperPlaylists.GetValue += delegate { return sourceConfig.FavoriteMappers.SeparateMapperPlaylists; };

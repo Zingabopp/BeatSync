@@ -146,6 +146,27 @@ namespace BeatSync.Configs
         } // Remember to change SyncSaberService to add date to playlist entry
 
         [JsonProperty(Order = -65)]
+        public bool AllBeatSyncSongsPlaylist
+        {
+            get
+            {
+                if (_allBeatSyncSongsPlaylist == null)
+                {
+                    _allBeatSyncSongsPlaylist = false;
+                    SetConfigChanged();
+                }
+                return _allBeatSyncSongsPlaylist ?? false;
+            }
+            set
+            {
+                if (_allBeatSyncSongsPlaylist == value)
+                    return;
+                _allBeatSyncSongsPlaylist = value;
+                SetConfigChanged();
+            }
+        }
+
+        [JsonProperty(Order = -61)]
         public SyncInterval TimeBetweenSyncs
         {
             get
@@ -171,26 +192,6 @@ namespace BeatSync.Configs
             }
         }
 
-        [JsonProperty(Order = -60)]
-        public bool AllBeatSyncSongsPlaylist
-        {
-            get
-            {
-                if (_allBeatSyncSongsPlaylist == null)
-                {
-                    _allBeatSyncSongsPlaylist = false;
-                    SetConfigChanged();
-                }
-                return _allBeatSyncSongsPlaylist ?? false;
-            }
-            set
-            {
-                if (_allBeatSyncSongsPlaylist == value)
-                    return;
-                _allBeatSyncSongsPlaylist = value;
-                SetConfigChanged();
-            }
-        }
         [JsonProperty(Order = -60)]
         public BeastSaberConfig BeastSaber
         {
