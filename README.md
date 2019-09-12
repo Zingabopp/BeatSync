@@ -1,4 +1,5 @@
-# BeatSync
+<img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSync/Icons/BeatSyncLogoBanner.png" height="150">
+
 Beat Saber plugin to automatically download songs.
 The following sources and feeds are currently supported:
  * Beast Saber: Bookmarks, Follows, Curator Recommended
@@ -32,6 +33,9 @@ __BeatSync.json__
 * MaxConcurrentDownloads: How many queued songs to download at the same time.
 * RecentPlaylistDays: How long recently downloaded songs stay in the BeatSync Recent playlist. (0 to disable the playlist)
 * AllBeatSyncSongsPlaylist: If enabled, BeatSync creates a playlist with all the songs it finds (large playlists can cause a big freeze after custom songs are initially loaded)
+* TimeBetweenSyncs: Minimum amount of time between syncs (so BeatSync doesn't run every time you start the game)
+  * Hours
+  * Minutes
 * BeastSaber:
   * Enabled: If false, disables all feeds from this source.
   * Username: Your BeastSaber username. You must enter this to get songs from the Bookmarks and Follows feeds.
@@ -54,11 +58,12 @@ __BeatSync.json__
 * BeatSaver
   * Enabled: If false, disables all feeds from this source.
   * MaxConcurrentPageChecks: Number of pages to check simultaneously when reading feeds.
-  * FavoriteMappers: Feed that downloads songs from each mapper specified in FavoriteMappers.txt in the UserData folder.
+  * FavoriteMappers: Feed that downloads songs from each mapper specified in FavoriteMappers.ini in the UserData folder.
     * Enabled
 	* MaxSongs: Maximum number of songs to download from each mapper.
 	* CreatePlaylist
 	* PlaylistStyle
+	* SeparateMapperPlaylists: If true (along with CreatePlaylist), create a playlist for each mapper in your FavoriteMappers.ini file.
   * Hot: Get songs using Beat Saver's "Hot" ordering.
     * Enabled
 	* MaxSongs
@@ -76,12 +81,12 @@ __BeatSync.json__
     * Enabled
 	* MaxSongs
 	* CreatePlaylist
-	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs gets removed.
+	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs get removed.
   * LatestRanked: Get ScoreSaber's ranked songs, most recently ranked first (more or less).
     * Enabled
 	* MaxSongs
 	* CreatePlaylist
-	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs gets removed.
+	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs get removed.
   * Trending: Get songs using ScoreSaber's "Trending" ordering.
     * Enabled
 	* MaxSongs
@@ -98,3 +103,7 @@ __BeatSync.json__
 # Additional Information
 * BeatSync maintains a history file for songs it finds in the feeds. This is used to prevent BeatSync from redownloading songs you've deleted. It is sorted in descending order by date the song was added to the history. This file can safely be deleted (or carefully edited) if you want BeatSync to download songs you've deleted in the past.
 * If you use the SongBrowser plugin, it will not show the playlists in the correct order (i.e. TopRanked and LatestRanked will be out of order).
+
+# Credits
+* Brian for the original SyncSaber mod.
+* JW#1944 (Discord) for the fancy logo.
