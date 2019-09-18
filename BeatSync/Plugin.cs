@@ -116,8 +116,11 @@ namespace BeatSync
                 {
                     BeatSync.Paused = false;
                     var beatSync = new GameObject().AddComponent<BeatSync>();
+                    var testText = new GameObject().AddComponent<UI.FloatingText>();
+                    testText.DisplayedText = "Testing";
                     beatSyncCreated = true;
                     GameObject.DontDestroyOnLoad(beatSync);
+                    GameObject.DontDestroyOnLoad(testText);
                 }
                 if (!beatSyncCreated && nextScene.name == "MenuCore")
                 {
