@@ -93,7 +93,7 @@ namespace BeatSync.UI
                 if (_header != value)
                 {
                     _header = value;
-                    FullHeader = $"{_header}{(string.IsNullOrEmpty(_subHeader) ? "" : $"({_subHeader})")}";
+                    FullHeader = $"{_header}{(string.IsNullOrEmpty(_subHeader) ? "" : $" ({_subHeader})")}";
                 }
             }
         }
@@ -104,10 +104,10 @@ namespace BeatSync.UI
             get { return _subHeader; }
             set
             {
-                if(_subHeader != value)
+                if (_subHeader != value)
                 {
                     _subHeader = value;
-                    FullHeader = $"{_header}{(string.IsNullOrEmpty(_subHeader) ? "" : $"({_subHeader})")}";
+                    FullHeader = $"{_header}{(string.IsNullOrEmpty(_subHeader) ? "" : $" ({_subHeader})")}";
                 }
             }
         }
@@ -230,7 +230,7 @@ namespace BeatSync.UI
             Canvas.transform.localRotation = Quaternion.Euler(currentRotation);
         }
 
-        public void Post(string text)
+        public void Post(string text, Color color)
         {
             if (FloatingTexts == null)
             {
@@ -238,71 +238,96 @@ namespace BeatSync.UI
                 return;
             }
 
-            switch (Next)
-            {
-                case 0:
-                    text = text + "-";
-                    break;
-                case 1:
-                    text = text + "---";
-                    break;
-                case 2:
-                    text = text + "-----";
-                    break;
-                case 3:
-                    text = text + "-------";
-                    break;
-                case 4:
-                    text = text + "---------";
-                    break;
-                default:
-                    break;
-            }
+            //switch (Next)
+            //{
+            //    case 0:
+            //        text = text + "-";
+            //        break;
+            //    case 1:
+            //        text = text + "---";
+            //        break;
+            //    case 2:
+            //        text = text + "-----";
+            //        break;
+            //    case 3:
+            //        text = text + "-------";
+            //        break;
+            //    case 4:
+            //        text = text + "---------";
+            //        break;
+            //    default:
+            //        break;
+            //}
             //HeaderText.DisplayedText = $"{gameObject.name}: Header ({text})";
             //HeaderText.WriteThings();
+            FloatingTexts[Next].FontColor = color;
             FloatingTexts[Next].DisplayedText = text;
-
+            
             //FloatingTexts[Next].WriteThings();
             Next++;
             if (Next != 0)
                 FloatingTexts[Next].DisplayedText = string.Empty;
         }
 
-        public void AppendLast(string text)
+        public void Post(string text, UI.FontColor color)
         {
-            FloatingTexts[Last].DisplayedText = FloatingTexts[Last].DisplayedText + text;
+            Post(text, GetUnityColor(color) ?? Color.white);
         }
 
-        public void SetHeaderColor(FontColors color)
+        public void Post(string text)
+        {
+            Post(text, Color.white);
+        }
+
+        public void AppendLast(string text, UI.FontColor fontColor = FontColor.None)
+        {
+            FloatingTexts[Last].DisplayedText = FloatingTexts[Last].DisplayedText + text;
+            if (fontColor != FontColor.None)
+                FloatingTexts[Last].FontColor = GetUnityColor(fontColor) ?? Color.white;
+        }
+
+        public static Color? GetUnityColor(FontColor color)
         {
             Color newColor;
             switch (color)
             {
-                case FontColors.White:
+                case FontColor.None:
+                    return null;
+                case FontColor.White:
                     newColor = Color.white;
                     break;
-                case FontColors.Red:
+                case FontColor.Red:
                     newColor = Color.red;
                     break;
-                case FontColors.Yellow:
+                case FontColor.Yellow:
                     newColor = Color.yellow;
                     break;
-                case FontColors.Green:
+                case FontColor.Green:
                     newColor = Color.green;
                     break;
                 default:
                     newColor = Color.white;
                     break;
             }
-            HeaderText.FontColor = newColor;
+            return newColor;
+        }
+
+        public void SetHeaderColor(FontColor color)
+        {
+            var newColor = GetUnityColor(color);
+            if (newColor == null)
+                return;
+            else
+                HeaderText.FontColor = newColor ?? Color.white;
         }
     }
 
-    public enum FontColors
+    public enum FontColor
     {
-        White = 0,
-        Red = 1,
-        Yellow = 2,
-        Green = 3
+        None = 0,
+        White = 1,
+        Red = 2,
+        Yellow = 3,
+        Green = 4
     }
 }

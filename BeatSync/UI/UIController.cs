@@ -134,7 +134,7 @@ namespace BeatSync.UI
             RowSpacing = .1f;
             Distance = 2;
             PlayerPos = new Vector3(0, 1.7f, 0);
-            Height = PlayerPos.y;
+            Height = 3.2f;
             Logger.log?.Info($"UIController Position: {gameObject.transform.position}");
             WriteParents(gameObject);
             //CreateCanvas();
@@ -183,7 +183,7 @@ namespace BeatSync.UI
             _statusLists.Add("BeatSaver", beatSaver);
             _statusLists.Add("BeastSaber", beastSaber);
             _statusLists.Add("ScoreSaber", scoreSaber);
-
+            FacePlayer();
             //StartCoroutine(TestPost());
         }
 

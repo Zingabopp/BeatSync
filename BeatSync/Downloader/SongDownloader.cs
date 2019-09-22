@@ -238,7 +238,6 @@ namespace BeatSync.Downloader
             return result;
         }
 
-        public IReadOnlyDictionary<string, UI.TextMeshList> StatusLists { get; set; }
 
         public async Task RunReaders()
         {
@@ -250,11 +249,7 @@ namespace BeatSync.Downloader
             }
             else
             {
-                if (StatusLists?.ContainsKey("BeastSaber") ?? false)
-                {
-                    StatusLists["BeastSaber"].SubHeader = "Disabled";
-                    StatusLists["BeastSaber"].SetHeaderColor(UI.FontColors.Red);
-                }
+                SetStatus("BeastSaber", "Disabled", UI.FontColor.Red);
             }
             if (config.BeatSaver.Enabled)
             {
@@ -262,11 +257,7 @@ namespace BeatSync.Downloader
             }
             else
             {
-                if (StatusLists?.ContainsKey("BeatSaver") ?? false)
-                {
-                    StatusLists["BeatSaver"].SubHeader = "Disabled";
-                    StatusLists["BeatSaver"].SetHeaderColor(UI.FontColors.Red);
-                }
+                SetStatus("BeatSaver", "Disabled", UI.FontColor.Red);
             }
             if (config.ScoreSaber.Enabled)
             {
@@ -274,12 +265,7 @@ namespace BeatSync.Downloader
             }
             else
             {
-                if (StatusLists?.ContainsKey("ScoreSaber") ?? false)
-                {
-
-                    StatusLists["ScoreSaber"].SubHeader = "Disabled";
-                    StatusLists["ScoreSaber"].SetHeaderColor(UI.FontColors.Red);
-                }
+                SetStatus("ScoreSaber", "Disabled", UI.FontColor.Red);
             }
             Dictionary<string, ScrapedSong>[] results = null;
             try
@@ -369,13 +355,16 @@ namespace BeatSync.Downloader
                 addDate = addDate - decrement;
             }
             feedPlaylist?.TryWriteFile();
-            
+
             return songs;
         }
 
         #region Feed Read Functions
         public async Task<Dictionary<string, ScrapedSong>> ReadBeastSaber()
         {
+            var readerName = "BeastSaber";
+            bool error = false;
+            bool warning = false;
             if (BeatSync.Paused)
                 await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             Stopwatch sw = new Stopwatch();
@@ -387,11 +376,12 @@ namespace BeatSync.Downloader
             try
             {
                 reader = new BeastSaberReader(config.Username, config.MaxConcurrentPageChecks);
+                SetStatus(readerName, "Running", UI.FontColor.Green);
             }
             catch (Exception ex)
             {
                 Logger.log?.Error(ex);
-                SetError("BeastSaber");
+                SetError(readerName);
                 return null;
             }
             var readerSongs = new Dictionary<string, ScrapedSong>();
@@ -399,6 +389,7 @@ namespace BeatSync.Downloader
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: Bookmarks...");
                     var feedSettings = config.Bookmarks.ToFeedSettings();
                     var feedPlaylist = config.Bookmarks.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Bookmarks.FeedPlaylist)
@@ -410,28 +401,33 @@ namespace BeatSync.Downloader
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                     readerSongs.Merge(songs);
                 }
                 catch (ArgumentException ex)
                 {
+                    warning = true;
                     Logger.log?.Critical("Exception in BeastSaber Bookmarks: " + ex.Message);
+                    PostEvent(readerName, "Exception in Bookmarks, see log.", UI.FontColor.Red);
                 }
                 catch (Exception ex)
                 {
+                    warning = true;
                     Logger.log?.Error("Exception in ReadBeastSaber, Bookmarks.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Bookmarks, see log.", UI.FontColor.Red);
                 }
-
-
             }
-            else if(string.IsNullOrEmpty(config.Username))
+            else if (string.IsNullOrEmpty(config.Username))
             {
                 Logger.log?.Warn("BeastSaber Bookmarks feed is enabled, but a username has not been provided.");
+                PostEvent(readerName, "Bookmarks: No Username specified, skipping.", UI.FontColor.Yellow);
             }
             if (config.Follows.Enabled && !string.IsNullOrEmpty(config.Username))
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: Follows...");
                     var feedSettings = config.Follows.ToFeedSettings();
                     var feedPlaylist = config.Follows.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Follows.FeedPlaylist)
@@ -443,26 +439,34 @@ namespace BeatSync.Downloader
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                     readerSongs.Merge(songs);
                 }
                 catch (ArgumentException ex)
                 {
+                    warning = true;
                     Logger.log?.Critical("Exception in BeastSaber Follows: " + ex.Message);
+                    PostEvent(readerName, "Exception in Follows, see log.", UI.FontColor.Red);
                 }
                 catch (Exception ex)
                 {
+                    warning = true;
                     Logger.log?.Error("Exception in ReadBeastSaber, Follows.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Follows, see log.", UI.FontColor.Red);
                 }
             }
             else if (string.IsNullOrEmpty(config.Username))
             {
                 Logger.log?.Warn("BeastSaber Follows feed is enabled, but a username has not been provided.");
+                PostEvent(readerName, "Follows: No Username specified, skipping.", UI.FontColor.Yellow);
+                warning = true;
             }
             if (config.CuratorRecommended.Enabled)
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: Curator Recommended...");
                     var feedSettings = config.CuratorRecommended.ToFeedSettings();
                     var feedPlaylist = config.CuratorRecommended.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.CuratorRecommended.FeedPlaylist)
@@ -474,12 +478,14 @@ namespace BeatSync.Downloader
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                     readerSongs.Merge(songs);
                 }
                 catch (Exception ex)
                 {
                     Logger.log?.Error("Exception in ReadBeastSaber, Curator Recommended.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Curator Recommended, see log.", UI.FontColor.Red);
                 }
             }
             if (BeatSync.Paused)
@@ -487,11 +493,26 @@ namespace BeatSync.Downloader
             sw.Stop();
             var totalPages = readerSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             Logger.log?.Info($"{reader.Name}: Found {readerSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} in {sw.Elapsed.ToString()}");
+            if (error)
+            {
+
+            }
+            else if (warning)
+            {
+                SetStatus(readerName, "Finished with warnings", UI.FontColor.Yellow);
+            }
+            else
+            {
+                SetStatus(readerName, "Finished", UI.FontColor.White);
+            }
             return readerSongs;
         }
 
         public async Task<Dictionary<string, ScrapedSong>> ReadBeatSaver(Playlist allPlaylist = null)
         {
+            var readerName = "BeatSaver";
+            bool warning = false;
+            bool error = false;
             if (BeatSync.Paused)
                 await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             Stopwatch sw = new Stopwatch();
@@ -508,7 +529,7 @@ namespace BeatSync.Downloader
             {
                 Logger.log?.Error("Exception creating BeatSaverReader in ReadBeatSaver.");
                 Logger.log?.Error(ex);
-                SetError("BeatSaver");
+                SetError(readerName);
                 return null;
             }
             var readerSongs = new Dictionary<string, ScrapedSong>();
@@ -517,6 +538,7 @@ namespace BeatSync.Downloader
             {
                 try
                 {
+                    PostEvent(readerName, $"Starting Feed: FavoriteMappers ({FavoriteMappers.Mappers.Count} mappers)...");
                     var feedSettings = config.FavoriteMappers.ToFeedSettings() as BeatSaverFeedSettings;
                     Playlist feedPlaylist = null;
                     if (!config.FavoriteMappers.SeparateMapperPlaylists)
@@ -535,7 +557,7 @@ namespace BeatSync.Downloader
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                         var authorSongs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                         Logger.log?.Info($"   FavoriteMappers: Found {authorSongs.Count} songs by {author}");
-                        if(config.FavoriteMappers.CreatePlaylist && config.FavoriteMappers.SeparateMapperPlaylists)
+                        if (config.FavoriteMappers.CreatePlaylist && config.FavoriteMappers.SeparateMapperPlaylists)
                         {
                             var playlistFileName = $"{author}.bplist";
                             var mapperPlaylist = PlaylistManager.GetOrAdd(playlistFileName, () => new Playlist(playlistFileName, author, "BeatSync", "1"));
@@ -550,9 +572,9 @@ namespace BeatSync.Downloader
                             }
                         }
 
-                        songs.Merge(authorSongs);                        
+                        songs.Merge(authorSongs);
                     }
-                    if(feedPlaylist != null)
+                    if (feedPlaylist != null)
                     {
                         foreach (var song in songs.Values)
                         {
@@ -562,32 +584,39 @@ namespace BeatSync.Downloader
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                     readerSongs.Merge(songs);
                 }
                 catch (InvalidCastException ex)
                 {
                     Logger.log?.Error($"This should never happen in ReadBeatSaver.\n{ex.Message}");
+                    PostEvent(readerName, "Exception in FavoriteMappers, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
                 catch (ArgumentNullException ex)
                 {
                     Logger.log?.Critical("Exception in ReadBeatSaver, FavoriteMappers: " + ex.Message);
+                    PostEvent(readerName, "Exception in FavoriteMappers, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
                 catch (Exception ex)
                 {
                     Logger.log?.Error("Exception in ReadBeatSaver, FavoriteMappers.");
+                    PostEvent(readerName, "Exception in FavoriteMappers, see log.", UI.FontColor.Red);
                     Logger.log?.Error(ex);
+                    warning = true;
                 }
-
-
             }
             else if (config.FavoriteMappers.Enabled)
             {
                 Logger.log?.Warn("BeatSaver's FavoriteMappers feed is enabled, but no mappers could be found in UserData\\FavoriteMappers.ini");
+                PostEvent(readerName, "No mappers found in FavoriteMappers.ini, skipping", UI.FontColor.Yellow);
             }
             if (config.Hot.Enabled)
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: Hot...");
                     var feedSettings = config.Hot.ToFeedSettings();
                     var feedPlaylist = config.Hot.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Hot.FeedPlaylist)
@@ -599,26 +628,34 @@ namespace BeatSync.Downloader
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                     readerSongs.Merge(songs);
                 }
                 catch (InvalidCastException ex)
                 {
                     Logger.log?.Error($"This should never happen in ReadBeatSaver.\n{ex.Message}");
+                    PostEvent(readerName, "Exception in Hot, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
                 catch (ArgumentNullException ex)
                 {
                     Logger.log?.Critical("Exception in ReadBeatSaver, Hot: " + ex.Message);
+                    PostEvent(readerName, "Exception in Hot, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
                 catch (Exception ex)
                 {
                     Logger.log?.Error("Exception in ReadBeatSaver, Hot.");
+                    PostEvent(readerName, "Exception in Hot, see log.", UI.FontColor.Red);
                     Logger.log?.Error(ex);
+                    warning = true;
                 }
             }
             if (config.Downloads.Enabled)
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: Downloads...");
                     var feedSettings = config.Downloads.ToFeedSettings();
                     var feedPlaylist = config.Downloads.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Downloads.FeedPlaylist)
@@ -631,19 +668,26 @@ namespace BeatSync.Downloader
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     readerSongs.Merge(songs);
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (InvalidCastException ex)
                 {
                     Logger.log?.Error($"This should never happen in ReadBeatSaver.\n{ex.Message}");
+                    PostEvent(readerName, "Exception in Downloads, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
                 catch (ArgumentNullException ex)
                 {
                     Logger.log?.Critical("Exception in ReadBeatSaver, Downloads: " + ex.Message);
+                    PostEvent(readerName, "Exception in Downloads, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
                 catch (Exception ex)
                 {
                     Logger.log?.Error("Exception in ReadBeatSaver, Downloads.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Downloads, see log.", UI.FontColor.Red);
+                    warning = true;
                 }
             }
             sw.Stop();
@@ -651,12 +695,27 @@ namespace BeatSync.Downloader
                 await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             var totalPages = readerSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             Logger.log?.Info($"{reader.Name}: Found {readerSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} in {sw.Elapsed.ToString()}");
+            if (error)
+            {
+
+            }
+            else if (warning)
+            {
+                SetStatus(readerName, "Finished with warnings", UI.FontColor.Yellow);
+            }
+            else
+            {
+                SetStatus(readerName, "Finished", UI.FontColor.White);
+            }
             return readerSongs;
         }
 
 
         public async Task<Dictionary<string, ScrapedSong>> ReadScoreSaber(Playlist allPlaylist = null)
         {
+            var readerName = "ScoreSaber";
+            bool error = false;
+            bool warning = false;
             if (BeatSync.Paused)
                 await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             Stopwatch sw = new Stopwatch();
@@ -672,7 +731,7 @@ namespace BeatSync.Downloader
             catch (Exception ex)
             {
                 Logger.log?.Error(ex);
-                SetError("ScoreSaber");
+                SetError(readerName);
                 return null;
             }
             var readerSongs = new Dictionary<string, ScrapedSong>();
@@ -681,6 +740,7 @@ namespace BeatSync.Downloader
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: TopRanked...");
                     var feedSettings = config.TopRanked.ToFeedSettings();
                     var feedPlaylist = config.TopRanked.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.TopRanked.FeedPlaylist)
@@ -693,11 +753,14 @@ namespace BeatSync.Downloader
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     readerSongs.Merge(songs);
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
                 {
+                    warning = true;
                     Logger.log?.Error("Exception in ReadScoreSaber, Top Ranked.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Top Ranked, see log.", UI.FontColor.Red);
                 }
             }
 
@@ -705,6 +768,7 @@ namespace BeatSync.Downloader
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: Trending...");
                     var feedSettings = config.Trending.ToFeedSettings();
                     var feedPlaylist = config.Trending.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Trending.FeedPlaylist)
@@ -717,11 +781,14 @@ namespace BeatSync.Downloader
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     readerSongs.Merge(songs);
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
                 {
+                    warning = true;
                     Logger.log?.Error("Exception in ReadScoreSaber, Trending.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Trending, see log.", UI.FontColor.Red);
                 }
             }
 
@@ -729,6 +796,7 @@ namespace BeatSync.Downloader
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: TopPlayed...");
                     var feedSettings = config.TopPlayed.ToFeedSettings();
                     var feedPlaylist = config.TopPlayed.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.TopPlayed.FeedPlaylist)
@@ -741,11 +809,14 @@ namespace BeatSync.Downloader
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     readerSongs.Merge(songs);
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
                 {
+                    warning = true;
                     Logger.log?.Error("Exception in ReadScoreSaber, Top Played.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Top Played, see log.", UI.FontColor.Red);
                 }
             }
 
@@ -753,6 +824,7 @@ namespace BeatSync.Downloader
             {
                 try
                 {
+                    PostEvent(readerName, "Starting Feed: LatestRanked...");
                     var feedSettings = config.LatestRanked.ToFeedSettings();
                     var feedPlaylist = config.LatestRanked.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.LatestRanked.FeedPlaylist)
@@ -765,11 +837,14 @@ namespace BeatSync.Downloader
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     readerSongs.Merge(songs);
+                    AppendLastEvent(readerName, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
                 {
+                    warning = true;
                     Logger.log?.Error("Exception in ReadScoreSaber, Latest Ranked.");
                     Logger.log?.Error(ex);
+                    PostEvent(readerName, "Exception in Latest Ranked, see log.", UI.FontColor.Red);
                 }
             }
 
@@ -778,36 +853,60 @@ namespace BeatSync.Downloader
                 await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
             var totalPages = readerSongs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             Logger.log?.Info($"{reader.Name}: Found {readerSongs.Count} songs on {totalPages} {(totalPages == 1 ? "page" : "pages")} in {sw.Elapsed.ToString()}");
+            if (error)
+            {
+
+            }
+            else if (warning)
+            {
+                SetStatus(readerName, "Finished with warnings", UI.FontColor.Yellow);
+            }
+            else
+            {
+                SetStatus(readerName, "Finished", UI.FontColor.White);
+            }
             return readerSongs;
         }
         #endregion
 
+        /// <summary>
+        /// Used for setting the Header (reader, subHeader, color).
+        /// </summary>
+        public event Action<string, string, UI.FontColor> OnSourceEvent;
+
+        /// <summary>
+        /// Used for posting a string to the reader's status list (reader, text, color).
+        /// </summary>
+        public event Action<string, string, UI.FontColor> OnEvent;
+
+        /// <summary>
+        /// Used to append the last event for the specified reader.
+        /// </summary>
+        public event Action<string, string, UI.FontColor> OnAppendEvent;
 
         public void SetError(string reader)
         {
-            SetStatus(reader, "Error", UI.FontColors.Red);
+            SetStatus(reader, "Error", UI.FontColor.Red);
         }
 
         public void SetWarning(string reader)
         {
-            SetStatus(reader, "Warning", UI.FontColors.Yellow);
+            SetStatus(reader, "Warning", UI.FontColor.Yellow);
         }
 
-        public void SetStatus(string reader, string subHeader)
+        public void SetStatus(string reader, string subHeader, UI.FontColor color = UI.FontColor.None)
         {
-            if (StatusLists?.ContainsKey(reader) ?? false)
-            {
-                StatusLists[reader].SubHeader = subHeader;
-            }
+            OnSourceEvent?.Invoke(reader, subHeader, color);
         }
 
-        public void SetStatus(string reader, string subHeader, UI.FontColors color)
+        public void PostEvent(string reader, string text, UI.FontColor color = UI.FontColor.None)
         {
-            if (StatusLists?.ContainsKey(reader) ?? false)
-            {
-                StatusLists[reader].SubHeader = subHeader;
-                StatusLists[reader].SetHeaderColor(color);
-            }
+            OnEvent?.Invoke(reader, text, color);
+        }
+
+        public void AppendLastEvent(string reader, string text, UI.FontColor color = UI.FontColor.None)
+        {
+            OnAppendEvent?.Invoke(reader, text, color);
         }
     }
 }
