@@ -322,12 +322,5 @@ namespace BeatSync.UI
         }
     }
 
-    public enum FontColor
-    {
-        None = 0,
-        White = 1,
-        Red = 2,
-        Yellow = 3,
-        Green = 4
-    }
+    
 }
