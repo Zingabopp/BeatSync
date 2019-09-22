@@ -144,6 +144,8 @@
     <Compile Include="Logging\IBeatSyncLogger.cs" />
     <Compile Include="Downloader\SongDownloader.cs" />
     <Compile Include="SongHasher.cs" />
+    <Compile Include="UI\TextMeshList.cs" />
+    <Compile Include="UI\UIController.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />
     <Compile Include="Utilities\FileIO.cs" />
     <Compile Include="Logging\BeatSyncFeedReaderLogger.cs" />

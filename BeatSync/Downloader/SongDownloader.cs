@@ -238,6 +238,8 @@ namespace BeatSync.Downloader
             return result;
         }
 
+        public IReadOnlyDictionary<string, UI.TextMeshList> StatusLists { get; set; }
+
         public async Task RunReaders()
         {
             List<Task<Dictionary<string, ScrapedSong>>> readerTasks = new List<Task<Dictionary<string, ScrapedSong>>>();
@@ -246,13 +248,38 @@ namespace BeatSync.Downloader
             {
                 readerTasks.Add(ReadBeastSaber());
             }
+            else
+            {
+                if (StatusLists?.ContainsKey("BeastSaber") ?? false)
+                {
+                    StatusLists["BeastSaber"].SubHeader = "Disabled";
+                    StatusLists["BeastSaber"].SetHeaderColor(UI.FontColors.Red);
+                }
+            }
             if (config.BeatSaver.Enabled)
             {
                 readerTasks.Add(ReadBeatSaver());
             }
+            else
+            {
+                if (StatusLists?.ContainsKey("BeatSaver") ?? false)
+                {
+                    StatusLists["BeatSaver"].SubHeader = "Disabled";
+                    StatusLists["BeatSaver"].SetHeaderColor(UI.FontColors.Red);
+                }
+            }
             if (config.ScoreSaber.Enabled)
             {
                 readerTasks.Add(ReadScoreSaber());
+            }
+            else
+            {
+                if (StatusLists?.ContainsKey("ScoreSaber") ?? false)
+                {
+
+                    StatusLists["ScoreSaber"].SubHeader = "Disabled";
+                    StatusLists["ScoreSaber"].SetHeaderColor(UI.FontColors.Red);
+                }
             }
             Dictionary<string, ScrapedSong>[] results = null;
             try
@@ -364,6 +391,7 @@ namespace BeatSync.Downloader
             catch (Exception ex)
             {
                 Logger.log?.Error(ex);
+                SetError("BeastSaber");
                 return null;
             }
             var readerSongs = new Dictionary<string, ScrapedSong>();
@@ -480,6 +508,7 @@ namespace BeatSync.Downloader
             {
                 Logger.log?.Error("Exception creating BeatSaverReader in ReadBeatSaver.");
                 Logger.log?.Error(ex);
+                SetError("BeatSaver");
                 return null;
             }
             var readerSongs = new Dictionary<string, ScrapedSong>();
@@ -625,6 +654,7 @@ namespace BeatSync.Downloader
             return readerSongs;
         }
 
+
         public async Task<Dictionary<string, ScrapedSong>> ReadScoreSaber(Playlist allPlaylist = null)
         {
             if (BeatSync.Paused)
@@ -642,6 +672,7 @@ namespace BeatSync.Downloader
             catch (Exception ex)
             {
                 Logger.log?.Error(ex);
+                SetError("ScoreSaber");
                 return null;
             }
             var readerSongs = new Dictionary<string, ScrapedSong>();
@@ -750,5 +781,33 @@ namespace BeatSync.Downloader
             return readerSongs;
         }
         #endregion
+
+
+        public void SetError(string reader)
+        {
+            SetStatus(reader, "Error", UI.FontColors.Red);
+        }
+
+        public void SetWarning(string reader)
+        {
+            SetStatus(reader, "Warning", UI.FontColors.Yellow);
+        }
+
+        public void SetStatus(string reader, string subHeader)
+        {
+            if (StatusLists?.ContainsKey(reader) ?? false)
+            {
+                StatusLists[reader].SubHeader = subHeader;
+            }
+        }
+
+        public void SetStatus(string reader, string subHeader, UI.FontColors color)
+        {
+            if (StatusLists?.ContainsKey(reader) ?? false)
+            {
+                StatusLists[reader].SubHeader = subHeader;
+                StatusLists[reader].SetHeaderColor(color);
+            }
+        }
     }
 }

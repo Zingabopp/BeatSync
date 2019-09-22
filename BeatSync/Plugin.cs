@@ -25,6 +25,7 @@ namespace BeatSync
 
         internal static Ref<PluginConfig> config;
         internal static IConfigProvider configProvider;
+        internal static UI.UIController StatusController;
         private bool customUIExists = false;
         private bool beatSyncCreated = false;
 
@@ -115,12 +116,12 @@ namespace BeatSync
                 if (nextScene.name == "HealthWarning")
                 {
                     BeatSync.Paused = false;
-                    var beatSync = new GameObject().AddComponent<BeatSync>();
-                    var testText = new GameObject().AddComponent<UI.FloatingText>();
-                    testText.DisplayedText = "Testing";
+                    var beatSync = new GameObject("BeatSync").AddComponent<BeatSync>();
+                    StatusController = new GameObject("BeatSync_UI").AddComponent<UI.UIController>();
+                    //testText.DisplayedText = "Testing";
                     beatSyncCreated = true;
                     GameObject.DontDestroyOnLoad(beatSync);
-                    GameObject.DontDestroyOnLoad(testText);
+                    GameObject.DontDestroyOnLoad(StatusController);
                 }
                 if (!beatSyncCreated && nextScene.name == "MenuCore")
                 {
@@ -206,9 +207,51 @@ namespace BeatSync
         /// </summary>
         public void OnUpdate()
         {
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                StatusController.SetActive(false);
 
+
+                SharedCoroutineStarter.instance.StartCoroutine(TestDestroyed());
+            }
         }
 
+        public IEnumerator<WaitForSeconds> TestDestroyed()
+        {
+            yield return new WaitForSeconds(1);
+            var notDestroyed = Resources.FindObjectsOfTypeAll<UI.TextMeshList>();
+            foreach (var item in notDestroyed)
+            {
+                if (item != null)
+                    Logger.log?.Warn($"Not destroyed: {item.name}");
+            }
+
+            var otherNotDestroyed = Resources.FindObjectsOfTypeAll<UI.FloatingText>();
+            foreach (var item in otherNotDestroyed)
+            {
+                if (item != null)
+                    Logger.log?.Warn($"Not destroyed: {item.name}");
+            }
+            GameObject.Destroy(StatusController.gameObject);
+            yield return new WaitForSeconds(1);
+            notDestroyed = Resources.FindObjectsOfTypeAll<UI.TextMeshList>();
+            if (notDestroyed.Length > 0 || notDestroyed.All(f => f == null))
+                Logger.log?.Warn("All TextMeshLists destroyed");
+            foreach (var item in notDestroyed)
+            {
+                if (item != null)
+                    Logger.log?.Warn($"Not destroyed: {item.name}");
+            }
+
+            otherNotDestroyed = Resources.FindObjectsOfTypeAll<UI.FloatingText>();
+            if (otherNotDestroyed.Length > 0 || otherNotDestroyed.All(f => f == null))
+                Logger.log?.Warn("All FloatingTexts destroyed");
+            foreach (var item in otherNotDestroyed)
+            {
+                if (item != null)
+                    Logger.log?.Warn($"Not destroyed: {item.name}");
+            }
+        }
 
         /// <summary>
         /// Called when the a scene's assets are loaded.

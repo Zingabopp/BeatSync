@@ -98,6 +98,7 @@ namespace BeatSync
                 HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
                 Task.Run(() => HistoryManager.Initialize());
                 Downloader = new SongDownloader(Plugin.config.Value, HistoryManager, SongHasher, CustomLevelPathHelper.customLevelsDirectoryPath);
+                Downloader.StatusLists = Plugin.StatusController.StatusLists;
                 StartCoroutine(HashSongsCoroutine());
             }
             else
