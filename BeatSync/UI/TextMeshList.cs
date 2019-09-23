@@ -10,6 +10,8 @@ namespace BeatSync.UI
 {
     public class TextMeshList : MonoBehaviour
     {
+        #region Properties
+
         public Canvas Canvas { get; set; }
         public int NumTexts { get; private set; }
         private float _width;
@@ -56,14 +58,12 @@ namespace BeatSync.UI
                 return last;
             }
         }
-        private FloatingText[] _floatingTexts;
-        private FloatingText[] FloatingTexts
+        private PostText[] _postTexts;
+        private PostText[] PostTexts
         {
-            get { return _floatingTexts; }
-            set { _floatingTexts = value; }
+            get { return _postTexts; }
+            set { _postTexts = value; }
         }
-
-
 
         public float RowSpacing { get; set; }
 
@@ -112,6 +112,8 @@ namespace BeatSync.UI
             }
         }
 
+        #endregion
+
         /// <summary>
         /// 
         /// </summary>
@@ -135,7 +137,7 @@ namespace BeatSync.UI
             HeaderText.transform.SetParent(Canvas.transform, false);
             HeaderText.Position = new Vector3(0, RowSpacing, 0);
             HeaderText.FontStyle = TMPro.FontStyles.Underline;
-            FloatingTexts = new FloatingText[NumTexts];
+            PostTexts = new PostText[NumTexts];
 
             for (int i = 0; i < numTexts; i++)
             {
@@ -144,7 +146,8 @@ namespace BeatSync.UI
                     var text = new GameObject($"{gameObject.name}: TextList[{i}]").AddComponent<FloatingText>();
                     text.Canvas = Canvas;
                     text.Width = Width;
-                    FloatingTexts[i] = text;
+                    var postText = new PostText() { PostId = 0, FloatingText = text };
+                    PostTexts[i] = postText;
                     //if (i % 2 == 0)
                     //{
                     //    text.TextAlignment = TMPro.TextAlignmentOptions.Right;
@@ -162,6 +165,206 @@ namespace BeatSync.UI
             }
         }
 
+        public void Post(int postId, string text, Color color)
+        {
+            if (PostTexts == null)
+            {
+                Logger.log?.Error("Unable to post text, FloatingTexts is null.");
+                return;
+            }
+
+            //switch (Next)
+            //{
+            //    case 0:
+            //        text = text + "-";
+            //        break;
+            //    case 1:
+            //        text = text + "---";
+            //        break;
+            //    case 2:
+            //        text = text + "-----";
+            //        break;
+            //    case 3:
+            //        text = text + "-------";
+            //        break;
+            //    case 4:
+            //        text = text + "---------";
+            //        break;
+            //    default:
+            //        break;
+            //}
+            //HeaderText.DisplayedText = $"{gameObject.name}: Header ({text})";
+            //HeaderText.WriteThings();
+            PostTexts[Next].PostId = postId;
+            PostTexts[Next].FloatingText.FontColor = color;
+            PostTexts[Next].FloatingText.DisplayedText = text;
+
+            //FloatingTexts[Next].WriteThings();
+            Next++;
+            if (Next != 0)
+            {
+                PostTexts[Next].FloatingText.DisplayedText = string.Empty;
+                PostTexts[Next].PostId = 0;
+            }
+        }
+
+        public bool ReplacePost(int postId, string text, Color? color)
+        {
+            var floatingText = PostTexts.FirstOrDefault(p => p.PostId == postId)?.FloatingText;
+            if (floatingText != null)
+            {
+                floatingText.DisplayedText = text;
+                if (color != null)
+                    floatingText.FontColor = color ?? Color.white;
+                return true;
+            }
+            return false;
+        }
+
+        public bool AppendPost(int postId, string text, Color? color)
+        {
+            var floatingText = PostTexts.FirstOrDefault(p => p.PostId == postId)?.FloatingText;
+            if (floatingText != null)
+            {
+                floatingText.DisplayedText = floatingText.DisplayedText + text;
+                if (color != null)
+                    floatingText.FontColor = color ?? Color.white;
+                return true;
+            }
+            return false;
+        }
+
+        public bool PostExists(int postId)
+        {
+            return PostTexts.Any(p => p.PostId == postId);
+        }
+
+        public string GetPost(int postId)
+        {
+            return PostTexts.FirstOrDefault(p => p.PostId == postId)?.FloatingText?.DisplayedText;
+        }
+
+        public void AppendLast(string text, UI.FontColor fontColor = FontColor.None)
+        {
+            PostTexts[Last].FloatingText.DisplayedText = PostTexts[Last].FloatingText.DisplayedText + text;
+            if (fontColor != FontColor.None)
+                PostTexts[Last].FloatingText.FontColor = GetUnityColor(fontColor) ?? Color.white;
+        }
+
+        public void Clear()
+        {
+            foreach (var item in PostTexts)
+            {
+                item.PostId = 0;
+                item.FloatingText.DisplayedText = string.Empty;
+            }
+            Next = 0;
+        }
+
+        public void SetHeaderColor(FontColor color)
+        {
+            var newColor = GetUnityColor(color);
+            if (newColor == null)
+                return;
+            else
+                HeaderText.FontColor = newColor ?? Color.white;
+        }
+
+        public FontColor? GetHeaderColor()
+        {
+            Color unityColor = HeaderText.FontColor;
+            if (unityColor == Color.white)
+                return FontColor.White;
+            else if (unityColor == Color.red)
+                return FontColor.Red;
+            else if (unityColor == Color.yellow)
+                return FontColor.Yellow;
+            else if (unityColor == Color.green)
+                return FontColor.Green;
+            else
+                return null;
+        }
+
+        public static Color? GetUnityColor(FontColor color)
+        {
+            Color newColor;
+            switch (color)
+            {
+                case FontColor.None:
+                    return null;
+                case FontColor.White:
+                    newColor = Color.white;
+                    break;
+                case FontColor.Red:
+                    newColor = Color.red;
+                    break;
+                case FontColor.Yellow:
+                    newColor = Color.yellow;
+                    break;
+                case FontColor.Green:
+                    newColor = Color.green;
+                    break;
+                default:
+                    newColor = Color.white;
+                    break;
+            }
+            return newColor;
+        }
+
+        public void MoveRelative(Vector3 vector)
+        {
+            Canvas.transform.localPosition = Canvas.transform.localPosition + vector;
+        }
+
+        public void MoveRelative(float x, float y, float z)
+        {
+            MoveRelative(new Vector3(x, y, z));
+        }
+
+        public void RotateRelative(float angle)
+        {
+            var currentRotation = Canvas.transform.localRotation.eulerAngles;
+            currentRotation.y += angle;
+            Canvas.transform.localRotation = Quaternion.Euler(currentRotation);
+        }
+
+        #region Overloads
+
+        public void Post(int postId, string text, UI.FontColor color)
+        {
+            Post(postId, text, GetUnityColor(color) ?? Color.white);
+        }
+
+        public void Post(int postId, string text)
+        {
+            Post(postId, text, Color.white);
+        }
+
+        public bool AppendPost(int postId, string text, FontColor color)
+        {
+            return AppendPost(postId, text, GetUnityColor(color));
+        }
+
+        public bool AppendPost(int postId, string text)
+        {
+            return AppendPost(postId, text, null);
+        }
+
+        public bool ReplacePost(int postId, string text, FontColor color)
+        {
+            return ReplacePost(postId, text, GetUnityColor(color));
+        }
+
+        public bool ReplacePost(int postId, string text)
+        {
+            return ReplacePost(postId, text, null);
+        }
+
+        #endregion
+
+        #region Monobehaviour
+
+
         public void Awake()
         {
 
@@ -170,15 +373,6 @@ namespace BeatSync.UI
         public void Start()
         {
 
-        }
-
-        public void Clear()
-        {
-            foreach (var item in FloatingTexts)
-            {
-                item.DisplayedText = string.Empty;
-            }
-            Next = 0;
         }
 
         public void OnDisable()
@@ -213,114 +407,8 @@ namespace BeatSync.UI
             }
         }
 
-        public void MoveRelative(Vector3 vector)
-        {
-            Canvas.transform.localPosition = Canvas.transform.localPosition + vector;
-        }
-
-        public void MoveRelative(float x, float y, float z)
-        {
-            MoveRelative(new Vector3(x, y, z));
-        }
-
-        public void RotateRelative(float angle)
-        {
-            var currentRotation = Canvas.transform.localRotation.eulerAngles;
-            currentRotation.y += angle;
-            Canvas.transform.localRotation = Quaternion.Euler(currentRotation);
-        }
-
-        public void Post(string text, Color color)
-        {
-            if (FloatingTexts == null)
-            {
-                Logger.log?.Error("Unable to post text, FloatingTexts is null.");
-                return;
-            }
-
-            //switch (Next)
-            //{
-            //    case 0:
-            //        text = text + "-";
-            //        break;
-            //    case 1:
-            //        text = text + "---";
-            //        break;
-            //    case 2:
-            //        text = text + "-----";
-            //        break;
-            //    case 3:
-            //        text = text + "-------";
-            //        break;
-            //    case 4:
-            //        text = text + "---------";
-            //        break;
-            //    default:
-            //        break;
-            //}
-            //HeaderText.DisplayedText = $"{gameObject.name}: Header ({text})";
-            //HeaderText.WriteThings();
-            FloatingTexts[Next].FontColor = color;
-            FloatingTexts[Next].DisplayedText = text;
-            
-            //FloatingTexts[Next].WriteThings();
-            Next++;
-            if (Next != 0)
-                FloatingTexts[Next].DisplayedText = string.Empty;
-        }
-
-        public void Post(string text, UI.FontColor color)
-        {
-            Post(text, GetUnityColor(color) ?? Color.white);
-        }
-
-        public void Post(string text)
-        {
-            Post(text, Color.white);
-        }
-
-        public void AppendLast(string text, UI.FontColor fontColor = FontColor.None)
-        {
-            FloatingTexts[Last].DisplayedText = FloatingTexts[Last].DisplayedText + text;
-            if (fontColor != FontColor.None)
-                FloatingTexts[Last].FontColor = GetUnityColor(fontColor) ?? Color.white;
-        }
-
-        public static Color? GetUnityColor(FontColor color)
-        {
-            Color newColor;
-            switch (color)
-            {
-                case FontColor.None:
-                    return null;
-                case FontColor.White:
-                    newColor = Color.white;
-                    break;
-                case FontColor.Red:
-                    newColor = Color.red;
-                    break;
-                case FontColor.Yellow:
-                    newColor = Color.yellow;
-                    break;
-                case FontColor.Green:
-                    newColor = Color.green;
-                    break;
-                default:
-                    newColor = Color.white;
-                    break;
-            }
-            return newColor;
-        }
-
-        public void SetHeaderColor(FontColor color)
-        {
-            var newColor = GetUnityColor(color);
-            if (newColor == null)
-                return;
-            else
-                HeaderText.FontColor = newColor ?? Color.white;
-        }
+        #endregion
     }
 
-    
+
 }

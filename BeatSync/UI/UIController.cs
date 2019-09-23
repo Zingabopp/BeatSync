@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 
 namespace BeatSync.UI
 {
-    public class UIController : MonoBehaviour
+    public class UIController : MonoBehaviour, IStatusManager
     {
         public int TextRows { get; set; }
         private float RowSpacing { get; set; }
@@ -25,6 +25,8 @@ namespace BeatSync.UI
                 _readOnlyWrapper = null;
             }
         }
+
+        private Dictionary<int, string> PostHistory = new Dictionary<int, string>();
 
         private IReadOnlyDictionary<string, TextMeshList> _readOnlyWrapper;
         public IReadOnlyDictionary<string, TextMeshList> StatusLists
@@ -106,16 +108,152 @@ namespace BeatSync.UI
 
         public Vector3 PlayerPos { get; set; }
 
-        public void Post(string targetName, string text)
+        private object _idLockObject = new object();
+        private int _nextId = 1;
+        private int NextId
         {
-            if (StatusLists.ContainsKey(targetName))
-                StatusLists[targetName].Post(text);
+            get
+            {
+                int returnedId = 0;
+                lock (_idLockObject)
+                {
+                    returnedId = _nextId;
+                    _nextId++;
+                }
+                return returnedId;
+            }
         }
 
-        public void SetHeader(string targetName, string text)
+        #region IStatusManager
+
+        public void SetHeader(string targetName, string text, FontColor color)
         {
-            if (StatusLists.ContainsKey(targetName))
-                StatusLists[targetName].Header = text;
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                statusList.Header = text;
+                if (color != FontColor.None)
+                    statusList.SetHeaderColor(color);
+            }
+        }
+
+        public int Post(string targetName, string text, FontColor color)
+        {
+            var postId = NextId;
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                PostHistory.Add(postId, targetName);
+                statusList.Post(postId, text, color);
+                return postId;
+            }
+            return 0;
+        }
+
+        public string GetPost(int postId)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    var text = statusList.GetPost(postId);
+                    if (text != null)
+                        return text;
+                }     
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return null;
+        }
+
+        public bool ReplacePost(int postId, string text, FontColor color)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    if (statusList.ReplacePost(postId, text, color))
+                        return true;
+                }
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return false;
+        }
+
+        public bool AppendPost(int postId, string text, FontColor color)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    if (statusList.AppendPost(postId, text, color))
+                        return true;
+                }
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return false;
+        }
+
+        public bool PostExists(int postId)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    if (statusList.PostExists(postId))
+                        return true;
+                }
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return false;
+        }
+
+        public string GetHeader(string targetName)
+        {
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                return statusList.Header;
+            }
+            return null;
+        }
+
+        public string GetSubHeader(string targetName)
+        {
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                return statusList.SubHeader;
+            }
+            return null;
+        }
+
+        public FontColor? GetHeaderColor(string targetName)
+        {
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                return statusList.GetHeaderColor();
+            }
+            return null;
+        }
+
+        public void SetSubHeader(string targetName, string text)
+        {
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                statusList.SubHeader = text;
+            }
+        }
+
+        public void SetHeaderColor(string targetName, FontColor color)
+        {
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                statusList.SetHeaderColor(color);
+            }
+        }
+
+        public void Clear(string targetName)
+        {
+            if (StatusLists.TryGetValue(targetName, out var statusList))
+            {
+                statusList.Clear();
+            }
         }
 
         public void ClearAll()
@@ -125,6 +263,30 @@ namespace BeatSync.UI
                 item.Clear();
             }
         }
+
+        #region Overloads
+        public int Post(string targetName, string text)
+        {
+            return Post(targetName, text, FontColor.None);
+        }
+
+        public void SetHeader(string targetName, string text)
+        {
+            SetHeader(targetName, text, FontColor.None);
+        }
+
+        public bool AppendPost(int postId, string text)
+        {
+            return AppendPost(postId, text, FontColor.None);
+        }
+
+        public bool ReplacePost(int postId, string text)
+        {
+            return ReplacePost(postId, text, FontColor.None);
+        }
+        #endregion
+
+        #endregion
 
         public void Awake()
         {
@@ -213,7 +375,7 @@ namespace BeatSync.UI
                         item.SubHeader = $"Index: {index}";
                     else
                         item.SubHeader = string.Empty;
-                    item.Post($"Index: {index}");
+                    item.Post(0, $"Index: {index}");
                 }
 
                 index++;
@@ -287,5 +449,9 @@ namespace BeatSync.UI
         {
             gameObject.transform.Rotate(axis, angle);
         }
+
+        
+
+        
     }
 }

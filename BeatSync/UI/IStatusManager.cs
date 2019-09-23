@@ -83,7 +83,7 @@ namespace BeatSync.UI
         /// </summary>
         /// <param name="targetName"></param>
         /// <returns></returns>
-        FontColor GetHeaderColor(string targetName);
+        FontColor? GetHeaderColor(string targetName);
         /// <summary>
         /// Sets the header text of the specified target.
         /// </summary>

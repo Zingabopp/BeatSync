@@ -145,6 +145,7 @@
     <Compile Include="Downloader\SongDownloader.cs" />
     <Compile Include="SongHasher.cs" />
     <Compile Include="UI\IStatusManager.cs" />
+    <Compile Include="UI\PostText.cs" />
     <Compile Include="UI\TextMeshList.cs" />
     <Compile Include="UI\UIController.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />

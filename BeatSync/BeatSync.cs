@@ -98,39 +98,12 @@ namespace BeatSync
                 HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
                 Task.Run(() => HistoryManager.Initialize());
                 Downloader = new SongDownloader(Plugin.config.Value, HistoryManager, SongHasher, CustomLevelPathHelper.customLevelsDirectoryPath);
-                Downloader.OnSourceEvent += Downloader_OnSourceEvent;
-                Downloader.OnEvent += Downloader_OnEvent;
-                Downloader.OnAppendEvent += Downloader_OnAppendEvent;
+                Downloader.StatusManager = Plugin.StatusController;
                 StartCoroutine(HashSongsCoroutine());
             }
             else
             {
                 Logger.log.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.config.Value.TimeBetweenSyncs}");
-            }
-        }
-
-        private void Downloader_OnAppendEvent(string reader, string text, UI.FontColor color)
-        {
-            if (Plugin.StatusController.StatusLists.ContainsKey(reader))
-            {
-                Plugin.StatusController.StatusLists[reader].AppendLast(text, color);
-            }
-        }
-
-        private void Downloader_OnEvent(string reader, string text, UI.FontColor color)
-        {
-            if (Plugin.StatusController.StatusLists.ContainsKey(reader))
-            {
-                Plugin.StatusController.StatusLists[reader].Post(text, color);
-            }
-        }
-
-        private void Downloader_OnSourceEvent(string reader, string subHeader, UI.FontColor color)
-        {
-            if (Plugin.StatusController.StatusLists.ContainsKey(reader))
-            {
-                Plugin.StatusController.StatusLists[reader].SubHeader = subHeader;
-                Plugin.StatusController.StatusLists[reader].SetHeaderColor(color);
             }
         }
 
@@ -160,9 +133,6 @@ namespace BeatSync
             int numDownloads = downloadTask.Result.Count;
             IsRunning = false;
             Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
-            Downloader.OnEvent -= Downloader_OnEvent;
-            Downloader.OnSourceEvent -= Downloader_OnSourceEvent;
-            Downloader.OnAppendEvent -= Downloader_OnAppendEvent;
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();
