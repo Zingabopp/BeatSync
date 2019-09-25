@@ -10,7 +10,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSync</RootNamespace>
     <AssemblyName>BeatSync</AssemblyName>
-    <AssemblyVersion>0.2.4</AssemblyVersion>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PathMap>$(SolutionDir)=C:\</PathMap>
@@ -144,7 +143,6 @@
     <Compile Include="Logging\BeatSyncIPALogger.cs" />
     <Compile Include="Logging\IBeatSyncLogger.cs" />
     <Compile Include="Downloader\SongDownloader.cs" />
-    <Compile Include="BuildManifestInfo.cs" />
     <Compile Include="SongHasher.cs" />
     <Compile Include="UI\IStatusManager.cs" />
     <Compile Include="UI\PostText.cs" />
@@ -219,8 +217,47 @@
       <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
     </PropertyGroup>
     <Copy SourceFiles="$(OutputPath)$(AssemblyName)-merged.dll" DestinationFiles="$(IntermediateOutputPath)\zip\Plugins\$(AssemblyName).dll" />
-    <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(AssemblyVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
+    <BuildManifestInfo>
+      <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
+      <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
+    </BuildManifestInfo>
+    <Message Text="GameVersion: $(GameVersion), PluginVersion: $(PluginVersion)" Importance="high" />
+    <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
+  <UsingTask TaskName="BuildManifestInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <GameVersion ParameterType="System.String" Output="true" />
+      <PluginVersion ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="$(USERPROFILE)\.nuget\packages\newtonsoft.json\12.0.2\lib\netstandard1.3\Newtonsoft.Json.dll" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="Newtonsoft.Json" />
+      <Using Namespace="Newtonsoft.Json.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        try
+        {
+          JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText("manifest.json"));
+                if(manifestJson["version"] != null)
+                {
+                    string version = manifestJson["version"].Value<string>();
+                    PluginVersion = string.IsNullOrEmpty(version) ? "E.R.R" : version;
+                }
+                if (manifestJson["gameVersion"] != null)
+                {
+                    string gameVersion = manifestJson["gameVersion"].Value<string>();
+                    GameVersion = string.IsNullOrEmpty(gameVersion) ? "E.R.R" : gameVersion;
+                }              
+                return true;
+        }
+        catch(Exception ex)
+        {
+          Log.LogErrorFromException(ex);
+          return false;
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
   <UsingTask TaskName="ZipDir" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
@@ -236,22 +273,22 @@
       <Code Type="Fragment" Language="cs"><![CDATA[
         try
         {
-		  var zipDir = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(ZipFileName)));
+          var zipDir = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(ZipFileName)));
           if (zipDir.Exists)
             zipDir.Delete(true);
           zipDir.Create();
-		  zipDir.Refresh();
-		  int tries = 0;
-		  while(!zipDir.Exists || tries < 10) // Prevents breaking when Explorer is in the folder.
-		  {
-		    tries++;
-		    Thread.Sleep(50);
-			zipDir.Create();
-			zipDir.Refresh();
-		  }
+          zipDir.Refresh();
+          int tries = 0;
+          while(!zipDir.Exists || tries < 10) // Prevents breaking when Explorer is in the folder.
+          {
+            tries++;
+            Thread.Sleep(50);
+            zipDir.Create();
+            zipDir.Refresh();
+          }
 		  
-		  if(File.Exists(ZipFileName))
-		    File.Delete(ZipFileName);
+          if(File.Exists(ZipFileName))
+            File.Delete(ZipFileName);
           Log.LogMessage(string.Format("Zipping Directory {0} to {1}", DirectoryName, ZipFileName));
           ZipFile.CreateFromDirectory( DirectoryName, ZipFileName );
           return true;
