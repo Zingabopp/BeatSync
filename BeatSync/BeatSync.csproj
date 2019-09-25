@@ -166,9 +166,7 @@
     <Compile Include="Utilities\Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="manifest.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="manifest.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CreateJunctions.bat" />
@@ -237,7 +235,12 @@
       <Code Type="Fragment" Language="cs"><![CDATA[
         try
         {
-          JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText("manifest.json"));
+		  string manifestFile = "manifest.json";
+		      if(!File.Exists(manifestFile))
+          {
+            throw new FileNotFoundException("Could not find " + Path.GetFullPath(manifestFile));
+          }
+          JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText(manifestFile));
                 if(manifestJson["version"] != null)
                 {
                     string version = manifestJson["version"].Value<string>();

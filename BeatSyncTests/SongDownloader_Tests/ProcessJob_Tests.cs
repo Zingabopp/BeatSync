@@ -121,7 +121,6 @@ namespace BeatSyncTests.SongDownloader_Tests
         {
             var downloader = GetDefaultDownloader();
             var testHash = "A7SDF6A86SDF9ASDF";
-
             var song = new PlaylistSong(testHash, "Successful Song", "fff2", "Other");
             var songPath = Path.Combine(TestSongsDir, "fff2 (Successful Song)");
             downloader.HistoryManager.TryAdd(song, 0);
