@@ -63,6 +63,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\BeatSaverDownloader.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\SongCore.dll</HintPath>
@@ -143,8 +144,10 @@
     <Compile Include="Logging\BeatSyncIPALogger.cs" />
     <Compile Include="Logging\IBeatSyncLogger.cs" />
     <Compile Include="Downloader\SongDownloader.cs" />
+    <Compile Include="BuildManifestInfo.cs" />
     <Compile Include="SongHasher.cs" />
     <Compile Include="UI\IStatusManager.cs" />
+    <Compile Include="UI\PostText.cs" />
     <Compile Include="UI\TextMeshList.cs" />
     <Compile Include="UI\UIController.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />
@@ -165,7 +168,9 @@
     <Compile Include="Utilities\Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="manifest.json" />
+    <EmbeddedResource Include="manifest.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="CreateJunctions.bat" />
