@@ -47,6 +47,38 @@ namespace BeatSync.Playlists
         public DateTime? DateAdded { get; set; }
 
         [JsonIgnore]
+        private List<string> _feedSources;
+        [JsonProperty("feedSources", Order = -6)]
+        public List<string> FeedSources
+        {
+            get
+            {
+                if (_feedSources == null)
+                    _feedSources = new List<string>();
+                return _feedSources;
+            }
+            set
+            {
+                _feedSources = value;
+            }
+        }
+        [JsonIgnore]
+        private object _feedSourceLock = new object();
+
+        public bool TryAddFeedSource(string sourceName)
+        {
+            lock (_feedSourceLock)
+            {
+                if (!FeedSources.Contains(sourceName))
+                {
+                    FeedSources.Add(sourceName);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [JsonIgnore]
         private string _directoryName;
 
         [JsonIgnore]

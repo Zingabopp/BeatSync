@@ -20,6 +20,7 @@ namespace BeatSync.Downloader
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
+        public ConcurrentDictionary<string, PlaylistSong> RetrievedSongs { get; private set; }
         public ConcurrentQueue<PlaylistSong> DownloadQueue { get; private set; }
         private PluginConfig Config;
         public HistoryManager HistoryManager { get; private set; }
@@ -36,6 +37,7 @@ namespace BeatSync.Downloader
             Directory.CreateDirectory(CustomLevelsPath);
             HashSource = hashSource;
             DownloadQueue = new ConcurrentQueue<PlaylistSong>();
+            RetrievedSongs = new ConcurrentDictionary<string, PlaylistSong>();
             HistoryManager = historyManager;
             FavoriteMappers = new FavoriteMappers();
             FavoriteMappers.Initialize();
@@ -353,13 +355,22 @@ namespace BeatSync.Downloader
                 //}
                 var song = scrapedSong.Value.ToPlaylistSong();
                 song.DateAdded = addDate;
-
+                var source = $"{reader.Name}.{reader.GetFeedName(settings)}";
+                song.FeedSources.Add(source);
+                // Can't do this, it would mess up playlist ordering (i.e. ScoreSaber Top Ranked)
+                RetrievedSongs.AddOrUpdate(song.Hash, song, (k, v) => RetrievedSongsUpdater(v, song, source));
                 feedPlaylist?.TryAdd(song);
                 addDate = addDate - decrement;
             }
             feedPlaylist?.TryWriteFile();
 
             return songs;
+        }
+
+        private PlaylistSong RetrievedSongsUpdater(PlaylistSong existing, PlaylistSong newSong, string source)
+        {
+            existing.TryAddFeedSource(source);
+            return existing;
         }
 
         #region Feed Read Functions
