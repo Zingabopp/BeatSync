@@ -218,14 +218,16 @@
     <BuildManifestInfo>
       <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
       <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
+	  <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
     </BuildManifestInfo>
-    <Message Text="GameVersion: $(GameVersion), PluginVersion: $(PluginVersion)" Importance="high" />
+    <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
     <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <UsingTask TaskName="BuildManifestInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
       <GameVersion ParameterType="System.String" Output="true" />
       <PluginVersion ParameterType="System.String" Output="true" />
+      <AssemblyVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
       <Reference Include="$(USERPROFILE)\.nuget\packages\newtonsoft.json\12.0.2\lib\netstandard1.3\Newtonsoft.Json.dll" />
@@ -233,7 +235,8 @@
       <Using Namespace="Newtonsoft.Json" />
       <Using Namespace="Newtonsoft.Json.Linq" />
 	  <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+              <![CDATA[
 try
             {
                 string manifestFile = @"manifest.json";
@@ -261,11 +264,11 @@ try
                 }
 
                 var assemblyText = File.ReadAllText(assemblyFile);
-                var assemblyVersion = assemblyVersionRegex.Match(assemblyText).Groups[1].Value;
-                if (!assemblyVersion.Equals(PluginVersion))
+                AssemblyVersion = assemblyVersionRegex.Match(assemblyText).Groups[1].Value ?? "0.0.0";
+                if (AssemblyVersion != PluginVersion)
                 {
-				Log.LogWarning("PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, assemblyVersion);
-                    Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, assemblyVersion);
+				  Log.LogError("PluginVersion {0} in manifest.json does not match AssemblyVersion {1} in AssemblyInfo.cs", PluginVersion, AssemblyVersion);
+                    Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, AssemblyVersion);
                 }
 
 
