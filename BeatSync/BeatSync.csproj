@@ -232,16 +232,24 @@
       <Using Namespace="System.IO" />
       <Using Namespace="Newtonsoft.Json" />
       <Using Namespace="Newtonsoft.Json.Linq" />
+	  <Using Namespace="System.Text.RegularExpressions" />
       <Code Type="Fragment" Language="cs"><![CDATA[
-        try
-        {
-		  string manifestFile = "manifest.json";
-		      if(!File.Exists(manifestFile))
-          {
-            throw new FileNotFoundException("Could not find " + Path.GetFullPath(manifestFile));
-          }
-          JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText(manifestFile));
-                if(manifestJson["version"] != null)
+try
+            {
+                string manifestFile = @"manifest.json";
+                string assemblyFile = @"Properties\AssemblyInfo.cs";
+                var assemblyVersionRegex = new Regex(@"^\[assembly: AssemblyVersion\(\""?(.*)\""\)\]",
+                    RegexOptions.Multiline | RegexOptions.Compiled);
+                if (!File.Exists(manifestFile))
+                {
+                    throw new FileNotFoundException("Could not find manifest: " + Path.GetFullPath(manifestFile));
+                }
+                if (!File.Exists(assemblyFile))
+                {
+                    throw new FileNotFoundException("Could not find AssemblyInfo: " + Path.GetFullPath(assemblyFile));
+                }
+                JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText(manifestFile));
+                if (manifestJson["version"] != null)
                 {
                     string version = manifestJson["version"].Value<string>();
                     PluginVersion = string.IsNullOrEmpty(version) ? "E.R.R" : version;
@@ -250,14 +258,25 @@
                 {
                     string gameVersion = manifestJson["gameVersion"].Value<string>();
                     GameVersion = string.IsNullOrEmpty(gameVersion) ? "E.R.R" : gameVersion;
-                }              
+                }
+
+                var assemblyText = File.ReadAllText(assemblyFile);
+                var assemblyVersion = assemblyVersionRegex.Match(assemblyText).Groups[1].Value;
+                if (!assemblyVersion.Equals(PluginVersion))
+                {
+				Log.LogWarning("PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, assemblyVersion);
+                    Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, assemblyVersion);
+                }
+
+
                 return true;
-        }
-        catch(Exception ex)
-        {
-          Log.LogErrorFromException(ex);
-          return false;
-        }
+            }
+            catch (Exception ex)
+            {
+                throw;
+                Log.LogErrorFromException(ex);
+                return false;
+            }
       ]]></Code>
     </Task>
   </UsingTask>
