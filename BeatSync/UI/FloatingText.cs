@@ -178,7 +178,7 @@ namespace BeatSync.UI
                     _displayedText = value;
                     if (_textMesh != null)
                     {
-                        Logger.log?.Info($"Setting textMesh to {_displayedText}, alignment: {_textMesh.alignment.ToString()}");
+                        //Logger.log?.Info($"Setting textMesh to {_displayedText}, alignment: {_textMesh.alignment.ToString()}");
                         _textMesh.text = value;
                         //WriteThings();
                     }
@@ -195,13 +195,13 @@ namespace BeatSync.UI
 
         private IEnumerator<WaitForSeconds> WaitForCanvas()
         {
-            Logger.log?.Info($"{gameObject.name}:Waiting for Canvas");
+            //Logger.log?.Info($"{gameObject.name}:Waiting for Canvas");
             var pollRate = new WaitForSeconds(1f);
             while (Canvas == null)
             {
                 yield return pollRate;
             }
-            Logger.log?.Info($"{gameObject.name}:Waiting for Font");
+            //Logger.log?.Info($"{gameObject.name}:Waiting for Font");
             StartCoroutine(Util.WaitForResource<TMP_FontAsset>(FontName, font =>
             {
                 TMP_Font = UnityEngine.Object.Instantiate<TMP_FontAsset>(font);
@@ -235,7 +235,7 @@ namespace BeatSync.UI
 
         public void CreateText()
         {
-            Logger.log?.Info("Font found, creating text.");
+            //Logger.log?.Info("Font found, creating text.");
             _textMesh = BeatSaberUI.CreateText(Canvas.transform as RectTransform, DisplayedText, new Vector2(0f, 0f), new Vector2(0f, 0f));
             _textMesh.text = DisplayedText;
             _textMesh.fontSize = FontSize;
@@ -244,7 +244,7 @@ namespace BeatSync.UI
             _textMesh.fontStyle = FontStyle;
             _textMesh.color = FontColor;
             //_textMesh.rectTransform.anchoredPosition = (Canvas.transform as RectTransform).anchoredPosition;
-            Logger.log?.Info($"FloatingText {this.gameObject.name ?? ""} created.");
+            Logger.log?.Debug($"FloatingText {this.gameObject.name ?? ""} created.");
         }
 
         public string Vector2ToString(Vector2 vector)

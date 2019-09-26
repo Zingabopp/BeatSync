@@ -81,6 +81,7 @@ namespace BeatSync
                 var userAgent = $"BeatSync/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
                 SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                 SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
+                SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
 
                 // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
                 var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
