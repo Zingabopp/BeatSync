@@ -35,7 +35,7 @@ namespace BeatSync.Configs
         [JsonIgnore]
         private bool? _allBeatSyncSongsPlaylist;
         [JsonIgnore]
-        private SyncInterval _timeBetweenSyncs;
+        private SyncIntervalConfig _timeBetweenSyncs;
         [JsonIgnore]
         private BeastSaberConfig _beastSaber;
         [JsonIgnore]
@@ -167,13 +167,13 @@ namespace BeatSync.Configs
         }
 
         [JsonProperty(Order = -61)]
-        public SyncInterval TimeBetweenSyncs
+        public SyncIntervalConfig TimeBetweenSyncs
         {
             get
             {
                 if (_timeBetweenSyncs == null)
                 {
-                    _timeBetweenSyncs = new SyncInterval();
+                    _timeBetweenSyncs = new SyncIntervalConfig();
                     SetConfigChanged();
                 }
                 return _timeBetweenSyncs;
@@ -257,7 +257,7 @@ namespace BeatSync.Configs
         {
             get
             {
-                if (_lastRun == null)
+                if (_lastRun == null || _lastRun > DateTime.Now)
                 {
                     _lastRun = DateTime.MinValue;
                     SetConfigChanged();
@@ -395,106 +395,5 @@ namespace BeatSync.Configs
 
     }
 
-    public class SyncInterval
-        : ConfigBase
-    {
-        [JsonIgnore]
-        private int? _hours;
-        [JsonIgnore]
-        private int? _minutes;
-
-        public SyncInterval()
-        { }
-
-        public SyncInterval(int hours, int minutes)
-        {
-            Hours = hours;
-            Minutes = minutes;
-            ResetConfigChanged();
-        }
-
-        [JsonProperty("Hours")]
-        public int Hours
-        {
-            get
-            {
-                if (_hours == null)
-                {
-                    _hours = 0;
-                    SetConfigChanged();
-                }
-                return _hours ?? 0;
-            }
-            set
-            {
-                int newAdjustedVal = value;
-                if (value < 0)
-                {
-                    newAdjustedVal = 0;
-                    SetInvalidInputFixed();
-                }
-                if (_hours == newAdjustedVal)
-                    return;
-                _hours = newAdjustedVal;
-                SetConfigChanged();
-            }
-        }
-        [JsonProperty("Minutes")]
-        public int Minutes
-        {
-            get
-            {
-                if (_minutes == null)
-                {
-                    _minutes = 10;
-                    SetConfigChanged();
-                }
-                return _minutes ?? 10;
-            }
-            set
-            {
-                int newAdjustedVal = value;
-                if (value < 0)
-                {
-                    newAdjustedVal = 10;
-                    SetInvalidInputFixed();
-                }
-                if (_minutes == newAdjustedVal)
-                    return;
-                _minutes = newAdjustedVal;
-                SetConfigChanged();
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{(Hours == 1 ? "1 hour" : $"{Hours} hours")} {(Minutes == 1 ? "1 minute" : $"{Minutes} minutes")}";
-
-        }
-
-        public override void FillDefaults()
-        {
-            var _ = Hours;
-            var __ = Minutes;
-        }
-
-        public override bool ConfigMatches(ConfigBase other)
-        {
-            return this.Equals(other);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj != null && obj is SyncInterval other)
-            {
-                if (Hours != other.Hours)
-                    return false;
-                if (Minutes != other.Minutes)
-                    return false;
-            }
-            else
-                return false;
-            return true;
-        }
-    }
+   
 }

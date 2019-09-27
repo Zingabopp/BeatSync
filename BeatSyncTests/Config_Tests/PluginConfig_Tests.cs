@@ -101,8 +101,8 @@ namespace BeatSyncTests.Config_Tests
         public void Changed_TimeBetweenSyncs_Minutes()
         {
             var c = new PluginConfig();
-            var defaultValue = new SyncInterval() { Hours = 0, Minutes = 10 };
-            var newValue = new SyncInterval() { Hours = 0, Minutes = 5 };
+            var defaultValue = new SyncIntervalConfig() { Hours = 0, Minutes = 10 };
+            var newValue = new SyncIntervalConfig() { Hours = 0, Minutes = 5 };
             Assert.AreEqual(defaultValue, c.TimeBetweenSyncs);
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
@@ -117,8 +117,8 @@ namespace BeatSyncTests.Config_Tests
         public void Changed_TimeBetweenSyncs_Hours()
         {
             var c = new PluginConfig();
-            var defaultValue = new SyncInterval() { Hours = 0, Minutes = 10 };
-            var newValue = new SyncInterval() { Hours = 2, Minutes = 0 };
+            var defaultValue = new SyncIntervalConfig() { Hours = 0, Minutes = 10 };
+            var newValue = new SyncIntervalConfig() { Hours = 2, Minutes = 0 };
             Assert.AreEqual(defaultValue, c.TimeBetweenSyncs);
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
@@ -290,8 +290,8 @@ namespace BeatSyncTests.Config_Tests
         public void Unchanged_TimeBetweenSyncs()
         {
             var c = new PluginConfig();
-            var defaultValue = new SyncInterval();
-            var newValue = new SyncInterval(0, 10);
+            var defaultValue = new SyncIntervalConfig();
+            var newValue = new SyncIntervalConfig(0, 10);
             Assert.AreEqual(defaultValue, c.TimeBetweenSyncs);
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
@@ -438,8 +438,8 @@ namespace BeatSyncTests.Config_Tests
         {
             var pc = new PluginConfig();
 
-            var defaultValue = new SyncInterval(0, 10);
-            var newValue = new SyncInterval(0, -2);
+            var defaultValue = new SyncIntervalConfig(0, 10);
+            var newValue = new SyncIntervalConfig(0, -2);
             Assert.AreEqual(defaultValue, pc.TimeBetweenSyncs);
             pc.ResetFlags();
             Assert.IsFalse(pc.ConfigChanged);
@@ -450,7 +450,7 @@ namespace BeatSyncTests.Config_Tests
             Assert.AreEqual(0, pc.TimeBetweenSyncs.Hours);
             Assert.AreEqual(newValue.Minutes, pc.TimeBetweenSyncs.Minutes);
 
-            var changedInput = "BeatSync.Configs.SyncInterval:Minutes";
+            var changedInput = "BeatSync.Configs.SyncIntervalConfig:Minutes";
             Assert.IsTrue(c.InvalidInputFixed);
             Assert.AreEqual(changedInput, c.InvalidInputs.First());
             pc.ResetFlags();
@@ -464,8 +464,8 @@ namespace BeatSyncTests.Config_Tests
         {
             var pc = new PluginConfig();
 
-            var defaultValue = new SyncInterval(0, 10);
-            var newValue = new SyncInterval(-2, 0);
+            var defaultValue = new SyncIntervalConfig(0, 10);
+            var newValue = new SyncIntervalConfig(-2, 0);
             Assert.AreEqual(defaultValue, pc.TimeBetweenSyncs);
             pc.ResetFlags();
             Assert.IsFalse(pc.ConfigChanged);
@@ -476,7 +476,7 @@ namespace BeatSyncTests.Config_Tests
             Assert.AreEqual(0, pc.TimeBetweenSyncs.Hours);
             Assert.AreEqual(newValue.Minutes, pc.TimeBetweenSyncs.Minutes);
 
-            var changedInput = "BeatSync.Configs.SyncInterval:Hours";
+            var changedInput = "BeatSync.Configs.SyncIntervalConfig:Hours";
             Assert.IsTrue(c.InvalidInputFixed);
             Assert.AreEqual(changedInput, c.InvalidInputs.First());
             pc.ResetFlags();
