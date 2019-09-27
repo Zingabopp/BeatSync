@@ -36,7 +36,9 @@ namespace BeatSync.Configs
             if (!string.IsNullOrEmpty(member))
             {
                 //Logger.log?.Info($"Setting ConfigChanged in {this.GetType().ToString()} due to {member}");
-                _changedValues.Add($"{this.GetType()}:{member}");
+                var fullName = $"{this.GetType()}:{member}";
+                if (!_changedValues.Contains(fullName))
+                    _changedValues.Add(fullName);
             }
             ConfigChanged = changed;
         }
