@@ -13,7 +13,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             TestSetup.Initialize();
         }
         [TestMethod]
-        public void Normal()
+        public void NotImplemented()
         {
             Console.WriteLine("ReadBeatSaber_Normal");
         }
