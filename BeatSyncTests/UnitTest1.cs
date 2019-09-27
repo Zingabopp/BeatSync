@@ -9,10 +9,10 @@ using Microsoft.Build.Framework;
 
 namespace BeatSyncTests
 {
-    [TestClass]
+    //[TestClass]
     public class UnitTest1
     {
-        [TestMethod]
+        //[TestMethod]
         public void TestMethod1()
         {
             Console.WriteLine("Test");
