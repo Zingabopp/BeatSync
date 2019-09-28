@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using BeatSync.Utilities;
 using IPALogger = IPA.Logging.Logger;
 
 namespace BeatSync
@@ -26,6 +27,10 @@ namespace BeatSync
         internal static Ref<PluginConfig> config;
         internal static IConfigProvider configProvider;
         internal static UI.UIController StatusController;
+        internal static BeatSync BeatSyncController;
+        internal static FileLock CustomLevelsLock = new FileLock(CustomLevelsPath);
+        internal static FileLock PlaylistsLock = new FileLock(PlaylistsPath);
+
         private bool customUIExists = false;
         private bool beatSyncCreated = false;
 
@@ -62,23 +67,20 @@ namespace BeatSync
             });
         }
 
-
-
         public void OnApplicationStart()
         {
-            Logger.log?.Debug("OnApplicationStart");
+            var beatSyncVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            Logger.log?.Debug($"BeatSync {beatSyncVersion} OnApplicationStart");
             //SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
             // Check if CustomUI is installed.
             try
             {
-
-
                 customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
                 // If Custom UI is installed, create the UI
                 if (customUIExists)
                     CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
                 // Called to set the WebClient SongFeedReaders uses
-                var userAgent = $"BeatSync/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
+                var userAgent = $"BeatSync/{beatSyncVersion}";
                 SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                 SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
                 SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
@@ -117,28 +119,37 @@ namespace BeatSync
                 if (nextScene.name == "HealthWarning")
                 {
                     BeatSync.Paused = false;
-                    var beatSync = new GameObject("BeatSync").AddComponent<BeatSync>();
-                    StatusController = new GameObject("BeatSync_UI").AddComponent<UI.UIController>();
+                    BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
+                    StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
                     //testText.DisplayedText = "Testing";
                     beatSyncCreated = true;
-                    GameObject.DontDestroyOnLoad(beatSync);
+                    GameObject.DontDestroyOnLoad(BeatSyncController);
                     GameObject.DontDestroyOnLoad(StatusController);
                 }
                 if (!beatSyncCreated && nextScene.name == "MenuCore")
                 {
                     BeatSync.Paused = false;
-                    var beatSync = new GameObject().AddComponent<BeatSync>();
+                    BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
                     beatSyncCreated = true;
-                    GameObject.DontDestroyOnLoad(beatSync);
+                    GameObject.DontDestroyOnLoad(BeatSyncController);
                 }
+
                 if (nextScene.name == "GameCore")
+                {
                     BeatSync.Paused = true;
+                    if (StatusController != null && StatusController.isActiveAndEnabled)
+                        StatusController?.gameObject.SetActive(false);
+                }
                 else
+                {
                     BeatSync.Paused = false;
+                    if (StatusController != null && !StatusController.isActiveAndEnabled)
+                        StatusController?.gameObject.SetActive(true);
+                }
             }
             catch (Exception ex)
             {
-                Logger.log?.Error(ex);
+                Logger.log?.Error($"Error in Plugin.OnActiveSceneChanged:\n{ex}");
             }
         }
 
@@ -210,10 +221,15 @@ namespace BeatSync
         {
             if (Input.GetKeyDown(KeyCode.L))
             {
-                StatusController.SetActive(false);
-
-
-                SharedCoroutineStarter.instance.StartCoroutine(TestDestroyed());
+                GameObject.FindObjectsOfType<GameObject>()
+                    .Where(g => g.name.Contains("BeatSync"))
+                    .ToList()
+                    .ForEach(g =>
+                {
+                    Logger.log?.Warn(g.name);
+                });
+                //StatusController?.gameObject.SetActive(false);
+                //SharedCoroutineStarter.instance.StartCoroutine(TestDestroyed());
             }
         }
 

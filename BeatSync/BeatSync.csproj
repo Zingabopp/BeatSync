@@ -63,6 +63,10 @@
       <HintPath>References\Plugins\BeatSaverDownloader.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="SemVer.1.2.0.0, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>References\Libs\SemVer.1.2.0.0.dll</HintPath>
+    </Reference>
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>References\Plugins\SongCore.dll</HintPath>
@@ -133,6 +137,7 @@
     <Compile Include="BeatSync.cs" />
     <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
     <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
+    <Compile Include="Configs\SyncIntervalConfig.cs" />
     <Compile Include="Downloader\JobResult.cs" />
     <Compile Include="HistoryManager.cs" />
     <Compile Include="Configs\ConfigBases.cs" />
@@ -218,7 +223,7 @@
     <BuildManifestInfo>
       <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
       <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
-	  <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
+      <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
     </BuildManifestInfo>
     <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
     <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
@@ -234,9 +239,8 @@
       <Using Namespace="System.IO" />
       <Using Namespace="Newtonsoft.Json" />
       <Using Namespace="Newtonsoft.Json.Linq" />
-	  <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs">
-              <![CDATA[
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
 try
             {
                 string manifestFile = @"manifest.json";

@@ -12,7 +12,7 @@ namespace BeatSyncTests.Config_Tests
         [TestMethod]
         public void GetHashCode_CollisionTest()
         {
-            int max = 1000;
+            int max = 200;
             var intervalOne = new SyncIntervalConfig(0, 0);
             var intervalTwo = new SyncIntervalConfig(0, 0);
             for (int i = 0; i < max; i++)

@@ -23,7 +23,7 @@ namespace BeatSync.UI
                     _width = value;
                     var currentPosition = gameObject.transform.localPosition;
                     currentPosition.x = 0;
-                    gameObject.transform.localPosition = currentPosition + GetAlignmentOffset(TextAlignment);
+                    gameObject.transform.localPosition = currentPosition + GetAlignmentOffset(TextAlignmentOption);
                 }
             }
         }
@@ -31,21 +31,57 @@ namespace BeatSync.UI
         private TextMeshProUGUI _textMesh;
         //public TextMeshProUGUI TextMesh { get { return _textMesh; } private set { _textMesh = value; } }
         //private TextMeshPro textMesh;
-        private int _characterLimit = 0;
-        private TextAlignmentOptions _textAlignment = TextAlignmentOptions.Center;
-        public TextAlignmentOptions TextAlignment
+        
+        private TextAlignmentOptions _textAlignmentOption = TextAlignmentOptions.Left;
+        private TextAlignmentOptions TextAlignmentOption
         {
-            get { return _textAlignment; }
+            get { return _textAlignmentOption; }
             set
             {
-                if (_textAlignment != value)
+                if (_textAlignmentOption != value)
                 {
-                    _textAlignment = value;
+                    _textAlignmentOption = value;
                     if (_textMesh != null)
                     {
                         _textMesh.alignment = value;
                     }
                     transform.localPosition = Position;
+                }
+            }
+        }
+
+        public TextAlignment TextAlignment
+        {
+            get
+            {
+                switch (TextAlignmentOption)
+                {
+                    case TextAlignmentOptions.Left:
+                        return TextAlignment.Left;
+                    case TextAlignmentOptions.Center:
+                        return TextAlignment.Center;
+                    case TextAlignmentOptions.Right:
+                        return TextAlignment.Right;
+                    default:
+                        return TextAlignment.Left;
+                }
+            }
+            set
+            {
+                switch (value)
+                {
+                    case TextAlignment.Left:
+                        TextAlignmentOption = TextAlignmentOptions.Left;
+                        break;
+                    case TextAlignment.Center:
+                        TextAlignmentOption = TextAlignmentOptions.Center;
+                        break;
+                    case TextAlignment.Right:
+                        TextAlignmentOption = TextAlignmentOptions.Right;
+                        break;
+                    default:
+                        TextAlignmentOption = TextAlignmentOptions.Left;
+                        break;
                 }
             }
         }
@@ -84,25 +120,6 @@ namespace BeatSync.UI
             }
         }
 
-        private Vector3 _position = new Vector3(0, 0, 0);
-        public Vector3 Position
-        {
-            get
-            {
-                return _position;// + GetAlignmentOffset(TextAlignment);
-            }
-            set
-            {
-                if (_position != value)
-                {
-                    _position = value;
-                    if (_textMesh != null)
-                        _textMesh.transform.localPosition = _position + GetAlignmentOffset(TextAlignment);
-
-                }
-            }
-        }
-
         private float _fontSize = .1f;
         public float FontSize
         {
@@ -121,27 +138,7 @@ namespace BeatSync.UI
             }
         }
 
-        private Vector3 GetAlignmentOffset(TextAlignmentOptions textAlignment)
-        {
-            Vector3 offset;
-            switch (TextAlignment)
-            {
-                case TextAlignmentOptions.Left:
-                    offset = new Vector3(-Width / 2, 0, 0f);
-                    break;
-                case TextAlignmentOptions.Right:
-                    offset = new Vector3(Width / 2, 0, 0f);
-                    break;
-                case TextAlignmentOptions.Center:
-                    offset = new Vector3(0, 0, 0f);
-                    break;
-                default:
-                    offset = new Vector3(0, 0, 0f);
-                    break;
-            }
-            return offset;
-        }
-
+        private int _characterLimit = 0;
         /// <summary>
         /// Limit the length of the DisplayedText string by this amount. If 0, do not limit.
         /// </summary>
@@ -163,7 +160,7 @@ namespace BeatSync.UI
         private string _displayedText;
         public string DisplayedText
         {
-            get { return _displayedText ?? " "; }
+            get { return _displayedText ?? string.Empty; }
             set
             {
                 if (value == null)
@@ -183,14 +180,60 @@ namespace BeatSync.UI
                         //WriteThings();
                     }
                     else
-                        Logger.log?.Info($"textMesh is null when trying to make it {_displayedText}");
+                        Logger.log?.Debug($"textMesh is null when trying to make it {_displayedText}");
                 }
             }
         }
 
+        private Vector3 _position = new Vector3(0, 0, 0);
+        public Vector3 Position
+        {
+            get
+            {
+                return _position;// + GetAlignmentOffset(TextAlignment);
+            }
+            set
+            {
+                if (_position != value)
+                {
+                    _position = value;
+                    if (_textMesh != null)
+                        _textMesh.transform.localPosition = _position + GetAlignmentOffset(TextAlignmentOption);
+
+                }
+            }
+        }
+
+        private Vector3 GetAlignmentOffset(TextAlignmentOptions textAlignment)
+        {
+            Vector3 offset;
+            switch (TextAlignmentOption)
+            {
+                case TextAlignmentOptions.Left:
+                    offset = new Vector3(-Width / 2, 0, 0f);
+                    break;
+                case TextAlignmentOptions.Right:
+                    offset = new Vector3(Width / 2, 0, 0f);
+                    break;
+                case TextAlignmentOptions.Center:
+                    offset = new Vector3(0, 0, 0f);
+                    break;
+                default:
+                    offset = new Vector3(0, 0, 0f);
+                    break;
+            }
+            return offset;
+        }
+
+        public void Clear()
+        {
+            DisplayedText = string.Empty;
+            FontColor = Color.white;
+        }
+
         public void Awake()
         {
-            Logger.log?.Info("FloatingText awake.");
+            //Logger.log?.Info("FloatingText awake.");
         }
 
         private IEnumerator<WaitForSeconds> WaitForCanvas()
@@ -218,7 +261,7 @@ namespace BeatSync.UI
         {
             yield return new WaitForSeconds(5);
             DisplayedText = "Changed! Changed! Changed! Changed! Changed! Changed!";
-            TextAlignment = TextAlignmentOptions.Center;
+            TextAlignmentOption = TextAlignmentOptions.Center;
         }
 
         public void WriteThings()
@@ -239,12 +282,12 @@ namespace BeatSync.UI
             _textMesh = BeatSaberUI.CreateText(Canvas.transform as RectTransform, DisplayedText, new Vector2(0f, 0f), new Vector2(0f, 0f));
             _textMesh.text = DisplayedText;
             _textMesh.fontSize = FontSize;
-            _textMesh.alignment = TextAlignment;
-            _textMesh.transform.localPosition = Position + GetAlignmentOffset(TextAlignment);
+            _textMesh.alignment = TextAlignmentOption;
+            _textMesh.transform.localPosition = Position + GetAlignmentOffset(TextAlignmentOption);
             _textMesh.fontStyle = FontStyle;
             _textMesh.color = FontColor;
             //_textMesh.rectTransform.anchoredPosition = (Canvas.transform as RectTransform).anchoredPosition;
-            Logger.log?.Debug($"FloatingText {this.gameObject.name ?? ""} created.");
+            //Logger.log?.Debug($"FloatingText {this.gameObject.name ?? ""} created.");
         }
 
         public string Vector2ToString(Vector2 vector)
@@ -256,5 +299,7 @@ namespace BeatSync.UI
         {
             return $"{{{vector.x}, {vector.y}, {vector.z}}}";
         }
+
+
     }
 }

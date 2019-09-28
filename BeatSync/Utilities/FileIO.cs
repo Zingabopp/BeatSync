@@ -301,8 +301,8 @@ namespace BeatSync.Utilities
 
                     result.CreatedOutputDirectory = !extractDirectoryExists;
                     createdDirectory = string.IsNullOrEmpty(toBeCreated) ? null : extractDirectory;
-
-                    foreach (var entry in zipArchive.Entries)
+                    // TODO: Ordering so largest files extracted first. If the extraction is interrupted, theoretically the song's hash won't match Beat Saver's.
+                    foreach (var entry in zipArchive.Entries.OrderByDescending(e => e.Length)) 
                     {
                         if (!entry.FullName.Equals(entry.Name)) // If false, the entry is a directory or file nested in one
                             continue;

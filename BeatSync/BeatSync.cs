@@ -4,6 +4,7 @@ using BeatSync.Playlists;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -76,7 +77,7 @@ namespace BeatSync
 
                 if (removedCount > 0)
                 {
-                    if(!recentPlaylist.TryWriteFile(out Exception ex))
+                    if (!recentPlaylist.TryWriteFile(out Exception ex))
                     {
                         Logger.log.Warn($"Unable to write {recentPlaylist.FileName}: {ex.Message}");
                         Logger.log.Debug(ex);
@@ -92,7 +93,7 @@ namespace BeatSync
             var nowTime = DateTime.Now;
             if (Plugin.config.Value.LastRun + syncInterval <= nowTime)
             {
-                if(Plugin.config.Value.LastRun != DateTime.MinValue)
+                if (Plugin.config.Value.LastRun != DateTime.MinValue)
                     Logger.log.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago");
                 SongHasher = new SongHasher(Plugin.CustomLevelsPath, Plugin.CachedHashDataPath);
                 HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
@@ -137,6 +138,7 @@ namespace BeatSync
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();
             StartCoroutine(UpdateLevelPacks());
+            StartCoroutine(DestroyAfterSeconds(20));
         }
 
 
@@ -157,6 +159,19 @@ namespace BeatSync
             SongCore.Loader.Instance?.RefreshLevelPacks();
             SongCore.Loader.Instance?.RefreshSongs(true);
         }
+
+
+        public static IEnumerator<WaitForSeconds> DestroyAfterSeconds(int seconds)
+        {
+            if (Plugin.StatusController == null)
+                yield break;
+            else
+            {
+                yield return new WaitForSeconds(seconds);
+                GameObject.Destroy(Plugin.StatusController.gameObject);
+            }
+        }
+
     }
 }
 

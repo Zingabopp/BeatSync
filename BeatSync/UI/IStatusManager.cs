@@ -65,7 +65,18 @@ namespace BeatSync.UI
         /// <param name="postId"></param>
         /// <returns></returns>
         bool PostExists(int postId);
-
+        /// <summary>
+        /// Pins a post to the top of the list so it doesn't get overwritten.
+        /// </summary>
+        /// <param name="postId"></param>
+        /// <returns></returns>
+        bool PinPost(int postId);
+        /// <summary>
+        /// Unpins and removes a post from the list.
+        /// </summary>
+        /// <param name="postId"></param>
+        /// <returns></returns>
+        bool UnpinAndRemovePost(int postId);
         /// <summary>
         /// Gets the text of the target's header.
         /// </summary>
@@ -128,5 +139,12 @@ namespace BeatSync.UI
         Red = 2,
         Yellow = 3,
         Green = 4
+    }
+
+    public enum TextAlignment
+    {
+        Left = 0,
+        Center = 1,
+        Right = 2
     }
 }

@@ -64,9 +64,11 @@
     <Compile Include="Config_Tests\BeastSaberConfig_Tests.cs" />
     <Compile Include="Config_Tests\PluginConfig_Tests.cs" />
     <Compile Include="Config_Tests\ScoreSaberFeed_Tests\Trending_Tests.cs" />
+    <Compile Include="Config_Tests\SyncIntervalConfig_Tests.cs" />
+    <Compile Include="Config_Tests\LastRun_Tests.cs" />
     <Compile Include="Config_Tests\UnitTest1.cs" />
+    <Compile Include="FileLock_Tests\TryLock_Tests.cs" />
     <Compile Include="SongDownloader_Tests\ProcessJob_Tests.cs" />
-    <Compile Include="BeatSync_Tests\UnitTest1.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
     <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
@@ -101,6 +103,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Data\Config\FutureLastRun.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Data\FavoriteMappers\FavoriteMappers_PostfixedSpaces.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

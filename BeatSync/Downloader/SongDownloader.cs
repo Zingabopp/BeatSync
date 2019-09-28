@@ -171,6 +171,7 @@ namespace BeatSync.Downloader
 
         /// <summary>
         /// Attempts to delete the downloaded zip when finished.
+        /// TODO: Perhaps extract to a temp folder and then move to avoid problems when the game is closed while extracting.
         /// </summary>
         /// <param name="song"></param>
         /// <returns></returns>
@@ -481,6 +482,17 @@ namespace BeatSync.Downloader
                 try
                 {
                     int postId = StatusManager?.Post(readerName, "Starting Feed: Curator Recommended...") ?? 0;
+                    //await Task.Delay(1000);
+                    //StatusManager?.PinPost(postId);
+                    //for (int i = 0; i < 10; i++)
+                    //{
+                    //    var testId = StatusManager?.Post(readerName, $"Test {i}") ?? 0;
+                    //    if (!(StatusManager?.PinPost(testId) ?? false))
+                    //        Logger.log?.Info("Pinning failed");
+                    //    if (i == 5)
+                    //        StatusManager.UnpinAndRemovePost(postId);
+                    //    await Task.Delay(1000);
+                    //}
                     var feedSettings = config.CuratorRecommended.ToFeedSettings();
                     var feedPlaylist = config.CuratorRecommended.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.CuratorRecommended.FeedPlaylist)

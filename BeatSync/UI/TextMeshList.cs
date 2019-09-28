@@ -37,13 +37,19 @@ namespace BeatSync.UI
         private int _next = 0;
         private int Next
         {
-            get { return _next; }
+            get 
+            {
+                Next = _next; // Make sure Next isn't pointing to a pinned text.
+                return _next; 
+            }
             set
             {
                 while (value < 0)
                     value = value + NumTexts;
                 while (value >= NumTexts)
                     value = value - NumTexts;
+                while (PostTexts[value].Pinned && value < PostTexts.Length - 1)
+                    value++;
                 _next = value;
             }
         }
@@ -63,6 +69,13 @@ namespace BeatSync.UI
         {
             get { return _postTexts; }
             set { _postTexts = value; }
+        }
+
+        private FloatingText[] _floatingTexts;
+        private FloatingText[] FloatingTexts
+        {
+            get { return _floatingTexts; }
+            set { _floatingTexts = value; }
         }
 
         public float RowSpacing { get; set; }
@@ -130,20 +143,23 @@ namespace BeatSync.UI
             if (Canvas == null)
                 throw new InvalidOperationException("Canvas is null in TextMeshList");
 
-            HeaderText = new GameObject($"{gameObject.name}: Header").AddComponent<FloatingText>();
+            HeaderText = new GameObject($"{gameObject.name}.Header").AddComponent<FloatingText>();
+            GameObject.DontDestroyOnLoad(HeaderText.gameObject);
             HeaderText.Canvas = Canvas;
             HeaderText.Width = Width;
-            HeaderText.TextAlignment = TMPro.TextAlignmentOptions.Center;
+            HeaderText.TextAlignment = TextAlignment.Center;
             HeaderText.transform.SetParent(Canvas.transform, false);
             HeaderText.Position = new Vector3(0, RowSpacing, 0);
             HeaderText.FontStyle = TMPro.FontStyles.Underline;
             PostTexts = new PostText[NumTexts];
+            FloatingTexts = new FloatingText[NumTexts];
 
             for (int i = 0; i < numTexts; i++)
             {
                 try
                 {
-                    var text = new GameObject($"{gameObject.name}: TextList[{i}]").AddComponent<FloatingText>();
+                    var text = new GameObject($"{gameObject.name}.TextList[{i}]").AddComponent<FloatingText>();
+                    GameObject.DontDestroyOnLoad(text.gameObject);
                     text.Canvas = Canvas;
                     text.Width = Width;
                     var postText = new PostText() { PostId = 0, FloatingText = text };
@@ -153,7 +169,7 @@ namespace BeatSync.UI
                     //    text.TextAlignment = TMPro.TextAlignmentOptions.Right;
                     //}
                     //else
-                    text.TextAlignment = TMPro.TextAlignmentOptions.Left;
+                    text.TextAlignment = TextAlignment.Left;
                     text.transform.SetParent(Canvas.transform, false);
                     text.Position = new Vector3(0, -i * RowSpacing, 0);
                     //text.DisplayedText = $"Text {i}";
@@ -203,9 +219,85 @@ namespace BeatSync.UI
             Next++;
             if (Next != 0)
             {
-                PostTexts[Next].FloatingText.DisplayedText = string.Empty;
-                PostTexts[Next].PostId = 0;
+                PostTexts[Next].Clear();
             }
+        }
+
+        private void Swap(int first, int second)
+        {
+            if (first == second)
+                return;
+            if (!(first >= 0 && first < PostTexts.Length))
+                throw new ArgumentOutOfRangeException(nameof(first), $"first value of {first} needs to be between 0 and {PostTexts.Length - 1}");
+            if (!(second >= 0 && second < PostTexts.Length))
+                throw new ArgumentOutOfRangeException(nameof(second), $"second value of {second} needs to be between 0 and {PostTexts.Length - 1}");
+            var firstText = PostTexts[first];
+            var secondText = PostTexts[second];
+            int tempId = firstText.PostId;
+            bool tempPinned = firstText.Pinned;
+            string tempText = firstText.FloatingText.DisplayedText;
+            Color tempColor = firstText.FloatingText.FontColor;
+
+            firstText.PostId = secondText.PostId;
+            firstText.Pinned = secondText.Pinned;
+            firstText.FloatingText.DisplayedText = secondText.FloatingText.DisplayedText;
+            firstText.FloatingText.FontColor = secondText.FloatingText.FontColor;
+
+            secondText.PostId = tempId;
+            secondText.Pinned = tempPinned;
+            secondText.FloatingText.DisplayedText = tempText;
+            secondText.FloatingText.FontColor = tempColor;
+        }
+
+        public bool Pin(int postId)
+        {
+            Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
+            int firstFreeIndex = 0;
+            while (PostTexts[firstFreeIndex].Pinned && firstFreeIndex < PostTexts.Length)
+            {
+                if (PostTexts[firstFreeIndex].PostId == postId)
+                    return true;
+                firstFreeIndex++;
+            }
+            if (firstFreeIndex == PostTexts.Length)
+                return false;
+
+            int targetIndex = firstFreeIndex;
+            while (PostTexts[targetIndex].PostId != postId && targetIndex < PostTexts.Length)
+            {
+                targetIndex++;
+                if (targetIndex >= PostTexts.Length)
+                    return false;
+            }
+            PostTexts[targetIndex].Pinned = true;
+            for (int i = targetIndex - 1; i >= 0; i--)
+            {
+                if (!PostTexts[i].Pinned)
+                    Swap(i, i + 1);
+                else
+                    break;
+            }
+            Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
+            return true;
+        }
+        private LinkedList<PostText> linked = new LinkedList<PostText>();
+
+        public bool UnpinAndRemove(int postId)
+        {
+            bool foundPost = false;
+            for (int i = 0; i < PostTexts.Length; i++)
+            {
+                if (PostTexts[i].PostId == postId)
+                {
+                    PostTexts[i].Clear();
+                    foundPost = true;
+                }
+                if (foundPost && i < PostTexts.Length - 1)
+                {
+                    Swap(i, i + 1);
+                }
+            }
+            return foundPost;
         }
 
         public bool ReplacePost(int postId, string text, Color? color)
@@ -255,8 +347,7 @@ namespace BeatSync.UI
         {
             foreach (var item in PostTexts)
             {
-                item.PostId = 0;
-                item.FloatingText.DisplayedText = string.Empty;
+                item.Clear();
             }
             Next = 0;
         }
@@ -377,7 +468,7 @@ namespace BeatSync.UI
 
         public void OnDisable()
         {
-            Logger.log?.Info($"Disabling TextMeshList");
+            //Logger.log?.Info($"Disabling TextMeshList");
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 var child = gameObject.transform.GetChild(i).gameObject;
@@ -387,10 +478,11 @@ namespace BeatSync.UI
         }
         public void OnEnable()
         {
-            Logger.log?.Info($"Enabling TextMeshList");
+            //Logger.log?.Info($"Enabling TextMeshList");
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 var child = gameObject.transform.GetChild(i).gameObject;
+                //Logger.log?.Info($"Enabling child {child?.gameObject.name}");
                 if (child != null)
                     child.SetActive(true);
             }
@@ -398,7 +490,7 @@ namespace BeatSync.UI
 
         public void OnDestroy()
         {
-            Logger.log?.Info($"Destroying TextMeshList");
+            //Logger.log?.Info($"Destroying TextMeshList");
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 var child = gameObject.transform.GetChild(i).gameObject;

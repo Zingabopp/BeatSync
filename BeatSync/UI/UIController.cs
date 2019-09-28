@@ -77,7 +77,7 @@ namespace BeatSync.UI
             {
                 if (_height != value)
                 {
-                    Logger.log?.Info($"Height: {_height} > {value}");
+                    //Logger.log?.Info($"Height: {_height} > {value}");
                     _height = value;
                     var currentPos = gameObject.transform.position;
                     currentPos.y = _height;
@@ -98,7 +98,7 @@ namespace BeatSync.UI
             {
                 if (_horizontalDegrees != value)
                 {
-                    Logger.log?.Info($"VerticalDegrees: {_horizontalDegrees} > {value}");
+                    //Logger.log?.Info($"VerticalDegrees: {_horizontalDegrees} > {value}");
                     var diff = value - _horizontalDegrees;
                     _horizontalDegrees = value;
                     RotateRelative(new Vector3(0, 1, 0), diff);
@@ -199,6 +199,34 @@ namespace BeatSync.UI
                 {
                     if (statusList.PostExists(postId))
                         return true;
+                }
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return false;
+        }
+
+        public bool PinPost(int postId)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    if (statusList.PostExists(postId))
+                        return statusList.Pin(postId);
+                }
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return false;
+        }
+
+        public bool UnpinAndRemovePost(int postId)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    if (statusList.PostExists(postId))
+                        return statusList.UnpinAndRemove(postId);
                 }
             }
             PostHistory.Remove(postId); // Doesn't exist anymore, remove
@@ -351,7 +379,8 @@ namespace BeatSync.UI
 
         public TextMeshList CreateTextList(string name, string headerText)
         {
-            var textsGO = new GameObject(name);
+            var textsGO = new GameObject("BeatSync." + name);
+            GameObject.DontDestroyOnLoad(textsGO.gameObject);
             CreateCanvas(textsGO);
             var textList = textsGO.AddComponent<TextMeshList>();
             textsGO.transform.localPosition = new Vector3(0, 0, Distance);
@@ -384,18 +413,13 @@ namespace BeatSync.UI
 
         public void OnDestroy()
         {
+            //Logger.log?.Warn("Destroying UI Controller.");
             foreach (var item in StatusLists.Values)
             {
-                GameObject.Destroy(item.gameObject);
+                if(item != null)
+                    GameObject.Destroy(item.gameObject);
             }
-        }
-
-        public void SetActive(bool active)
-        {
-            foreach (var item in StatusLists.Values)
-            {
-                item.gameObject.SetActive(active);
-            }
+            Plugin.StatusController = null;
         }
 
         public void FacePlayer()
@@ -405,6 +429,28 @@ namespace BeatSync.UI
                 var currentRotation = item.Canvas.transform.localRotation;
                 currentRotation.SetLookRotation(item.Canvas.transform.position - PlayerPos);
                 item.Canvas.transform.localRotation = currentRotation;
+            }
+        }
+
+        public void RotateRelative(Vector3 axis, float angle)
+        {
+            gameObject.transform.Rotate(axis, angle);
+        }
+
+        #region Monobehaviour
+        public void OnDisable()
+        {
+            foreach (var item in StatusLists.Values)
+            {
+                item.gameObject.SetActive(false);
+            }
+        }
+
+        public void OnEnable()
+        {
+            foreach (var item in StatusLists.Values)
+            {
+                item.gameObject.SetActive(true);
             }
         }
 
@@ -443,14 +489,8 @@ namespace BeatSync.UI
             }
 
         }
+        #endregion
 
-
-        public void RotateRelative(Vector3 axis, float angle)
-        {
-            gameObject.transform.Rotate(axis, angle);
-        }
-
-        
 
         
     }
