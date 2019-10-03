@@ -14,19 +14,22 @@ namespace BeatSync.UI
         private FloatingText _floatingText;
         public FloatingText FloatingText
         {
-            get { return _floatingText; }
+            private get { return _floatingText; }
             set
             {
-                if (_floatingText != value)
+                HMMainThreadDispatcher.instance.Enqueue(() =>
                 {
-                    _floatingText = value;
-                    _floatingText.TextAlignment = TextAlignment;
-                    _floatingText.FontStyle = FontStyle;
-                    _floatingText.FontColor = FontColor;
-                    _floatingText.FontSize = FontSize;
-                    _floatingText.CharacterLimit = CharacterLimit;
-                    _floatingText.DisplayedText = DisplayedText;
-                }
+                    if (_floatingText != value)
+                    {
+                        _floatingText = value;
+                        _floatingText.TextAlignment = TextAlignment;
+                        _floatingText.FontStyle = FontStyle;
+                        _floatingText.FontColor = FontColor;
+                        _floatingText.FontSize = FontSize;
+                        _floatingText.CharacterLimit = CharacterLimit;
+                        _floatingText.DisplayedText = DisplayedText;
+                    }
+                });
             }
         }
 
@@ -42,10 +45,13 @@ namespace BeatSync.UI
                 if (_textAlignment != value)
                 {
                     _textAlignment = value;
-                    if (_floatingText != null)
+                    HMMainThreadDispatcher.instance.Enqueue(() =>
                     {
-                        _floatingText.TextAlignment = value;
-                    }
+                        if (_floatingText != null)
+                        {
+                            _floatingText.TextAlignment = value;
+                        }
+                    });
                 }
             }
         }
@@ -59,10 +65,13 @@ namespace BeatSync.UI
                 if (_fontStyle != value)
                 {
                     _fontStyle = value;
-                    if (_floatingText != null)
+                    HMMainThreadDispatcher.instance.Enqueue(() =>
                     {
-                        _floatingText.FontStyle = value;
-                    }
+                        if (_floatingText != null)
+                        {
+                            _floatingText.FontStyle = value;
+                        }
+                    });
                 }
             }
         }
@@ -76,10 +85,13 @@ namespace BeatSync.UI
                 if (_fontColor != value)
                 {
                     _fontColor = value;
-                    if (_floatingText != null)
+                    HMMainThreadDispatcher.instance.Enqueue(() =>
                     {
-                        _floatingText.FontColor = value;
-                    }
+                        if (_floatingText != null)
+                        {
+                            _floatingText.FontColor = value;
+                        }
+                    });
                 }
             }
         }
@@ -96,8 +108,11 @@ namespace BeatSync.UI
                 if (_fontSize != value)
                 {
                     _fontSize = value;
-                    if (_floatingText != null)
-                        _floatingText.FontSize = _fontSize;
+                    HMMainThreadDispatcher.instance.Enqueue(() =>
+                    {
+                        if (_floatingText != null)
+                            _floatingText.FontSize = _fontSize;
+                    });
                 }
             }
         }
@@ -127,20 +142,21 @@ namespace BeatSync.UI
             get { return _displayedText ?? string.Empty; }
             set
             {
-                if (value == null)
+                if (!string.IsNullOrEmpty(value))
                 {
-                    _displayedText = value;
-                    return;
+                    if (CharacterLimit > 0 && value.Length > CharacterLimit)
+                        value = value.Substring(0, CharacterLimit);
                 }
-                if (CharacterLimit > 0 && value.Length > CharacterLimit)
-                    value = value.Substring(0, CharacterLimit);
                 if (_displayedText != value)
                 {
                     _displayedText = value;
-                    if (_floatingText != null)
+                    HMMainThreadDispatcher.instance.Enqueue(() =>
                     {
-                        _floatingText.DisplayedText = value;
-                    }
+                        if (_floatingText != null)
+                        {
+                            _floatingText.DisplayedText = value;
+                        }
+                    });
                 }
             }
         }

@@ -138,6 +138,10 @@
     <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
     <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
     <Compile Include="Configs\SyncIntervalConfig.cs" />
+    <Compile Include="Downloader\DownloadJob.cs" />
+    <Compile Include="Downloader\DownloadManager.cs" />
+    <Compile Include="Downloader\IDownloadJob.cs" />
+    <Compile Include="Downloader\JobFinishedContainer.cs" />
     <Compile Include="Downloader\JobResult.cs" />
     <Compile Include="HistoryManager.cs" />
     <Compile Include="Configs\ConfigBases.cs" />

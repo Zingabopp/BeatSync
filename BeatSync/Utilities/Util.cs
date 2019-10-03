@@ -156,6 +156,14 @@ namespace BeatSync.Utilities
             return dirHash;
         }
 
+        public static string GetSongDirectoryName(string songKey, string songName, string levelAuthorName)
+        {
+            // BeatSaverDownloader's method of naming the directory.
+            string basePath = songKey + " (" + songName + " - " + levelAuthorName + ")";
+            basePath = string.Join("", basePath.Trim().Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
+            return basePath;
+        }
+
         private static int SumCharacters(string str)
         {
             unchecked

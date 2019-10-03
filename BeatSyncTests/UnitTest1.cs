@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
+using System.Threading;
 
 namespace BeatSyncTests
 {
@@ -15,7 +16,7 @@ namespace BeatSyncTests
         //[TestMethod]
         public void TestMethod1()
         {
-            Console.WriteLine("Test");
+
         }
 
         //[TestMethod]

@@ -88,10 +88,7 @@ namespace BeatSync.Playlists
             {
                 if (string.IsNullOrEmpty(_directoryName))
                 {
-                    // BeatSaverDownloader's method of naming the directory.
-                    string basePath = Key + " (" + Name + " - " + LevelAuthorName + ")";
-                    basePath = string.Join("", basePath.Trim().Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
-                    _directoryName = basePath;
+                    _directoryName = Utilities.Util.GetSongDirectoryName(Key, Name, LevelAuthorName);
                 }
                 return _directoryName;
             }
@@ -123,7 +120,8 @@ namespace BeatSync.Playlists
 
         public override string ToString()
         {
-            return $"({Key}) {Name} by {LevelAuthorName}";
+            var keyPart = string.IsNullOrEmpty(Key) ? string.Empty : $"({Key}) ";
+            return $"{keyPart}{Name} by {LevelAuthorName}";
         }
 
         public bool Equals(PlaylistSong other)

@@ -170,7 +170,12 @@ namespace BeatSync.Utilities
                 {
                     statusCode = response?.StatusCode ?? 0;
                     if (!(response?.IsSuccessStatusCode ?? false))
-                        return new DownloadResult(null, DownloadResultStatus.NetFailed, statusCode, response.ReasonPhrase, response.Exception);
+                    {
+                        DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
+                        if (statusCode == 404)
+                            downloadResultStatus = DownloadResultStatus.NetNotFound;
+                        return new DownloadResult(null, downloadResultStatus, statusCode, response.ReasonPhrase, response.Exception);
+                    }
                     try
                     {
                         Directory.GetParent(path).Create();
@@ -191,7 +196,8 @@ namespace BeatSync.Utilities
                         return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
                     }
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return new DownloadResult(null, DownloadResultStatus.NetFailed, 0, ex?.Message, ex);
             }
@@ -251,7 +257,7 @@ namespace BeatSync.Utilities
             ZipExtractResult result = new ZipExtractResult
             {
                 SourceZip = zipPath,
-                ResultStatus = ZipExtractResultStatus.NotStarted
+                ResultStatus = ZipExtractResultStatus.Unknown
             };
 
             string createdDirectory = null;
@@ -302,7 +308,7 @@ namespace BeatSync.Utilities
                     result.CreatedOutputDirectory = !extractDirectoryExists;
                     createdDirectory = string.IsNullOrEmpty(toBeCreated) ? null : extractDirectory;
                     // TODO: Ordering so largest files extracted first. If the extraction is interrupted, theoretically the song's hash won't match Beat Saver's.
-                    foreach (var entry in zipArchive.Entries.OrderByDescending(e => e.Length)) 
+                    foreach (var entry in zipArchive.Entries.OrderByDescending(e => e.Length))
                     {
                         if (!entry.FullName.Equals(entry.Name)) // If false, the entry is a directory or file nested in one
                             continue;
@@ -448,7 +454,8 @@ namespace BeatSync.Utilities
         Success = 1,
         NetFailed = 2,
         IOFailed = 3,
-        InvalidRequest = 4
+        InvalidRequest = 4,
+        NetNotFound = 5
     }
 
     public class ZipExtractResult
@@ -466,7 +473,7 @@ namespace BeatSync.Utilities
         /// <summary>
         /// Extraction hasn't been attempted.
         /// </summary>
-        NotStarted = 0,
+        Unknown = 0,
         /// <summary>
         /// Extraction was successful.
         /// </summary>

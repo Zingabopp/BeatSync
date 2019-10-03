@@ -179,8 +179,8 @@ namespace BeatSync.UI
                         _textMesh.text = value;
                         //WriteThings();
                     }
-                    else
-                        Logger.log?.Debug($"textMesh is null when trying to make it {_displayedText}");
+                    //else
+                    //    Logger.log?.Debug($"textMesh is null when trying to make it {_displayedText}");
                 }
             }
         }

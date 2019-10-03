@@ -83,7 +83,7 @@ namespace BeatSync.UI
                     currentPos.y = _height;
                     gameObject.transform.position = currentPos;
                     FacePlayer();
-                    
+
                 }
             }
         }
@@ -139,6 +139,8 @@ namespace BeatSync.UI
         public int Post(string targetName, string text, FontColor color)
         {
             var postId = NextId;
+            if (postId == 0)
+                Logger.log?.Error($"postId is 0 during Post, this shouldn't happen");
             if (StatusLists.TryGetValue(targetName, out var statusList))
             {
                 PostHistory.Add(postId, targetName);
@@ -157,7 +159,7 @@ namespace BeatSync.UI
                     var text = statusList.GetPost(postId);
                     if (text != null)
                         return text;
-                }     
+                }
             }
             PostHistory.Remove(postId); // Doesn't exist anymore, remove
             return null;
@@ -185,8 +187,18 @@ namespace BeatSync.UI
                 {
                     if (statusList.AppendPost(postId, text, color))
                         return true;
+                    //else
+                    //{
+                    //    Logger.log?.Debug($"Failed to append PostId {postId} for {targetName} at AppendPost({postId}, {text}, {color})");
+                    //    var postIds = string.Join(", ", statusList.PostTexts.Select(l => l.PostId).ToList());
+                    //    Logger.log?.Debug($"Valid PostIds: {postIds}");
+                    //}
                 }
+                //else
+                //    Logger.log?.Debug($"Failed to append PostId {postId} for {targetName} at StatusLists.TryGetValue({targetName})");
             }
+            //else
+            //    Logger.log?.Debug($"Failed to append PostId {postId} at PostHistory.TryGetValue({postId})");
             PostHistory.Remove(postId); // Doesn't exist anymore, remove
             return false;
         }
@@ -282,6 +294,8 @@ namespace BeatSync.UI
             {
                 statusList.Clear();
             }
+            else
+                Logger.log?.Warn($"Unable to clear {targetName}");
         }
 
         public void ClearAll()
@@ -370,9 +384,9 @@ namespace BeatSync.UI
             //beatSaver.MoveRelative(0, heightDiff, 0);
             scoreSaber.RotateRelative(45);
 
-            _statusLists.Add("BeatSaver", beatSaver);
-            _statusLists.Add("BeastSaber", beastSaber);
-            _statusLists.Add("ScoreSaber", scoreSaber);
+            _statusLists.Add(SongFeedReaders.BeatSaverReader.NameKey, beatSaver);
+            _statusLists.Add(SongFeedReaders.BeastSaberReader.NameKey, beastSaber);
+            _statusLists.Add(SongFeedReaders.ScoreSaberReader.NameKey, scoreSaber);
             FacePlayer();
             //StartCoroutine(TestPost());
         }
@@ -416,7 +430,7 @@ namespace BeatSync.UI
             //Logger.log?.Warn("Destroying UI Controller.");
             foreach (var item in StatusLists.Values)
             {
-                if(item != null)
+                if (item != null)
                     GameObject.Destroy(item.gameObject);
             }
             Plugin.StatusController = null;
@@ -492,6 +506,6 @@ namespace BeatSync.UI
         #endregion
 
 
-        
+
     }
 }

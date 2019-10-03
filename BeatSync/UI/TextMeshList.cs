@@ -65,18 +65,18 @@ namespace BeatSync.UI
             }
         }
         private PostText[] _postTexts;
-        private PostText[] PostTexts
+        public PostText[] PostTexts
         {
             get { return _postTexts; }
-            set { _postTexts = value; }
+            private set { _postTexts = value; }
         }
 
-        private FloatingText[] _floatingTexts;
-        private FloatingText[] FloatingTexts
-        {
-            get { return _floatingTexts; }
-            set { _floatingTexts = value; }
-        }
+        //private FloatingText[] _floatingTexts;
+        //private FloatingText[] FloatingTexts
+        //{
+        //    get { return _floatingTexts; }
+        //    set { _floatingTexts = value; }
+        //}
 
         public float RowSpacing { get; set; }
 
@@ -142,7 +142,6 @@ namespace BeatSync.UI
             Canvas = gameObject.GetComponent<Canvas>();
             if (Canvas == null)
                 throw new InvalidOperationException("Canvas is null in TextMeshList");
-
             HeaderText = new GameObject($"{gameObject.name}.Header").AddComponent<FloatingText>();
             GameObject.DontDestroyOnLoad(HeaderText.gameObject);
             HeaderText.Canvas = Canvas;
@@ -152,7 +151,7 @@ namespace BeatSync.UI
             HeaderText.Position = new Vector3(0, RowSpacing, 0);
             HeaderText.FontStyle = TMPro.FontStyles.Underline;
             PostTexts = new PostText[NumTexts];
-            FloatingTexts = new FloatingText[NumTexts];
+            //FloatingTexts = new FloatingText[NumTexts];
 
             for (int i = 0; i < numTexts; i++)
             {
@@ -185,7 +184,7 @@ namespace BeatSync.UI
         {
             if (PostTexts == null)
             {
-                Logger.log?.Error("Unable to post text, FloatingTexts is null.");
+                Logger.log?.Error("Unable to post text, PostTexts is null.");
                 return;
             }
 
@@ -212,8 +211,10 @@ namespace BeatSync.UI
             //HeaderText.DisplayedText = $"{gameObject.name}: Header ({text})";
             //HeaderText.WriteThings();
             PostTexts[Next].PostId = postId;
-            PostTexts[Next].FloatingText.FontColor = color;
-            PostTexts[Next].FloatingText.DisplayedText = text;
+            //if (PostTexts[Next].PostId == 0)
+            //    Logger.log?.Error($"postId is 0 during TextMeshList.Post for {text}, this shouldn't happen");
+            PostTexts[Next].FontColor = color;
+            PostTexts[Next].DisplayedText = text;
 
             //FloatingTexts[Next].WriteThings();
             Next++;
@@ -235,18 +236,18 @@ namespace BeatSync.UI
             var secondText = PostTexts[second];
             int tempId = firstText.PostId;
             bool tempPinned = firstText.Pinned;
-            string tempText = firstText.FloatingText.DisplayedText;
-            Color tempColor = firstText.FloatingText.FontColor;
+            string tempText = firstText.DisplayedText;
+            Color tempColor = firstText.FontColor;
 
             firstText.PostId = secondText.PostId;
             firstText.Pinned = secondText.Pinned;
-            firstText.FloatingText.DisplayedText = secondText.FloatingText.DisplayedText;
-            firstText.FloatingText.FontColor = secondText.FloatingText.FontColor;
+            firstText.DisplayedText = secondText.DisplayedText;
+            firstText.FontColor = secondText.FontColor;
 
             secondText.PostId = tempId;
             secondText.Pinned = tempPinned;
-            secondText.FloatingText.DisplayedText = tempText;
-            secondText.FloatingText.FontColor = tempColor;
+            secondText.DisplayedText = tempText;
+            secondText.FontColor = tempColor;
         }
 
         public bool Pin(int postId)
@@ -302,12 +303,12 @@ namespace BeatSync.UI
 
         public bool ReplacePost(int postId, string text, Color? color)
         {
-            var floatingText = PostTexts.FirstOrDefault(p => p.PostId == postId)?.FloatingText;
-            if (floatingText != null)
+            var postText = PostTexts.FirstOrDefault(p => p.PostId == postId);
+            if (postText != null)
             {
-                floatingText.DisplayedText = text;
+                postText.DisplayedText = text;
                 if (color != null)
-                    floatingText.FontColor = color ?? Color.white;
+                    postText.FontColor = color ?? Color.white;
                 return true;
             }
             return false;
@@ -315,12 +316,12 @@ namespace BeatSync.UI
 
         public bool AppendPost(int postId, string text, Color? color)
         {
-            var floatingText = PostTexts.FirstOrDefault(p => p.PostId == postId)?.FloatingText;
-            if (floatingText != null)
+            var postText = PostTexts.FirstOrDefault(p => p.PostId == postId);
+            if (postText != null)
             {
-                floatingText.DisplayedText = floatingText.DisplayedText + text;
+                postText.DisplayedText = postText.DisplayedText + text;
                 if (color != null)
-                    floatingText.FontColor = color ?? Color.white;
+                    postText.FontColor = color ?? Color.white;
                 return true;
             }
             return false;
@@ -333,14 +334,14 @@ namespace BeatSync.UI
 
         public string GetPost(int postId)
         {
-            return PostTexts.FirstOrDefault(p => p.PostId == postId)?.FloatingText?.DisplayedText;
+            return PostTexts.FirstOrDefault(p => p.PostId == postId)?.DisplayedText;
         }
 
         public void AppendLast(string text, UI.FontColor fontColor = FontColor.None)
         {
-            PostTexts[Last].FloatingText.DisplayedText = PostTexts[Last].FloatingText.DisplayedText + text;
+            PostTexts[Last].DisplayedText = PostTexts[Last].DisplayedText + text;
             if (fontColor != FontColor.None)
-                PostTexts[Last].FloatingText.FontColor = GetUnityColor(fontColor) ?? Color.white;
+                PostTexts[Last].FontColor = GetUnityColor(fontColor) ?? Color.white;
         }
 
         public void Clear()

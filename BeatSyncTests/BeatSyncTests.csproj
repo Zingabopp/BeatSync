@@ -67,6 +67,8 @@
     <Compile Include="Config_Tests\SyncIntervalConfig_Tests.cs" />
     <Compile Include="Config_Tests\LastRun_Tests.cs" />
     <Compile Include="Config_Tests\UnitTest1.cs" />
+    <Compile Include="DownloadManager_Tests\PostJob_Tests.cs" />
+    <Compile Include="DownloadManager_Tests\MockDownloadJob.cs" />
     <Compile Include="FileLock_Tests\TryLock_Tests.cs" />
     <Compile Include="SongDownloader_Tests\ProcessJob_Tests.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BeatSync.Downloader;
 using BeatSync.Playlists;
 using SongFeedReaders;
 
@@ -24,6 +25,8 @@ namespace BeatSync.Utilities
 
         public static PlaylistSong ToPlaylistSong(this ScrapedSong song)
         {
+            if (song == null)
+                throw new ArgumentNullException(nameof(song), "ScrapedSong cannot be null for ToPlaylistSong()");
             return new PlaylistSong(song.Hash, song.SongName, song.SongKey, song.MapperName);
         }
     }
