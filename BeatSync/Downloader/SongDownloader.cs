@@ -16,12 +16,8 @@ namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
-
-        private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
-        //public ConcurrentDictionary<string, PlaylistSong> RetrievedSongs { get; private set; }
-        //public ConcurrentQueue<PlaylistSong> DownloadQueue { get; private set; }
         private PluginConfig Config;
         private Playlist RecentPlaylist;
         public HistoryManager HistoryManager { get; private set; }
@@ -30,15 +26,12 @@ namespace BeatSync.Downloader
         public DownloadManager DownloadManager { get; private set; }
         public IStatusManager StatusManager { get; set; }
 
-
-        //private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
         public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
             DownloadManager = new DownloadManager(config.MaxConcurrentDownloads);
             CustomLevelsPath = customLevelsPath;
             Directory.CreateDirectory(CustomLevelsPath);
             HashSource = hashSource;
-            //DownloadQueue = new ConcurrentQueue<PlaylistSong>();
             HistoryManager = historyManager;
             FavoriteMappers = new FavoriteMappers();
             FavoriteMappers.Initialize();
@@ -62,7 +55,7 @@ namespace BeatSync.Downloader
                 {
                     // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
                     Logger.log?.Debug($"Setting 404 flag for {playlistSong.ToString()}");
-                    if (!HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.NotFound))
+                    if (!HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.BeatSaverNotFound))
                         Logger.log?.Debug($"Failed to update flag for {playlistSong.ToString()}");
                     PlaylistManager.RemoveSongFromAll(job.SongHash);
                 }
@@ -210,8 +203,9 @@ namespace BeatSync.Downloader
             var decrement = new TimeSpan(1);
             foreach (var scrapedSong in songs)
             {
+                // Skip songs that were deleted or not found on Beat Saver.
                 if (HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry)
-                    && (historyEntry.Flag == HistoryFlag.NotFound
+                    && (historyEntry.Flag == HistoryFlag.BeatSaverNotFound
                     || historyEntry.Flag == HistoryFlag.Deleted))
                 {
                     continue;
@@ -246,7 +240,6 @@ namespace BeatSync.Downloader
             {
                 reader = new BeastSaberReader(config.Username, config.MaxConcurrentPageChecks);
                 readerName = reader.Name;
-                SetStatus(readerName, "Running", UI.FontColor.Green);
             }
             catch (Exception ex)
             {
@@ -593,11 +586,11 @@ namespace BeatSync.Downloader
             }
             else if (warning)
             {
-                SetStatus(readerName, "Finished with warnings", UI.FontColor.Yellow);
+                SetStatus(readerName, "Finished Reading Feeds with warnings", UI.FontColor.Yellow);
             }
             else
             {
-                SetStatus(readerName, "Finished", UI.FontColor.White);
+                SetStatus(readerName, "Finished Reading Feeds", UI.FontColor.White);
             }
             await Task.Delay(2000); // Wait a bit before clearing.
             StatusManager.Clear(reader.Name);
@@ -760,11 +753,11 @@ namespace BeatSync.Downloader
             }
             else if (warning)
             {
-                SetStatus(readerName, "Finished with warnings", UI.FontColor.Yellow);
+                SetStatus(readerName, "Finished Reading Feeds with warnings", UI.FontColor.Yellow);
             }
             else
             {
-                SetStatus(readerName, "Finished", UI.FontColor.White);
+                SetStatus(readerName, "Finished Reading Feeds", UI.FontColor.White);
             }
             await Task.Delay(2000); // Wait a bit before clearing.
             StatusManager.Clear(reader.Name);
@@ -778,26 +771,25 @@ namespace BeatSync.Downloader
             return readerSongs;
         }
         #endregion
-
-
+        
+        
         public bool PostJobToDownload(PlaylistSong playlistSong, string readerName)
         {
-            //var notInHistory = HistoryManager.TryAdd(playlistSong, HistoryFlag.None); // Make sure it's in HistoryManager even if it already exists.
             bool downloadPosted = false;
             var inHistory = HistoryManager.TryGetValue(playlistSong.Hash, out var historyEntry);
-            var exists = HashSource.ExistingSongs.TryGetValue(playlistSong.Hash, out var _);
-            if (!exists && (!inHistory || historyEntry.Flag == HistoryFlag.Error))
+            var existsOnDisk = HashSource.ExistingSongs.TryGetValue(playlistSong.Hash, out var _);
+            if (!existsOnDisk && (!inHistory || historyEntry.Flag == HistoryFlag.Error))
             {
                 //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
-                DownloadManager.TryPostJob(new DownloadJob(playlistSong, CustomLevelsPath), out var postedJob);
+                downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, CustomLevelsPath), out var postedJob);
                 if (postedJob != null)
                 {
+                    
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
-                    downloadPosted = true;
-                    new JobFinishedContainer(postedJob, readerName, StatusManager);
+                    new JobEventContainer(postedJob, readerName, StatusManager);
                 }
             }
-            else if (exists && historyEntry != null)
+            else if (existsOnDisk && historyEntry != null)
             {
                 if (historyEntry.Flag == HistoryFlag.None)
                     HistoryManager.TryUpdateFlag(playlistSong.Hash, HistoryFlag.PreExisting);

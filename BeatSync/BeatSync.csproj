@@ -141,8 +141,9 @@
     <Compile Include="Downloader\DownloadJob.cs" />
     <Compile Include="Downloader\DownloadManager.cs" />
     <Compile Include="Downloader\IDownloadJob.cs" />
-    <Compile Include="Downloader\JobFinishedContainer.cs" />
+    <Compile Include="Downloader\JobEventContainer.cs" />
     <Compile Include="Downloader\JobResult.cs" />
+    <Compile Include="Downloader\ReaderStats.cs" />
     <Compile Include="HistoryManager.cs" />
     <Compile Include="Configs\ConfigBases.cs" />
     <Compile Include="Configs\FavoriteMappers.cs" />

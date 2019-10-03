@@ -1,6 +1,7 @@
 ﻿using BeatSync.UI;
 using BeatSync.Utilities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +9,19 @@ using System.Threading.Tasks;
 
 namespace BeatSync.Downloader
 {
-    public sealed class JobFinishedContainer
+    public sealed class JobEventContainer
     {
+        public static ConcurrentDictionary<string, ReaderStats> DownloadTracker = new ConcurrentDictionary<string, ReaderStats>();
         private string ReaderName;
         private WeakReference<IDownloadJob> JobReference;
         private int PostId;
         private WeakReference<IStatusManager> StatusManagerReference;
         private bool finishedStatusUpdated = false;
         private bool startedStatusUpdated = false;
-        public JobFinishedContainer(IDownloadJob job, string readerName, IStatusManager statusManager)
+        public JobEventContainer(IDownloadJob job, string readerName, IStatusManager statusManager)
         {
+            var stats = DownloadTracker.GetOrAdd(readerName, new ReaderStats());
+            stats.IncrementTotalDownloads();
             JobReference = new WeakReference<IDownloadJob>(job);
             ReaderName = readerName;
             StatusManagerReference = new WeakReference<IStatusManager>(statusManager);
@@ -72,7 +76,9 @@ namespace BeatSync.Downloader
             finishedStatusUpdated = true;
             if (PostId == 0)
                 Logger.log?.Warn($"PostId during FinishedUpdateStatus is 0: {job.SongKey} {job.LevelAuthorName}");
-            if (StatusManagerReference.TryGetTarget(out var statusManager))
+            var stats = DownloadTracker.GetOrAdd(ReaderName, new ReaderStats());
+            var haveStatusManager = StatusManagerReference.TryGetTarget(out var statusManager);
+            if (haveStatusManager)
             {
                 if (successful)
                 {
@@ -92,7 +98,25 @@ namespace BeatSync.Downloader
                     {
                         reason = "Extraction Failed";
                     }
+                    stats.IncrementErroredDownloads();
                     statusManager.AppendPost(PostId, reason, FontColor.Red);
+                }
+
+            }
+
+            stats.IncrementFinishedDownloads();
+            if (haveStatusManager)
+            {
+                string errorText = string.Empty;
+                if (stats.ErroredDownloads > 0)
+                    errorText = $"  {stats.ErroredDownloads}{(stats.ErroredDownloads == 1 ? " download failed" : " downloads failed")}";
+                statusManager.SetSubHeader(ReaderName, $"{stats.FinishedDownloads}/{stats.TotalDownloads}{errorText}");
+                if (stats.FinishedDownloads == stats.TotalDownloads)
+                {
+                    if (stats.ErroredDownloads > 0)
+                        statusManager.SetHeaderColor(ReaderName, FontColor.Yellow);
+                    else
+                        statusManager.SetHeaderColor(ReaderName, FontColor.Green);
                 }
             }
         }

@@ -294,7 +294,7 @@ namespace BeatSync
         /// <summary>
         /// Not found on Beat Saver.
         /// </summary>
-        NotFound = 404
+        BeatSaverNotFound = 404
 
     }
 }

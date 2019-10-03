@@ -359,7 +359,9 @@ namespace BeatSync.UI
             if (newColor == null)
                 return;
             else
+            {
                 HeaderText.FontColor = newColor ?? Color.white;
+            }
         }
 
         public FontColor? GetHeaderColor()

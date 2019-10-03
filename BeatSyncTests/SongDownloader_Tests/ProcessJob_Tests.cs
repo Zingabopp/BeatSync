@@ -71,7 +71,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             // Run test
             //downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
-            Assert.AreEqual(HistoryFlag.NotFound, entry.Flag);
+            Assert.AreEqual(HistoryFlag.BeatSaverNotFound, entry.Flag);
             Assert.IsFalse(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsFalse(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
         }
