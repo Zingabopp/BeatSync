@@ -23,6 +23,7 @@ namespace BeatSync.Downloader
         //public ConcurrentDictionary<string, PlaylistSong> RetrievedSongs { get; private set; }
         //public ConcurrentQueue<PlaylistSong> DownloadQueue { get; private set; }
         private PluginConfig Config;
+        private Playlist RecentPlaylist;
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
         public FavoriteMappers FavoriteMappers { get; private set; }
@@ -31,7 +32,6 @@ namespace BeatSync.Downloader
 
 
         //private TransformBlock<PlaylistSong, JobResult> DownloadBatch;
-
         public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
             DownloadManager = new DownloadManager(config.MaxConcurrentDownloads);
@@ -43,6 +43,7 @@ namespace BeatSync.Downloader
             FavoriteMappers = new FavoriteMappers();
             FavoriteMappers.Initialize();
             Config = config.Clone();
+            RecentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
         }
 
         public void ProcessJob(IDownloadJob job)
@@ -51,8 +52,8 @@ namespace BeatSync.Downloader
             if (job.Result.Successful)
             {
                 HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.Downloaded);
-                var recentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
-                recentPlaylist?.TryAdd(playlistSong);
+
+                RecentPlaylist?.TryAdd(playlistSong);
 
             }
             else if (job.Result.DownloadResult.Status != DownloadResultStatus.Success)
