@@ -130,6 +130,13 @@ namespace BeatSync.UI
         /// </summary>
         /// <param name="targetName"></param>
         void Clear(string targetName);
+        /// <summary>
+        /// Removes the post from the specified target, if it exists. Returns false if the post doesn't exist.
+        /// </summary>
+        /// <param name="targetName"></param>
+        /// <param name="postId"></param>
+        /// <returns></returns>
+        bool RemovePost(int postId);
     }
 
     public enum FontColor

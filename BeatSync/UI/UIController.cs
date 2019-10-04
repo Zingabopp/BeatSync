@@ -307,6 +307,27 @@ namespace BeatSync.UI
             }
         }
 
+
+        /// <summary>
+        /// Removes the post from the specified target, if it exists. Returns false if the post doesn't exist.
+        /// </summary>
+        /// <param name="targetName"></param>
+        /// <param name="postId"></param>
+        /// <returns></returns>
+        public bool RemovePost(int postId)
+        {
+            if (PostHistory.TryGetValue(postId, out string targetName))
+            {
+                if (StatusLists.TryGetValue(targetName, out var statusList))
+                {
+                    if (statusList.RemovePost(postId))
+                        return true;
+                }
+            }
+            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            return false;
+        }
+
         #region Overloads
         public int Post(string targetName, string text)
         {
@@ -327,6 +348,7 @@ namespace BeatSync.UI
         {
             return ReplacePost(postId, text, FontColor.None);
         }
+
         #endregion
 
         #endregion

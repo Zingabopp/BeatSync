@@ -301,6 +301,24 @@ namespace BeatSync.UI
             return foundPost;
         }
 
+        public bool RemovePost(int postId)
+        {
+            bool postRemoved = false;
+            for (int i = 0; i < PostTexts.Length; i++)
+            {
+                if (PostTexts[i].PostId == postId)
+                {
+                    PostTexts[i].Clear();
+                    postRemoved = true;
+                }
+                if (postRemoved && i < PostTexts.Length - 1)
+                {
+                    Swap(i, i + 1);
+                }
+            }
+            return postRemoved;
+        }
+
         public bool ReplacePost(int postId, string text, Color? color)
         {
             var postText = PostTexts.FirstOrDefault(p => p.PostId == postId);
