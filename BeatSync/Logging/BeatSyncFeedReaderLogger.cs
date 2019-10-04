@@ -34,7 +34,8 @@ namespace BeatSync.Logging
         {
             if (LogLevel > SongFeedReaders.Logging.LogLevel.Exception)
                 return;
-            Logger.log?.Error(e);
+            Logger.log?.Error($"{message}: {e.Message}");
+            Logger.log?.Debug(e);
         }
 
         public override void Info(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
