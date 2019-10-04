@@ -64,6 +64,7 @@ namespace BeatSync
                     }
                 }
                 config = v;
+                StatusController?.UpdateSettings();
             });
         }
 

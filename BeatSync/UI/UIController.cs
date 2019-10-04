@@ -12,6 +12,7 @@ namespace BeatSync.UI
     public class UIController : MonoBehaviour, IStatusManager
     {
         public int TextRows { get; set; }
+        private int FadeTime { get; set; }
         private float RowSpacing { get; set; }
         private Dictionary<string, TextMeshList> _statusLists;
         private Dictionary<string, TextMeshList> statusLists
@@ -334,15 +335,30 @@ namespace BeatSync.UI
         {
             Logger.log?.Info("UIController awake.");
             _statusLists = new Dictionary<string, TextMeshList>();
-            TextRows = 5;
-            RowSpacing = .1f;
-            Distance = 2;
             PlayerPos = new Vector3(0, 1.7f, 0);
-            Height = 3.2f;
+            UpdateSettings();
             Logger.log?.Info($"UIController Position: {gameObject.transform.position}");
             WriteParents(gameObject);
             //CreateCanvas();
 
+        }
+
+        public void UpdateSettings()
+        {
+            Logger.log?.Warn($"UpdateSettings(): {Plugin.config.Value.StatusUI}");
+            TextRows = Plugin.config.Value.StatusUI.TextRows;
+            FadeTime = Plugin.config.Value.StatusUI.FadeTime;
+            RowSpacing = Plugin.config.Value.StatusUI.RowSpacing;
+            Distance = Plugin.config.Value.StatusUI.Distance;
+            Height = Plugin.config.Value.StatusUI.Height;
+            HorizontalDegrees = Plugin.config.Value.StatusUI.HorizontalAngle;
+
+        }
+
+        public void TriggerFade()
+        {
+            if(FadeTime > 0)
+                StartCoroutine(DestroyAfterSeconds(FadeTime));
         }
 
         private void WriteParents(GameObject gObject)
@@ -402,6 +418,17 @@ namespace BeatSync.UI
             textList.Header = headerText;
             textsGO.transform.SetParent(gameObject.transform, false);
             return textList;
+        }
+
+        public static IEnumerator<WaitForSeconds> DestroyAfterSeconds(int seconds)
+        {
+            if (Plugin.StatusController == null)
+                yield break;
+            else
+            {
+                yield return new WaitForSeconds(seconds);
+                GameObject.Destroy(Plugin.StatusController.gameObject);
+            }
         }
 
         public IEnumerator<WaitForSeconds> TestPost()

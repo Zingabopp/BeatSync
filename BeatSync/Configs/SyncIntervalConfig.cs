@@ -81,7 +81,6 @@ namespace BeatSync.Configs
         public override string ToString()
         {
             return $"{(Hours == 1 ? "1 hour" : $"{Hours} hours")} {(Minutes == 1 ? "1 minute" : $"{Minutes} minutes")}";
-
         }
 
         public override void FillDefaults()

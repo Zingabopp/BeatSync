@@ -35,6 +35,8 @@ namespace BeatSync.Configs
         [JsonIgnore]
         private bool? _allBeatSyncSongsPlaylist;
         [JsonIgnore]
+        private StatusUiConfig _statusUi;
+        [JsonIgnore]
         private SyncIntervalConfig _timeBetweenSyncs;
         [JsonIgnore]
         private BeastSaberConfig _beastSaber;
@@ -165,6 +167,31 @@ namespace BeatSync.Configs
                 SetConfigChanged();
             }
         }
+        [JsonProperty(Order = -63)]
+        public StatusUiConfig StatusUI
+        {
+            get
+            {
+                if (_statusUi == null)
+                {
+                    _statusUi = new StatusUiConfig();
+                    SetConfigChanged();
+                }
+                return _statusUi;
+            }
+            set
+            {
+                if (_statusUi == value)
+                    return;
+                if (_statusUi.ConfigMatches(value))
+                {
+                    _statusUi = value;
+                    return;
+                }
+                _statusUi = value;
+                SetConfigChanged();
+            }
+        }
 
         [JsonProperty(Order = -61)]
         public SyncIntervalConfig TimeBetweenSyncs
@@ -281,13 +308,19 @@ namespace BeatSync.Configs
             {
                 //var reasons = base.ChangedValues.Concat(BeatSaver.ChangedValues).Concat(BeastSaber.ChangedValues).Concat(ScoreSaber.ChangedValues);
                 //Logger.log?.Info($"ChangedValues: {string.Join(", ", reasons)}");
-                return (base.ConfigChanged || TimeBetweenSyncs.ConfigChanged || BeatSaver.ConfigChanged || BeastSaber.ConfigChanged || ScoreSaber.ConfigChanged);
+                return (base.ConfigChanged 
+                    || StatusUI.ConfigChanged 
+                    || TimeBetweenSyncs.ConfigChanged 
+                    || BeatSaver.ConfigChanged 
+                    || BeastSaber.ConfigChanged 
+                    || ScoreSaber.ConfigChanged);
             }
             protected set => base.ConfigChanged = value;
         }
 
         public override void ResetConfigChanged()
         {
+            StatusUI.ResetConfigChanged();
             TimeBetweenSyncs.ResetConfigChanged();
             BeastSaber.ResetConfigChanged();
             BeatSaver.ResetConfigChanged();
@@ -297,6 +330,7 @@ namespace BeatSync.Configs
 
         public override void ResetFlags()
         {
+            StatusUI.ResetFlags();
             TimeBetweenSyncs.ResetFlags();
             BeastSaber.ResetFlags();
             BeatSaver.ResetFlags();
@@ -312,6 +346,7 @@ namespace BeatSync.Configs
             var ____ = AllBeatSyncSongsPlaylist;
             var _____ = RecentPlaylistDays;
             var ______ = LastRun;
+            StatusUI.FillDefaults();
             TimeBetweenSyncs.FillDefaults();
             BeatSaver.FillDefaults();
             BeastSaber.FillDefaults();
@@ -332,6 +367,10 @@ namespace BeatSync.Configs
                 if (MaxConcurrentDownloads != castOther.MaxConcurrentDownloads)
                     return false;
                 if (RecentPlaylistDays != castOther.RecentPlaylistDays)
+                    return false;
+                if (StatusUI.ConfigMatches(castOther.StatusUI))
+                    return false;
+                if (TimeBetweenSyncs.ConfigMatches(castOther.TimeBetweenSyncs))
                     return false;
                 if (AllBeatSyncSongsPlaylist != castOther.AllBeatSyncSongsPlaylist)
                     return false;

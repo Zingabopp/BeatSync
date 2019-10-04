@@ -138,7 +138,7 @@ namespace BeatSync
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();
             StartCoroutine(UpdateLevelPacks());
-            StartCoroutine(DestroyAfterSeconds(20));
+            Plugin.StatusController.TriggerFade();
         }
 
 
@@ -161,16 +161,7 @@ namespace BeatSync
         }
 
 
-        public static IEnumerator<WaitForSeconds> DestroyAfterSeconds(int seconds)
-        {
-            if (Plugin.StatusController == null)
-                yield break;
-            else
-            {
-                yield return new WaitForSeconds(seconds);
-                GameObject.Destroy(Plugin.StatusController.gameObject);
-            }
-        }
+        
 
     }
 }

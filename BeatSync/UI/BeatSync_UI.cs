@@ -1,10 +1,36 @@
 ﻿using BeatSync.Configs;
 using CustomUI.Settings;
+using System;
 
 namespace BeatSync.UI
 {
-    class BeatSync_UI
+    internal class BeatSync_UI
     {
+        struct ListParameters
+        {
+            public ListParameters(string name, float min, float max, float increment)
+            {
+                Name = name;
+                Minimum = min;
+                Maximum = max;
+                Increment = increment;
+            }
+            public string Name;
+            public float Minimum;
+            public float Maximum;
+            public float Increment;
+            public override string ToString()
+            {
+                return $"{Name}: {Minimum}, {Maximum}, {Increment}";
+            }
+        }
+        private static ListParameters RowSpacingParameters = new ListParameters("RowSpacingParameters", 0.05f, 5.0f, 0.05f);
+        private static ListParameters DistanceParameters = new ListParameters("DistanceParameters", 0.1f, 10.0f, 0.1f);
+        private static ListParameters HeightParameters = new ListParameters("HeightParameters", -5f, 5.0f, 0.2f);
+
+        public static float[] RowSpacingList = GetFloatList(RowSpacingParameters);
+        public static float[] DistanceList = GetFloatList(DistanceParameters);
+        public static float[] HeightList = GetFloatList(HeightParameters);
         public static PluginConfig Config { get { return Plugin.config.Value; } }
         public static void CreateUI()
         {
@@ -18,10 +44,12 @@ namespace BeatSync.UI
         public static void CreateSettingsUI()
         {
             ////This will create a menu tab in the settings menu for your plugin
-            var pluginSettingsSubmenu = SettingsUI.CreateSubMenu("BeatSync");
+            var pluginSettingsSubmenu = SettingsUI.CreateSubMenu("BeatSync", true);
             CreateBeatSyncSettingsUI(pluginSettingsSubmenu);
             var sourceSettings = pluginSettingsSubmenu.AddSubMenu("Source Settings", "Settings to configure song sources.", true);
             CreateSourceSettingsUI(sourceSettings);
+            var statusUiSettings = pluginSettingsSubmenu.AddSubMenu("Status UI Settings", "Settings to configure the in-game status display.", true);
+            CreateStatusUiSettings(statusUiSettings);
         }
 
         public static void CreateBeatSyncSettingsUI(SubMenu parent)
@@ -35,8 +63,8 @@ namespace BeatSync.UI
                 if (Config.DownloadTimeout == value)
                     return;
                 Config.DownloadTimeout = value;
-                //Config.SetConfigChanged();
-            };
+            //Config.SetConfigChanged();
+        };
 
             var maxConcurrentDownloads = parent.AddInt("Max Concurrent Downloads",
                 "How many song downloads can happen at the same time.",
@@ -47,8 +75,8 @@ namespace BeatSync.UI
                 if (Config.MaxConcurrentDownloads == value)
                     return;
                 Config.MaxConcurrentDownloads = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var recentPlaylistDays = parent.AddInt("Recent Playlist Days",
                 "How long in days songs downloaded by BeatSync are kept in the BeatSync Recent playlist (0 to disable the playlist).",
@@ -59,8 +87,8 @@ namespace BeatSync.UI
                 if (Config.RecentPlaylistDays == value)
                     return;
                 Config.RecentPlaylistDays = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var allBeatSyncSongs = parent.AddBool("Enable All BeatSync Songs",
                 "Maintain a playlist that has all the songs downloaded by BeatSync.");
@@ -70,8 +98,8 @@ namespace BeatSync.UI
                 if (Config.AllBeatSyncSongsPlaylist == value)
                     return;
                 Config.AllBeatSyncSongsPlaylist = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var timeBetweenSyncs = parent.AddSubMenu("Time Between Syncs",
                 "Minimum amount of time between BeatSync syncs (Set both to 0 to run BeatSync every time the game is started).", true);
@@ -82,8 +110,8 @@ namespace BeatSync.UI
                 if (Config.TimeBetweenSyncs.Hours == value)
                     return;
                 Config.TimeBetweenSyncs.Hours = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var minutes = timeBetweenSyncs.AddInt("Minutes", "Number of minutes between BeatSync syncs.", 0, 59, 1);
             minutes.GetValue += delegate { return Config.TimeBetweenSyncs.Minutes; };
@@ -92,8 +120,8 @@ namespace BeatSync.UI
                 if (Config.TimeBetweenSyncs.Minutes == value)
                     return;
                 Config.TimeBetweenSyncs.Minutes = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
         }
 
         public static void CreateSourceSettingsUI(SubMenu parent)
@@ -104,6 +132,106 @@ namespace BeatSync.UI
             CreateBeatSaverSettingsUI(beatSaver, Config.BeatSaver);
             var scoreSaber = parent.AddSubMenu("ScoreSaber", "Settings for the ScoreSaber feed source.", true);
             CreateScoreSaberSettingsUI(scoreSaber, Config.ScoreSaber);
+        }
+
+        public static void CreateStatusUiSettings(SubMenu parent)
+        {
+            var textRowsInt = parent.AddInt("Text Rows",
+                "Number of text rows to show for each source (not including Header).",
+                1, 20, 1);
+            textRowsInt.GetValue += delegate { return Config.StatusUI.TextRows; };
+            textRowsInt.SetValue += delegate (int value)
+            {
+                if (Config.StatusUI.TextRows == value)
+                    return;
+                Config.StatusUI.TextRows = value;
+                Plugin.StatusController?.UpdateSettings();
+            };
+
+            var fadeTimeInt = parent.AddInt("Fade Time",
+                "Time in seconds the Status UI will be displayed after BeatSync finishes (0 to never fade).",
+                0, 60, 1);
+            fadeTimeInt.GetValue += delegate { return Config.StatusUI.FadeTime; };
+            fadeTimeInt.SetValue += delegate (int value)
+            {
+                if (Config.StatusUI.FadeTime == value)
+                    return;
+                Config.StatusUI.FadeTime = value;
+                Plugin.StatusController?.UpdateSettings();
+            };
+
+            var rowSpacingFloat = parent.AddList("Row Spacing", RowSpacingList,
+                "Amount of space between text rows.");
+
+            rowSpacingFloat.GetValue += delegate { return Config.StatusUI.RowSpacing; };
+            rowSpacingFloat.SetValue += delegate (float value)
+            {
+                if (Config.StatusUI.RowSpacing == value)
+                    return;
+                Config.StatusUI.RowSpacing = value;
+                Plugin.StatusController?.UpdateSettings();
+            };
+            rowSpacingFloat.GetTextForValue = (val) => val.ToString("0.00");
+            rowSpacingFloat.applyImmediately = true;
+
+            var distanceFloat = parent.AddList("Distance", DistanceList,
+                "Distance from the center of the platform.");
+            distanceFloat.GetValue += delegate { return Config.StatusUI.Distance; };
+            distanceFloat.SetValue += delegate (float value)
+            {
+                if (Config.StatusUI.Distance == value)
+                    return;
+                Config.StatusUI.Distance = value;
+                Plugin.StatusController?.UpdateSettings();
+            };
+            distanceFloat.GetTextForValue = (val) => val.ToString("0.00");
+            distanceFloat.applyImmediately = true;
+
+            var heightFloat = parent.AddList("Height", HeightList,
+                "Height from the bottom of the platform.");
+            heightFloat.GetValue += delegate { return Config.StatusUI.Height; };
+            heightFloat.SetValue += delegate (float value)
+            {
+                if (Config.StatusUI.Height == value)
+                    return;
+                Config.StatusUI.Height = value;
+                Plugin.StatusController?.UpdateSettings();
+            };
+            heightFloat.GetTextForValue = (val) => val.ToString("0.00");
+            heightFloat.applyImmediately = true;
+
+            var horizontalAngleInt = parent.AddInt("Horizontal Angle",
+                "Horizontal rotation of the Status UI.",
+                -360, 360, 2);
+            horizontalAngleInt.GetValue += delegate { return Config.StatusUI.HorizontalAngle; };
+            horizontalAngleInt.SetValue += delegate (int value)
+            {
+                if (Config.StatusUI.HorizontalAngle == value)
+                    return;
+                Config.StatusUI.HorizontalAngle = value;
+                Plugin.StatusController?.UpdateSettings();
+            };
+            horizontalAngleInt.applyImmediately = true;
+        }
+
+        private static float[] GetFloatList(ListParameters p)
+        {
+            Logger.log?.Warn($"FloatList: {p}");
+            return GetFloatList(p.Minimum, p.Maximum, p.Increment);
+        }
+        private static float[] GetFloatList(float min, float max, float increment)
+        {
+
+            int numValues = (int)((max - min) / increment);
+            var list = new float[numValues];
+            float curVal = min;
+            for (int i = 0; i < numValues; i++)
+            {
+                list[i] = (float)Math.Round(curVal, 2);
+                curVal = curVal + increment;
+            }
+            Logger.log?.Warn($"FloatList: {string.Join(", ", list)}");
+            return list;
         }
 
         public static void CreateBeastSaberSettingsUI(SubMenu parent, BeastSaberConfig sourceConfig)
@@ -120,8 +248,8 @@ namespace BeatSync.UI
                 if (sourceConfig.MaxConcurrentPageChecks == value)
                     return;
                 sourceConfig.MaxConcurrentPageChecks = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var username = parent.AddString("Username", "Your BeastSaber username. Required to use the Bookmarks and Follows feeds");
             username.GetValue += delegate { return sourceConfig.Username ?? ""; };
@@ -130,8 +258,8 @@ namespace BeatSync.UI
                 if (sourceConfig.Username == value)
                     return;
                 sourceConfig.Username = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var bookmarks = CreateFeedSettings("Bookmarks", sourceName, sourceConfig.Bookmarks, parent);
             var follows = CreateFeedSettings("Follows", sourceName, sourceConfig.Follows, parent);
@@ -152,8 +280,8 @@ namespace BeatSync.UI
                 if (sourceConfig.MaxConcurrentPageChecks == value)
                     return;
                 sourceConfig.MaxConcurrentPageChecks = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserData\\FavoriteMappers.ini. Max Songs is per mapper.");
             var separateMapperPlaylists = favoriteMappers.AddBool("Separate Mapper Playlists",
@@ -185,8 +313,8 @@ namespace BeatSync.UI
                 if (sourceConfig.Trending.RankedOnly == value)
                     return;
                 sourceConfig.Trending.RankedOnly = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
             var topPlayed = CreateFeedSettings("Top Played", sourceName, sourceConfig.TopPlayed, parent);
             var topPlayedRankedOnly = topPlayed.AddBool("Ranked Only",
                             $"Get only ranked songs from the Trending feed.");
@@ -196,8 +324,8 @@ namespace BeatSync.UI
                 if (sourceConfig.TopPlayed.RankedOnly == value)
                     return;
                 sourceConfig.TopPlayed.RankedOnly = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
         }
 
         public static void CreateSourceSettings(string sourceName, SubMenu parent, SourceConfigBase sourceConfig)
@@ -210,8 +338,8 @@ namespace BeatSync.UI
                 if (sourceConfig.Enabled == value)
                     return;
                 sourceConfig.Enabled = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
         }
 
@@ -228,8 +356,8 @@ namespace BeatSync.UI
                 if (feedConfig.Enabled == value)
                     return;
                 feedConfig.Enabled = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var maxSongs = feedSubMenu.AddInt("Max Songs",
                 "Maximum number of songs to download (0 for all).",
@@ -240,8 +368,8 @@ namespace BeatSync.UI
                 if (feedConfig.MaxSongs == value)
                     return;
                 feedConfig.MaxSongs = value;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
 
             var createPlaylist = feedSubMenu.AddBool("Create Playlist",
                             $"Maintain a playlist for this feed.");
@@ -251,9 +379,9 @@ namespace BeatSync.UI
                 if (feedConfig.CreatePlaylist == value)
                     return;
                 feedConfig.CreatePlaylist = value;
-                // Config.ConfigChanged = true;
-            };
-            
+            // Config.ConfigChanged = true;
+        };
+
             string[] textSegmentOptions = new string[] { "Append", "Replace" };
             var textSegmentsExample = feedSubMenu.AddTextSegments("Playlist Style", "Select 'Append' to add new songs to playlist, 'Replace' to create a fresh playlist with songs read from the feed this session.", textSegmentOptions);
             textSegmentsExample.GetValue += delegate { return feedConfig.PlaylistStyle == PlaylistStyle.Append ? 0 : 1; };
@@ -263,8 +391,8 @@ namespace BeatSync.UI
                 if (feedConfig.PlaylistStyle == newStyle)
                     return;
                 feedConfig.PlaylistStyle = newStyle;
-                // Config.ConfigChanged = true;
-            };
+            // Config.ConfigChanged = true;
+        };
             return feedSubMenu;
         }
 
