@@ -134,6 +134,7 @@ namespace BeatSync
             int numDownloads = downloadTask.Result.Count;
             IsRunning = false;
             Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
+            HistoryManager.WriteToFile();
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();

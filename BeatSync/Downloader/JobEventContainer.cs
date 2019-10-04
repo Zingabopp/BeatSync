@@ -78,6 +78,7 @@ namespace BeatSync.Downloader
                 Logger.log?.Warn($"PostId during FinishedUpdateStatus is 0: {job.SongKey} {job.LevelAuthorName}");
             var stats = DownloadTracker.GetOrAdd(ReaderName, new ReaderStats());
             var haveStatusManager = StatusManagerReference.TryGetTarget(out var statusManager);
+            
             if (haveStatusManager)
             {
                 if (successful)

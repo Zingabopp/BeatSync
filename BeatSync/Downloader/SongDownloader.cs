@@ -42,10 +42,11 @@ namespace BeatSync.Downloader
         public void ProcessJob(IDownloadJob job)
         {
             var playlistSong = new PlaylistSong(job.SongHash, job.SongName, job.SongKey, job.LevelAuthorName);
+            var historyEntry = HistoryManager.GetOrAdd(playlistSong.Hash, (s) => new HistoryEntry(playlistSong, HistoryFlag.None));
             if (job.Result.Successful)
             {
-                HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.Downloaded);
-
+                //HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.Downloaded);
+                historyEntry.Flag = HistoryFlag.Downloaded;
                 RecentPlaylist?.TryAdd(playlistSong);
 
             }
@@ -55,20 +56,23 @@ namespace BeatSync.Downloader
                 {
                     // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
                     Logger.log?.Debug($"Setting 404 flag for {playlistSong.ToString()}");
-                    if (!HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.BeatSaverNotFound))
-                        Logger.log?.Debug($"Failed to update flag for {playlistSong.ToString()}");
+                    historyEntry.Flag = HistoryFlag.BeatSaverNotFound;
+                    //if (!HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.BeatSaverNotFound))
+                    //Logger.log?.Debug($"Failed to update flag for {playlistSong.ToString()}");
                     PlaylistManager.RemoveSongFromAll(job.SongHash);
                 }
                 else
                 {
                     // Download failed for some reason, remove from history so it tries again.
-                    HistoryManager.TryRemove(job.SongHash);
+                    historyEntry.Flag = HistoryFlag.Error;
+                    //HistoryManager.TryRemove(job.SongHash, out var _);
                 }
             }
             else if (job.Result.ZipResult?.ResultStatus != ZipExtractResultStatus.Success)
             {
                 // Unzipping failed for some reason, remove from history so it tries again.
-                HistoryManager.TryRemove(job.SongHash);
+                historyEntry.Flag = HistoryFlag.Error;
+                //HistoryManager.TryRemove(job.SongHash, out var _);
             }
         }
 
@@ -98,7 +102,7 @@ namespace BeatSync.Downloader
                 }
             }
             catch (Exception ex)
-            { 
+            {
                 Logger.log?.Error($"Error processing downloads:\n {ex.Message}");
                 Logger.log?.Debug($"Error processing downloads:\n {ex.StackTrace}");
             }
@@ -167,7 +171,7 @@ namespace BeatSync.Downloader
 
             foreach (var pair in songsToDownload)
             {
-                
+
                 var playlistSong = new PlaylistSong(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
                 /*
                 var notInHistory = HistoryManager.TryAdd(playlistSong, HistoryFlag.None); // Make sure it's in HistoryManager even if it already exists.
@@ -185,7 +189,7 @@ namespace BeatSync.Downloader
                         HistoryManager.TryUpdateFlag(pair.Value.Hash, HistoryFlag.PreExisting);
                 }
                 */
-                
+
                 allPlaylist?.TryAdd(playlistSong);
 
             }
@@ -204,13 +208,17 @@ namespace BeatSync.Downloader
             foreach (var scrapedSong in songs)
             {
                 // Skip songs that were deleted or not found on Beat Saver.
-                if (HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry)
-                    && (historyEntry.Flag == HistoryFlag.BeatSaverNotFound
+                var inHistory = HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry);
+                if (inHistory && (historyEntry.Flag == HistoryFlag.BeatSaverNotFound
                     || historyEntry.Flag == HistoryFlag.Deleted))
                 {
                     continue;
                 }
                 var song = scrapedSong.Value.ToPlaylistSong();
+                if (!inHistory && HashSource.ExistingSongs.ContainsKey(scrapedSong.Value.Hash))
+                {
+                    HistoryManager.TryAdd(song, HistoryFlag.PreExisting);
+                }
                 song.DateAdded = addDate;
                 var source = $"{reader.Name}.{reader.GetFeedName(settings)}";
                 song.FeedSources.Add(source);
@@ -771,8 +779,8 @@ namespace BeatSync.Downloader
             return readerSongs;
         }
         #endregion
-        
-        
+
+
         public bool PostJobToDownload(PlaylistSong playlistSong, string readerName)
         {
             bool downloadPosted = false;
@@ -784,7 +792,7 @@ namespace BeatSync.Downloader
                 downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, CustomLevelsPath), out var postedJob);
                 if (postedJob != null)
                 {
-                    
+
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
                     new JobEventContainer(postedJob, readerName, StatusManager);
                 }
@@ -794,7 +802,7 @@ namespace BeatSync.Downloader
                 if (historyEntry.Flag == HistoryFlag.None)
                     HistoryManager.TryUpdateFlag(playlistSong.Hash, HistoryFlag.PreExisting);
             }
-            
+
             return downloadPosted;
         }
 

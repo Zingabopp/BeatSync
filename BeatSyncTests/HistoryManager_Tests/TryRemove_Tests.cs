@@ -54,7 +54,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             Assert.AreEqual(historyManager.Count, 2);
             // End setup
 
-            success = historyManager.TryRemove(key);
+            success = historyManager.TryRemove(key, out var _);
             Assert.IsTrue(success);
             Assert.AreEqual(historyManager.Count, 1);
             Assert.IsTrue(historyManager.ContainsKey(otherKey));
@@ -74,7 +74,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             Assert.AreEqual(historyManager.Count, 1);
             // End setup
 
-            success = historyManager.TryRemove(doesntExist);
+            success = historyManager.TryRemove(doesntExist, out var _);
             Assert.IsFalse(success);
             Assert.AreEqual(historyManager.Count, 1);
             Assert.IsTrue(historyManager.ContainsKey(key));
@@ -86,7 +86,7 @@ namespace BeatSyncTests.HistoryManager_Tests
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
             var historyManager = new HistoryManager(path);
             string key = "QWEMNRBQENMQBWERNBQWXCV";
-            Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryRemove(key));
+            Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryRemove(key, out var _));
         }
     }
 }

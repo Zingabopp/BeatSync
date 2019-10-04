@@ -153,6 +153,11 @@ namespace BeatSync
             return TryAdd(song.Hash, song.ToString(), flag);
         }
 
+        public HistoryEntry GetOrAdd(string songHash, Func<string, HistoryEntry> AddValueFactory)
+        {
+            return SongHistory.GetOrAdd(songHash, AddValueFactory);
+        }
+
         /// <summary>
         /// If the provided song hash exists in history, change the flag to the one provided. Returns true if the song was found.
         /// </summary>
@@ -162,11 +167,14 @@ namespace BeatSync
         public bool TryUpdateFlag(string songHash, HistoryFlag flag)
         {
             songHash = songHash.ToUpper();
-            if (!SongHistory.ContainsKey(songHash))
+            if (SongHistory.TryGetValue(songHash, out var entry))
+            {
+                entry.Flag = flag;
+                entry.Date = DateTime.Now;
+                return true;
+            }
+            else
                 return false;
-            SongHistory[songHash].Flag = flag;
-            SongHistory[songHash].Date = DateTime.Now;
-            return true;
         }
 
         /// <summary>
@@ -192,6 +200,7 @@ namespace BeatSync
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
+            songHash = songHash.ToUpper();
             if (string.IsNullOrEmpty(songHash))
                 return false; // May not need this.
             return SongHistory.ContainsKey(songHash.ToUpper());
@@ -208,6 +217,7 @@ namespace BeatSync
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
+            songHash = songHash.ToUpper();
             return SongHistory.TryGetValue(songHash.ToUpper(), out value);
         }
 
@@ -217,20 +227,24 @@ namespace BeatSync
         /// <param name="songHash"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryRemove(string songHash)
+        public bool TryRemove(string songHash, out HistoryEntry entry)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
-            return SongHistory.TryRemove(songHash.ToUpper(), out _);
+            songHash = songHash.ToUpper();
+            return SongHistory.TryRemove(songHash.ToUpper(), out entry);
         }
 
         public bool TryUpdateDate(string songHash, DateTime newDate)
         {
             songHash = songHash.ToUpper();
-            if (!SongHistory.ContainsKey(songHash))
+            if (SongHistory.TryGetValue(songHash, out var entry))
+            {
+                entry.Date = newDate;
+                return true;
+            }
+            else
                 return false;
-            SongHistory[songHash].Date = newDate;
-            return true;
         }
 
         public bool TryUpdateDate(PlaylistSong song, DateTime newDate)
