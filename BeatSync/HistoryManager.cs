@@ -77,21 +77,28 @@ namespace BeatSync
             }
             // Load from file.
             SongHistory.Clear();
-            if (File.Exists(HistoryPath))
+            try
             {
-                var histStr = FileIO.LoadStringFromFile(HistoryPath);
-                var token = JToken.Parse(histStr);
-                foreach (JObject entry in token.Children())
+                if (File.Exists(HistoryPath))
                 {
-                    var historyEntry = new HistoryEntry();
-                    var hash = entry["Key"].Value<string>();
-                    historyEntry.SongInfo = entry["Value"]["SongInfo"].Value<string>();
-                    historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
-                    historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
+                    var histStr = FileIO.LoadStringFromFile(HistoryPath);
+                    var token = JToken.Parse(histStr);
+                    foreach (JObject entry in token.Children())
+                    {
+                        var historyEntry = new HistoryEntry();
+                        var hash = entry["Key"].Value<string>();
+                        historyEntry.SongInfo = entry["Value"]["SongInfo"].Value<string>();
+                        historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
+                        historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
 
-                    SongHistory.TryAdd(hash, historyEntry);
+                        SongHistory.TryAdd(hash, historyEntry);
+                    }
+
                 }
-
+            }catch(Exception ex)
+            {
+                Logger.log?.Warn($"HistoryManager failed to initialize: {ex.Message}");
+                Logger.log?.Debug(ex.StackTrace);
             }
             IsInitialized = true;
         }

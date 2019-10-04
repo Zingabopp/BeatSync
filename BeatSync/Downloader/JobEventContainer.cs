@@ -18,8 +18,10 @@ namespace BeatSync.Downloader
         private WeakReference<IStatusManager> StatusManagerReference;
         private bool finishedStatusUpdated = false;
         private bool startedStatusUpdated = false;
-        public JobEventContainer(IDownloadJob job, string readerName, IStatusManager statusManager)
+        private Func<bool> readerFinishedPosting;
+        public JobEventContainer(IDownloadJob job, string readerName, IStatusManager statusManager, Func<bool> readerFinished)
         {
+            readerFinishedPosting = readerFinished;
             var stats = DownloadTracker.GetOrAdd(readerName, new ReaderStats());
             stats.IncrementTotalDownloads();
             JobReference = new WeakReference<IDownloadJob>(job);
@@ -78,7 +80,7 @@ namespace BeatSync.Downloader
                 Logger.log?.Warn($"PostId during FinishedUpdateStatus is 0: {job.SongKey} {job.LevelAuthorName}");
             var stats = DownloadTracker.GetOrAdd(ReaderName, new ReaderStats());
             var haveStatusManager = StatusManagerReference.TryGetTarget(out var statusManager);
-            
+
             if (haveStatusManager)
             {
                 if (successful)
@@ -110,14 +112,14 @@ namespace BeatSync.Downloader
             {
                 string errorText = string.Empty;
                 if (stats.ErroredDownloads > 0)
-                    errorText = $"  {stats.ErroredDownloads}{(stats.ErroredDownloads == 1 ? " download failed" : " downloads failed")}";
+                    errorText = $" -- {stats.ErroredDownloads}{(stats.ErroredDownloads == 1 ? " download failed" : " downloads failed")}";
                 statusManager.SetSubHeader(ReaderName, $"{stats.FinishedDownloads}/{stats.TotalDownloads}{errorText}");
-                if (stats.FinishedDownloads == stats.TotalDownloads)
+                if (readerFinishedPosting.Invoke() && stats.FinishedDownloads == stats.TotalDownloads)
                 {
+                    var fontColor = FontColor.Green;
                     if (stats.ErroredDownloads > 0)
-                        statusManager.SetHeaderColor(ReaderName, FontColor.Yellow);
-                    else
-                        statusManager.SetHeaderColor(ReaderName, FontColor.Green);
+                        fontColor = FontColor.Yellow;
+                    statusManager.SetHeaderColor(ReaderName, fontColor);
                 }
             }
         }

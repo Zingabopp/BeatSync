@@ -388,15 +388,7 @@ namespace BeatSync.Downloader
                 SetStatus(readerName, "Finished Reading", UI.FontColor.White);
             }
             await Task.Delay(2000).ConfigureAwait(false); // Wait a bit before clearing.
-            StatusManager.Clear(reader.Name);
-            int songsPosted = 0;
-            foreach (var song in readerSongs.Values)
-            {
-
-                if (PostJobToDownload(song, readerName))
-                    songsPosted++;
-            }
-            SetStatus(readerName, $"Downloading {songsPosted} songs");
+            FinishFeed(readerName, readerSongs.Values);
             return readerSongs;
         }
 
@@ -601,14 +593,7 @@ namespace BeatSync.Downloader
                 SetStatus(readerName, "Finished Reading Feeds", UI.FontColor.White);
             }
             await Task.Delay(2000); // Wait a bit before clearing.
-            StatusManager.Clear(reader.Name);
-            int songsPosted = 0;
-            foreach (var song in readerSongs.Values)
-            {
-                if (PostJobToDownload(song, readerName))
-                    songsPosted++;
-            }
-            SetStatus(readerName, $"Downloading {songsPosted} songs");
+            FinishFeed(readerName, readerSongs.Values);
             return readerSongs;
         }
 
@@ -768,20 +753,31 @@ namespace BeatSync.Downloader
                 SetStatus(readerName, "Finished Reading Feeds", UI.FontColor.White);
             }
             await Task.Delay(2000); // Wait a bit before clearing.
-            StatusManager.Clear(reader.Name);
-            int songsPosted = 0;
-            foreach (var song in readerSongs.Values)
-            {
-                if (PostJobToDownload(song, readerName))
-                    songsPosted++;
-            }
-            SetStatus(readerName, $"Downloading {songsPosted} songs");
+            FinishFeed(readerName, readerSongs.Values);
             return readerSongs;
         }
         #endregion
 
+        public void FinishFeed(string readerName, IEnumerable<ScrapedSong> readerSongs)
+        {
+            StatusManager.Clear(readerName);
+            int songsPosted = 0;
+            bool finished = false;
+            Func<bool> finishedPosting = () => finished;
+            foreach (var song in readerSongs)
+            {
 
-        public bool PostJobToDownload(PlaylistSong playlistSong, string readerName)
+                if (PostJobToDownload(song, readerName, finishedPosting))
+                    songsPosted++;
+            }
+            finished = true;
+            if (songsPosted > 0)
+                SetStatus(readerName, $"Downloading {songsPosted} {(songsPosted == 1 ? "song" : "songs")}");
+            else
+                SetStatus(readerName, $"No new songs found");
+        }
+
+        public bool PostJobToDownload(PlaylistSong playlistSong, string readerName, Func<bool> finishedPosting)
         {
             bool downloadPosted = false;
             var inHistory = HistoryManager.TryGetValue(playlistSong.Hash, out var historyEntry);
@@ -794,7 +790,7 @@ namespace BeatSync.Downloader
                 {
 
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
-                    new JobEventContainer(postedJob, readerName, StatusManager);
+                    new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
                 }
             }
             else if (existsOnDisk && historyEntry != null)
@@ -806,9 +802,9 @@ namespace BeatSync.Downloader
             return downloadPosted;
         }
 
-        public bool PostJobToDownload(ScrapedSong song, string readerName)
+        public bool PostJobToDownload(ScrapedSong song, string readerName, Func<bool> finishedPosting)
         {
-            return PostJobToDownload(song.ToPlaylistSong(), readerName);
+            return PostJobToDownload(song.ToPlaylistSong(), readerName, finishedPosting);
         }
 
         public void SetError(string reader)

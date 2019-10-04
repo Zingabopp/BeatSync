@@ -28,8 +28,16 @@ namespace BeatSync.Utilities
             var bakFile = new FileInfo(path + ".bak");
             if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
             {
-                bakFile.CopyTo(path, true);
-                bakFile.Delete();
+                try
+                {
+                    bakFile.CopyTo(path, true);
+                    bakFile.Delete();
+                }
+                catch (Exception ex) 
+                {
+                    Logger.log?.Warn($"Error recovering {bakFile.FullName}: {ex.Message}");
+                    Logger.log?.Debug(ex.StackTrace);
+                }
             }
             text = File.ReadAllText(path);
             return text;
