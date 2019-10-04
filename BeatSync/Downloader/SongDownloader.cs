@@ -424,6 +424,7 @@ namespace BeatSync.Downloader
                 try
                 {
                     int postId = StatusManager?.Post(readerName, $"Starting Feed: FavoriteMappers ({FavoriteMappers.Mappers.Count} mappers)...") ?? 0;
+                    StatusManager?.PinPost(postId);
                     var feedSettings = config.FavoriteMappers.ToFeedSettings() as BeatSaverFeedSettings;
                     Playlist feedPlaylist = null;
                     if (!config.FavoriteMappers.SeparateMapperPlaylists)
@@ -435,6 +436,8 @@ namespace BeatSync.Downloader
 
                     var playlistStyle = config.FavoriteMappers.PlaylistStyle;
                     var songs = new Dictionary<string, ScrapedSong>();
+                    int[] authorPosts = new int[FavoriteMappers.Mappers.Count];
+                    int postIndex = 0;
                     foreach (var author in FavoriteMappers.Mappers)
                     {
                         feedSettings.Criteria = author;
@@ -442,6 +445,8 @@ namespace BeatSync.Downloader
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                         var authorSongs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
                         Logger.log?.Info($"   FavoriteMappers: Found {authorSongs.Count} songs by {author}");
+                        authorPosts[postIndex] = StatusManager?.Post(readerName, $"  Found {authorSongs.Count} songs by {author}") ?? 0;
+                        postIndex++;
                         if (config.FavoriteMappers.CreatePlaylist && config.FavoriteMappers.SeparateMapperPlaylists)
                         {
                             var playlistFileName = $"{author}.bplist";
@@ -466,10 +471,16 @@ namespace BeatSync.Downloader
                             feedPlaylist.TryAdd(song.ToPlaylistSong());
                         }
                     }
+                    
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
+                    await Task.Delay(1000);
+                    for (int i = 0; i < authorPosts.Length; i++)
+                    {
+                        StatusManager?.RemovePost(authorPosts[i]);
+                    }
                     readerSongs.Merge(songs);
                 }
                 catch (InvalidCastException ex)
@@ -502,6 +513,7 @@ namespace BeatSync.Downloader
                 try
                 {
                     int postId = StatusManager?.Post(readerName, "Starting Feed: Hot...") ?? 0;
+                    StatusManager?.PinPost(postId);
                     var feedSettings = config.Hot.ToFeedSettings();
                     var feedPlaylist = config.Hot.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Hot.FeedPlaylist)
@@ -541,6 +553,7 @@ namespace BeatSync.Downloader
                 try
                 {
                     int postId = StatusManager?.Post(readerName, "Starting Feed: Downloads...") ?? 0;
+                    StatusManager?.PinPost(postId);
                     var feedSettings = config.Downloads.ToFeedSettings();
                     var feedPlaylist = config.Downloads.CreatePlaylist
                         ? PlaylistManager.GetPlaylist(config.Downloads.FeedPlaylist)
