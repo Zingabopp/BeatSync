@@ -23,7 +23,7 @@ Configuration can be done in-game in Settings > BeatSync or by (carefully) editi
 
 __Each feed has the following options:__
 * Enabled: If true, BeatSync will use this feed to download songs.
-* MaxSongs: Maximum number of songs to download from that feed.
+* MaxSongs: Maximum number of songs to download from that feed. Set to 0 for unlimited.
 * CreatePlaylist: Creates/Maintains a playlist using songs from the feed. Songs that are found by the feed but have already been downloaded are also added to the playlist.
 * PlaylistStyle: If set to 'Append' (0 in the json), each session will add the songs it finds to the playlist. If set to 'Replace (1 in the json), the playlist will only contain songs that were found in the current session (useful for ScoreSaber's ranked feeds so songs that get unranked are removed).
 
@@ -35,7 +35,7 @@ __BeatSync.json__
 * AllBeatSyncSongsPlaylist: If enabled, BeatSync creates a playlist with all the songs it finds (large playlists can cause a big freeze after custom songs are initially loaded)
 * StatusUI: Settings for the in-game status display.
   * TextRows: Number of rows of text under each feed source's header.
-  * FadeTime: Number of seconds after BeatSync finishes to display the status text (0 for infinite).
+  * FadeTime: Number of seconds after BeatSync finishes to display the status text (0 to never fade).
   * RowSpace: Amount of space between text rows.
   * Distance: Horizontal distance of the text from the center of the platform.
   * Height: Height of the status text.
@@ -73,13 +73,13 @@ __BeatSync.json__
 	* SeparateMapperPlaylists: If true (along with CreatePlaylist), create a playlist for each mapper in your FavoriteMappers.ini file.
   * Hot: Get songs using Beat Saver's "Hot" ordering.
     * Enabled
-	* MaxSongs
+	* MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver.**
 	* CreatePlaylist
 	* PlaylistStyle
 	* SeparateMapperPlaylists: Creates a playlist for each mapper specified in FavoriteMappers.ini (Must also have CreatePlaylist enabled).
   * Downloads: Get songs by most downloaded from Beat Saver
     * Enabled
-	* MaxSongs
+	* MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver.**
 	* CreatePlaylist
 	* PlaylistStyle
 * ScoreSaber
@@ -96,13 +96,13 @@ __BeatSync.json__
 	* PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs get removed.
   * Trending: Get songs using ScoreSaber's "Trending" ordering.
     * Enabled
-	* MaxSongs
+	* MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver if you don't have RankedOnly enabled.**
 	* CreatePlaylist
 	* PlaylistStyle
 	* RankedOnly: If true, only get ranked songs.
   * TopPlayed: Get the most played songs as reported by ScoreSaber.
     * Enabled
-	* MaxSongs
+	* MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver if you don't have RankedOnly enabled.**
 	* CreatePlaylist
 	* PlaylistStyle
 	* RankedOnly: If true, only get ranked songs.
