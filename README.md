@@ -33,7 +33,14 @@ __BeatSync.json__
 * MaxConcurrentDownloads: How many queued songs to download at the same time.
 * RecentPlaylistDays: How long recently downloaded songs stay in the BeatSync Recent playlist. (0 to disable the playlist)
 * AllBeatSyncSongsPlaylist: If enabled, BeatSync creates a playlist with all the songs it finds (large playlists can cause a big freeze after custom songs are initially loaded)
-* TimeBetweenSyncs: Minimum amount of time between syncs (so BeatSync doesn't run every time you start the game)
+* StatusUI: Settings for the in-game status display.
+  * TextRows: Number of rows of text under each feed source's header.
+  * FadeTime: Number of seconds after BeatSync finishes to display the status text (0 for infinite).
+  * RowSpace: Amount of space between text rows.
+  * Distance: Horizontal distance of the text from the center of the platform.
+  * Height: Height of the status text.
+  * HorizontalAngle: Rotation of the status text, 0 being straight forward.
+* TimeBetweenSyncs: Minimum amount of time between syncs (so BeatSync doesn't run every time you start the game).
   * Hours
   * Minutes
 * BeastSaber:
