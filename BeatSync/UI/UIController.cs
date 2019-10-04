@@ -367,14 +367,12 @@ namespace BeatSync.UI
 
         public void UpdateSettings()
         {
-            Logger.log?.Warn($"UpdateSettings(): {Plugin.config.Value.StatusUI}");
             TextRows = Plugin.config.Value.StatusUI.TextRows;
             FadeTime = Plugin.config.Value.StatusUI.FadeTime;
             RowSpacing = Plugin.config.Value.StatusUI.RowSpacing;
             Distance = Plugin.config.Value.StatusUI.Distance;
             Height = Plugin.config.Value.StatusUI.Height;
             HorizontalDegrees = Plugin.config.Value.StatusUI.HorizontalAngle;
-
         }
 
         public void TriggerFade()
