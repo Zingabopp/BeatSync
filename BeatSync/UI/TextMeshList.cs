@@ -316,6 +316,7 @@ namespace BeatSync.UI
                     Swap(i, i + 1);
                 }
             }
+            Next = Next - 1;
             return postRemoved;
         }
 
