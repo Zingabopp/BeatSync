@@ -230,7 +230,6 @@ namespace BeatSync.UI
                 list[i] = (float)Math.Round(curVal, 2);
                 curVal = curVal + increment;
             }
-            Logger.log?.Warn($"FloatList: {string.Join(", ", list)}");
             return list;
         }
 
