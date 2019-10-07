@@ -368,9 +368,9 @@ namespace BeatSync.Configs
                     return false;
                 if (RecentPlaylistDays != castOther.RecentPlaylistDays)
                     return false;
-                if (StatusUI.ConfigMatches(castOther.StatusUI))
+                if (!StatusUI.ConfigMatches(castOther.StatusUI))
                     return false;
-                if (TimeBetweenSyncs.ConfigMatches(castOther.TimeBetweenSyncs))
+                if (!TimeBetweenSyncs.ConfigMatches(castOther.TimeBetweenSyncs))
                     return false;
                 if (AllBeatSyncSongsPlaylist != castOther.AllBeatSyncSongsPlaylist)
                     return false;
