@@ -207,10 +207,10 @@ namespace BeatSync
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
-            songHash = songHash.ToUpper();
             if (string.IsNullOrEmpty(songHash))
-                return false; // May not need this.
-            return SongHistory.ContainsKey(songHash.ToUpper());
+                return false;
+            songHash = songHash.ToUpper();
+            return SongHistory.ContainsKey(songHash);
         }
 
         /// <summary>
