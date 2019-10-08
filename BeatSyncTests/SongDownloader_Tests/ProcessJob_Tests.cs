@@ -42,7 +42,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void BeatSaverNotFound()
         {
-            throw new NotImplementedException("Need to fix after refactor");
+            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "ASDFLKJACVOIAOSICJVLKXCVJ";
 
@@ -82,7 +82,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void DownloadFailed_IO()
         {
-            throw new NotImplementedException("Need to fix after refactor");
+            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "ASDFLKJACVOIAOSICJVLKXCVJ";
 
@@ -121,7 +121,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void Successful()
         {
-            throw new NotImplementedException("Need to fix after refactor");
+            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "A7SDF6A86SDF9ASDF";
             var song = new PlaylistSong(testHash, "Successful Song", "fff2", "Other");
@@ -170,7 +170,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void ZipDestinationFailed()
         {
-            throw new NotImplementedException("Need to fix after refactor");
+            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "A7SDF6A86SDF9ASDF";
 

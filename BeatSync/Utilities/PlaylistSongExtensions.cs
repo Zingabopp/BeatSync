@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BeatSync.Downloader;
 using BeatSync.Playlists;
 using SongFeedReaders;
+using SongFeedReaders.Readers;
 
 namespace BeatSync.Utilities
 {

@@ -116,16 +116,19 @@ namespace BeatSyncTests.Config_Tests
         [TestMethod]
         public void Changed_TimeBetweenSyncs_Hours()
         {
+            var defaultConfig = new PluginConfig();
+            defaultConfig.FillDefaults();
             var c = new PluginConfig();
             var defaultValue = new SyncIntervalConfig() { Hours = 0, Minutes = 10 };
             var newValue = new SyncIntervalConfig() { Hours = 2, Minutes = 0 };
             Assert.AreEqual(defaultValue, c.TimeBetweenSyncs);
             c.ResetConfigChanged();
             Assert.IsFalse(c.ConfigChanged);
-
+            Assert.IsTrue(defaultConfig.ConfigMatches(c));
             c.TimeBetweenSyncs = newValue;
 
             Assert.IsTrue(c.ConfigChanged);
+            Assert.IsFalse(c.ConfigMatches(defaultConfig));
             Assert.AreEqual(newValue, c.TimeBetweenSyncs);
         }
 

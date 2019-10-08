@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SongFeedReaders;
+using SongFeedReaders.Readers;
 
 namespace BeatSync.Downloader
 {

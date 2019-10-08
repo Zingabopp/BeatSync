@@ -7,6 +7,7 @@ using BeatSync.Configs;
 using BeatSync.Downloader;
 using System.IO;
 using System.Reflection;
+using BeatSync.Utilities;
 
 namespace BeatSyncTests.SongDownloader_Tests
 {
@@ -21,7 +22,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             var userAgent = $"BeatSyncTests/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
             SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
-            SongFeedReaders.WebUtils.WebClient.Timeout = 500;
+            SongFeedReaders.WebUtils.WebClient.Timeout = 10000;
             //SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper(userAgent));
 
         }
@@ -34,33 +35,34 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void SongDoesntExist()
         {
-            throw new NotImplementedException("Need to redo after the refactor.");
-            //Assert.AreEqual(1, SongFeedReaders.WebUtils.WebClient.Timeout);
-            //var response = SongFeedReaders.WebUtils.WebClient.GetAsync(@"http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-live-server-amd64.iso").Result;
-            //var dResult = response.Content.ReadAsFileAsync("ubuntu.iso", true).Result;
-            var historyManager = new HistoryManager(DefaultHistoryPath);
-            var songHasher = new SongHasher(DefaultSongsPath, DefaultHashCachePath);
-            historyManager.Initialize();
-            var downloader = new SongDownloader(defaultConfig, historyManager, songHasher, DefaultSongsPath);
+            var downloadManager = new DownloadManager(1);
+            downloadManager.Start();
             var doesntExist = new PlaylistSong("196be1af64958d8b5375b328b0eafae2151d46f8", "Doesn't Exist", "ffff", "Who knows");
-            historyManager.TryAdd(doesntExist, 0); // Song is added before it gets to DownloadJob
-            //var result = downloader.DownloadJob(doesntExist).Result;
-            Assert.IsTrue(historyManager.ContainsKey(doesntExist.Hash)); // Keep song in history so it doesn't try to download a non-existant song again.
+            var job = new DownloadJob(doesntExist, DefaultSongsPath);
+            Assert.IsTrue(downloadManager.TryPostJob(job, out var postedJob));
+            downloadManager.CompleteAsync().Wait();
+            Assert.AreEqual(DownloadResultStatus.NetNotFound, postedJob.Result.DownloadResult.Status);
+            Assert.AreEqual(404, postedJob.Result.DownloadResult.HttpStatusCode);
+            Assert.AreEqual(JobStatus.Finished, postedJob.Status);
+            Assert.IsNull(postedJob.Result.ZipResult);
+            Assert.IsFalse(postedJob.Result.Successful);
+            Assert.AreEqual(null, postedJob.Result.HashAfterDownload);
         }
 
         [TestMethod]
         public void SongDoesExist()
         {
-            throw new NotImplementedException("Need to redo after the refactor.");
-            var historyManager = new HistoryManager(DefaultHistoryPath);
-            var songHasher = new SongHasher(DefaultSongsPath, DefaultHashCachePath);
-            historyManager.Initialize();
-            var downloader = new SongDownloader(defaultConfig, historyManager, songHasher, DefaultSongsPath);
-            var exists = new PlaylistSong("d375405d047d6a2a4dd0f4d40d8da77554f1f677", "Does Exist", "5e20", "ejiejidayo");
-            historyManager.TryAdd(exists, 0); // Song is added before it gets to DownloadJob
-            //var result = downloader.DownloadJob(exists).Result;
-            //Assert.AreEqual(exists.Hash, result.HashAfterDownload);
-            Assert.IsTrue(historyManager.ContainsKey(exists.Hash)); // Successful download is kept in history
+            var downloadManager = new DownloadManager(1);
+            downloadManager.Start();
+            var existingSong = new PlaylistSong("d375405d047d6a2a4dd0f4d40d8da77554f1f677", "Does Exist", "5e20", "ejiejidayo");
+            var job = new DownloadJob(existingSong, DefaultSongsPath);
+            Assert.IsTrue(downloadManager.TryPostJob(job, out var postedJob));
+            downloadManager.CompleteAsync().Wait();
+            Assert.AreEqual(JobStatus.Finished, postedJob.Status);
+            Assert.AreEqual(DownloadResultStatus.Success, postedJob.Result.DownloadResult.Status);
+            Assert.AreEqual(ZipExtractResultStatus.Success, postedJob.Result.ZipResult.ResultStatus);
+            Assert.IsTrue(postedJob.Result.Successful);
+            Assert.AreEqual(existingSong.Hash, postedJob.Result.HashAfterDownload);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using SongFeedReaders.Readers;
 
 namespace BeatSync.Configs
 {
@@ -279,7 +280,7 @@ namespace BeatSync.Configs
             }
         }
 
-        public abstract SongFeedReaders.IFeedSettings ToFeedSettings();
+        public abstract IFeedSettings ToFeedSettings();
 
         public override bool ConfigMatches(ConfigBase other)
         {

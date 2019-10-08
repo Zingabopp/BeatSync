@@ -88,9 +88,9 @@ namespace BeatSync
 
                 // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
                 var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
-                SongFeedReaders.BeastSaberReader.Logger = readerLogger;
-                SongFeedReaders.BeatSaverReader.Logger = readerLogger;
-                SongFeedReaders.ScoreSaberReader.Logger = readerLogger;
+                SongFeedReaders.Readers.BeastSaberReader.Logger = readerLogger;
+                SongFeedReaders.Readers.BeatSaverReader.Logger = readerLogger;
+                SongFeedReaders.Readers.ScoreSaberReader.Logger = readerLogger;
                 SongFeedReaders.Utilities.Logger = readerLogger;
                 SongFeedReaders.WebUtils.Logger = readerLogger;
                 //SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;

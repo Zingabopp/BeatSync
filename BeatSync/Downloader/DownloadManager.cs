@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SongFeedReaders;
 
 namespace BeatSync.Downloader
 {
@@ -83,11 +84,17 @@ namespace BeatSync.Downloader
             _queuedJobs.CompleteAdding();
         }
 
+        /// <summary>
+        /// Completes the DownloadManager and waits for all remaining jobs to finish.
+        /// </summary>
+        /// <returns></returns>
         public async Task CompleteAsync()
         {
             Complete();
             try
             {
+                if(_running)
+                    await SongFeedReaders.Utilities.WaitUntil(() => _queuedJobs.Count == 0);
                 await Task.WhenAll(_tasks).ConfigureAwait(false);
             }
             catch (Exception) { }

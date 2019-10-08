@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SongFeedReaders.Readers;
 
 namespace BeatSync.UI
 {
@@ -420,9 +421,9 @@ namespace BeatSync.UI
             //beatSaver.MoveRelative(0, heightDiff, 0);
             scoreSaber.RotateRelative(45);
 
-            _statusLists.Add(SongFeedReaders.BeatSaverReader.NameKey, beatSaver);
-            _statusLists.Add(SongFeedReaders.BeastSaberReader.NameKey, beastSaber);
-            _statusLists.Add(SongFeedReaders.ScoreSaberReader.NameKey, scoreSaber);
+            _statusLists.Add(BeatSaverReader.NameKey, beatSaver);
+            _statusLists.Add(BeastSaberReader.NameKey, beastSaber);
+            _statusLists.Add(ScoreSaberReader.NameKey, scoreSaber);
             FacePlayer();
             //StartCoroutine(TestPost());
         }

@@ -33,7 +33,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void SingleThreaded_FirstSongNotFound()
         {
-            throw new NotImplementedException("Needs to be fixed for the refactor");
+            Assert.Fail("Needs to be fixed for the refactor");
             var songsPath = Path.Combine(DefaultSongsPath, "SingleThreaded_FirstSongNotFound");
             if (Directory.Exists(songsPath))
                 Directory.Delete(songsPath, true);

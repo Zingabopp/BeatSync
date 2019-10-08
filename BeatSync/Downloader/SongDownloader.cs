@@ -2,6 +2,7 @@
 using BeatSync.Playlists;
 using BeatSync.Utilities;
 using SongFeedReaders;
+using SongFeedReaders.Readers;
 using SongFeedReaders.DataflowAlternative;
 using System;
 using System.Collections.Concurrent;
@@ -144,10 +145,9 @@ namespace BeatSync.Downloader
             {
                 SetStatus("ScoreSaber", "Disabled", UI.FontColor.Red);
             }
-            Dictionary<string, ScrapedSong>[] results = null;
             try
             {
-                results = await Task.WhenAll(readerTasks).ConfigureAwait(false);
+                await Task.WhenAll(readerTasks).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -164,7 +164,7 @@ namespace BeatSync.Downloader
                     continue;
                 }
                 Logger.log?.Debug($"Queuing songs from task.");
-                songsToDownload.Merge(await readTask);
+                songsToDownload.Merge(await readTask.ConfigureAwait(false));
             }
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
             var allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
@@ -197,15 +197,15 @@ namespace BeatSync.Downloader
 
         }
 
-        public async Task<Dictionary<string, ScrapedSong>> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist, PlaylistStyle playlistStyle)
+        public async Task<FeedResult> ReadFeed(IFeedReader reader, IFeedSettings settings, Playlist feedPlaylist, PlaylistStyle playlistStyle)
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
-            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new Dictionary<string, ScrapedSong>();
+            var songs = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null);
             if (songs.Count > 0 && playlistStyle == PlaylistStyle.Replace)
                 feedPlaylist.Clear();
             var addDate = DateTime.Now;
             var decrement = new TimeSpan(1);
-            foreach (var scrapedSong in songs)
+            foreach (var scrapedSong in songs.Songs)
             {
                 // Skip songs that were deleted or not found on Beat Saver.
                 var inHistory = HistoryManager.TryGetValue(scrapedSong.Value.Hash, out var historyEntry);
@@ -269,11 +269,11 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                 }
                 catch (ArgumentException ex)
                 {
@@ -307,11 +307,11 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                 }
                 catch (ArgumentException ex)
                 {
@@ -357,11 +357,11 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                 }
                 catch (Exception ex)
                 {
@@ -455,14 +455,14 @@ namespace BeatSync.Downloader
                             {
                                 if (playlistStyle == PlaylistStyle.Replace)
                                     mapperPlaylist.Clear();
-                                foreach (var song in authorSongs.Values)
+                                foreach (var song in authorSongs.Songs.Values)
                                 {
                                     mapperPlaylist.TryAdd(song.ToPlaylistSong());
                                 }
                             }
                         }
 
-                        songs.Merge(authorSongs);
+                        songs.Merge(authorSongs.Songs);
                     }
                     if (feedPlaylist != null)
                     {
@@ -471,7 +471,7 @@ namespace BeatSync.Downloader
                             feedPlaylist.TryAdd(song.ToPlaylistSong());
                         }
                     }
-                    
+
                     var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
@@ -522,11 +522,11 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                 }
                 catch (InvalidCastException ex)
                 {
@@ -562,10 +562,10 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (InvalidCastException ex)
@@ -649,10 +649,10 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
@@ -677,10 +677,10 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
@@ -705,10 +705,10 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)
@@ -733,10 +733,10 @@ namespace BeatSync.Downloader
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     var songs = await ReadFeed(reader, feedSettings, feedPlaylist, playlistStyle).ConfigureAwait(false);
-                    var pages = songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
+                    var pages = songs.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
                     var feedName = reader.GetFeedName(feedSettings);
                     Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {songs.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.");
-                    readerSongs.Merge(songs);
+                    readerSongs.Merge(songs.Songs);
                     StatusManager?.AppendPost(postId, $"{(songs.Count == 1 ? "1 song found" : $"{songs.Count} songs found")}.");
                 }
                 catch (Exception ex)

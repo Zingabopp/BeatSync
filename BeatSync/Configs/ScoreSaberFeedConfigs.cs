@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SongFeedReaders.Readers;
 
 namespace BeatSync.Configs
 {
@@ -66,9 +67,9 @@ namespace BeatSync.Configs
             return true;
         }
 
-        public override SongFeedReaders.IFeedSettings ToFeedSettings()
+        public override IFeedSettings ToFeedSettings()
         {
-            return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.Trending)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.Trending)
             {
                 MaxSongs = this.MaxSongs,
                 RankedOnly = this.RankedOnly
@@ -90,9 +91,9 @@ namespace BeatSync.Configs
         protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.ScoreSaberLatestRanked;
         #endregion
 
-        public override SongFeedReaders.IFeedSettings ToFeedSettings()
+        public override IFeedSettings ToFeedSettings()
         {
-            return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.LatestRanked)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.LatestRanked)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -157,9 +158,9 @@ namespace BeatSync.Configs
             return true;
         }
 
-        public override SongFeedReaders.IFeedSettings ToFeedSettings()
+        public override IFeedSettings ToFeedSettings()
         {
-            return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.TopPlayed)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.TopPlayed)
             {
                 MaxSongs = this.MaxSongs,
                 RankedOnly = this.RankedOnly
@@ -181,9 +182,9 @@ namespace BeatSync.Configs
         protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.ScoreSaberTopRanked;
         #endregion
 
-        public override SongFeedReaders.IFeedSettings ToFeedSettings()
+        public override IFeedSettings ToFeedSettings()
         {
-            return new SongFeedReaders.ScoreSaberFeedSettings((int)SongFeedReaders.ScoreSaberFeed.TopRanked)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.TopRanked)
             {
                 MaxSongs = this.MaxSongs
             };

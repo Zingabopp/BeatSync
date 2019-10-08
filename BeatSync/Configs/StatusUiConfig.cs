@@ -200,12 +200,13 @@ namespace BeatSync.Configs
         {
             if (other is StatusUiConfig o)
             {
-                return TextRows == o.TextRows 
-                    && FadeTime == o.FadeTime 
-                    && RowSpacing == o.RowSpacing 
-                    && Distance == o.Distance 
-                    && Height == o.Height 
+                bool result = TextRows == o.TextRows
+                    && FadeTime == o.FadeTime
+                    && RowSpacing == o.RowSpacing
+                    && Distance == o.Distance
+                    && Height == o.Height
                     && HorizontalAngle == o.HorizontalAngle;
+                return result;
             }
             return false;
         }
