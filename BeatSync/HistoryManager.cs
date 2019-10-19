@@ -23,6 +23,11 @@ namespace BeatSync
         /// </summary>
         private ConcurrentDictionary<string, HistoryEntry> SongHistory;
 
+        public string[] GetSongHashes()
+        {
+            return SongHistory.Keys.ToArray();
+        }
+
         /// <summary>
         /// Number of entries in history.
         /// </summary>
@@ -68,7 +73,7 @@ namespace BeatSync
             {
                 if (string.IsNullOrEmpty(historyPath))
                     return;
-                else if (historyPath != null && HistoryPath.Equals(historyPath))
+                else if (HistoryPath.Equals(historyPath))
                     return;
             }
             if (!string.IsNullOrEmpty(historyPath))
@@ -95,7 +100,8 @@ namespace BeatSync
                     }
 
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Logger.log?.Warn($"HistoryManager failed to initialize: {ex.Message}");
                 Logger.log?.Debug(ex.StackTrace);
@@ -127,6 +133,32 @@ namespace BeatSync
                 serializer.Serialize(sw, orderedDictionary);
             }
             File.Delete(HistoryPath + ".bak");
+        }
+
+        public bool TryWriteToFile(out Exception exception)
+        {
+            try
+            {
+                WriteToFile();
+                exception = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                return false;
+            }
+        }
+
+        public bool TryWriteToFile(bool logError = true)
+        {
+            bool successful = TryWriteToFile(out var exception);
+            if (!successful && logError)
+            {
+                Logger.log?.Error($"Error writing history to file: {exception.Message}");
+                Logger.log?.Debug(exception);
+            }
+            return successful;
         }
 
         /// <summary>
