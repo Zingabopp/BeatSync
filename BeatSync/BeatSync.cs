@@ -98,8 +98,10 @@ namespace BeatSync
                 SongHasher = new SongHasher(Plugin.CustomLevelsPath, Plugin.CachedHashDataPath);
                 HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
                 Task.Run(() => HistoryManager.Initialize());
-                Downloader = new SongDownloader(Plugin.config.Value, HistoryManager, SongHasher, CustomLevelPathHelper.customLevelsDirectoryPath);
-                Downloader.StatusManager = Plugin.StatusController;
+                Downloader = new SongDownloader(Plugin.config.Value, HistoryManager, SongHasher, CustomLevelPathHelper.customLevelsDirectoryPath)
+                {
+                    StatusManager = Plugin.StatusController
+                };
                 StartCoroutine(HashSongsCoroutine());
             }
             else
@@ -116,6 +118,9 @@ namespace BeatSync
             var hashWait = new WaitUntil(() => hashingTask.IsCompleted);
             yield return hashWait;
             yield return WaitForUnPause;
+            var historyUpdate = Task.Run(() => UpdateHistory());
+            var historyWait = new WaitUntil(() => historyUpdate.IsCompleted);
+            yield return historyWait;
             StartCoroutine(ScrapeSongsCoroutine());
         }
 
@@ -130,11 +135,11 @@ namespace BeatSync
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
             yield return downloadWait;
             PlaylistManager.WriteAllPlaylists();
-            HistoryManager.WriteToFile();
+            HistoryManager.TryWriteToFile();
             int numDownloads = downloadTask.Result.Count;
             IsRunning = false;
             Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
-            HistoryManager.WriteToFile();
+            HistoryManager.TryWriteToFile();
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();
@@ -142,7 +147,26 @@ namespace BeatSync
             Plugin.StatusController.TriggerFade();
         }
 
-
+        public async Task UpdateHistory()
+        {
+            await SongFeedReaders.Utilities.WaitUntil(() => HistoryManager.IsInitialized);
+            var hashCount = SongHasher.ExistingSongs.Count;
+            foreach (var songHash in HistoryManager.GetSongHashes())
+            {
+                if (!SongHasher.ExistingSongs.ContainsKey(songHash))
+                {
+                    if (HistoryManager.TryGetValue(songHash, out var entry) && 
+                        (entry.Flag == HistoryFlag.Downloaded 
+                        || entry.Flag == HistoryFlag.PreExisting
+                        || entry.Flag == HistoryFlag.Missing))
+                    {
+                        Logger.log?.Info($"Flagging {entry.SongInfo} as deleted.");
+                        entry.Flag = HistoryFlag.Deleted;
+                    }
+                }
+            }
+            HistoryManager.TryWriteToFile();
+        }
 
         public IEnumerator<WaitUntil> UpdateLevelPacks()
         {
