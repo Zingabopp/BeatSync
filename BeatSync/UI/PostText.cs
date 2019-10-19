@@ -22,12 +22,15 @@ namespace BeatSync.UI
                     if (_floatingText != value)
                     {
                         _floatingText = value;
-                        _floatingText.TextAlignment = TextAlignment;
-                        _floatingText.FontStyle = FontStyle;
-                        _floatingText.FontColor = FontColor;
-                        _floatingText.FontSize = FontSize;
-                        _floatingText.CharacterLimit = CharacterLimit;
-                        _floatingText.DisplayedText = DisplayedText;
+                        if (_floatingText != null)
+                        {
+                            _floatingText.TextAlignment = TextAlignment;
+                            _floatingText.FontStyle = FontStyle;
+                            _floatingText.FontColor = FontColor;
+                            _floatingText.FontSize = FontSize;
+                            _floatingText.CharacterLimit = CharacterLimit;
+                            _floatingText.DisplayedText = DisplayedText;
+                        }
                     }
                 });
             }
