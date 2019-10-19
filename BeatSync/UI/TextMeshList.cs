@@ -252,7 +252,7 @@ namespace BeatSync.UI
 
         public bool Pin(int postId)
         {
-            Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
+            //Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
             int firstFreeIndex = 0;
             while (PostTexts[firstFreeIndex].Pinned && firstFreeIndex < PostTexts.Length)
             {
@@ -278,7 +278,7 @@ namespace BeatSync.UI
                 else
                     break;
             }
-            Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
+            //Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
             return true;
         }
         private LinkedList<PostText> linked = new LinkedList<PostText>();

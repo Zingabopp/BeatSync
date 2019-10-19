@@ -356,12 +356,12 @@ namespace BeatSync.UI
 
         public void Awake()
         {
-            Logger.log?.Info("UIController awake.");
+            //Logger.log?.Info("UIController awake.");
             _statusLists = new Dictionary<string, TextMeshList>();
             PlayerPos = new Vector3(0, 1.7f, 0);
             UpdateSettings();
-            Logger.log?.Info($"UIController Position: {gameObject.transform.position}");
-            WriteParents(gameObject);
+            //Logger.log?.Info($"UIController Position: {gameObject.transform.position}");
+            //WriteParents(gameObject);
             //CreateCanvas();
 
         }
@@ -516,41 +516,41 @@ namespace BeatSync.UI
             }
         }
 
-        public void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                Height = Height + .1f;
-                Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //public void Update()
+        //{
+        //    if (Input.GetKeyDown(KeyCode.UpArrow))
+        //    {
+        //        Height = Height + .1f;
+        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
 
-            }
-            if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                Height = Height - .1f;
-                Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
-            }
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                HorizontalDegrees = HorizontalDegrees - 5;
-                Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
-            }
-            if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                HorizontalDegrees = HorizontalDegrees + 5;
-                Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
-            }
-            if (Input.GetKeyDown(KeyCode.PageUp))
-            {
-                Distance = Distance + .1f;
-                Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
-            }
-            if (Input.GetKeyDown(KeyCode.PageDown))
-            {
-                Distance = Distance - .1f;
-                Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
-            }
+        //    }
+        //    if (Input.GetKeyDown(KeyCode.DownArrow))
+        //    {
+        //        Height = Height - .1f;
+        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //    }
+        //    if (Input.GetKeyDown(KeyCode.LeftArrow))
+        //    {
+        //        HorizontalDegrees = HorizontalDegrees - 5;
+        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //    }
+        //    if (Input.GetKeyDown(KeyCode.RightArrow))
+        //    {
+        //        HorizontalDegrees = HorizontalDegrees + 5;
+        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //    }
+        //    if (Input.GetKeyDown(KeyCode.PageUp))
+        //    {
+        //        Distance = Distance + .1f;
+        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //    }
+        //    if (Input.GetKeyDown(KeyCode.PageDown))
+        //    {
+        //        Distance = Distance - .1f;
+        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //    }
 
-        }
+        //}
         #endregion
 
 
