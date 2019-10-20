@@ -35,12 +35,13 @@ namespace BeatSync.UI
             }
         }
         private int _next = 0;
+        private object _nextLock = new object();
         private int Next
         {
-            get 
+            get
             {
                 Next = _next; // Make sure Next isn't pointing to a pinned text.
-                return _next; 
+                return _next;
             }
             set
             {
@@ -60,7 +61,7 @@ namespace BeatSync.UI
             {
                 var last = Next - 1;
                 while (last < 0)
-                    last = last + NumTexts;
+                    last += NumTexts;
                 return last;
             }
         }
@@ -187,41 +188,23 @@ namespace BeatSync.UI
                 Logger.log?.Error("Unable to post text, PostTexts is null.");
                 return;
             }
-
-            //switch (Next)
-            //{
-            //    case 0:
-            //        text = text + "-";
-            //        break;
-            //    case 1:
-            //        text = text + "---";
-            //        break;
-            //    case 2:
-            //        text = text + "-----";
-            //        break;
-            //    case 3:
-            //        text = text + "-------";
-            //        break;
-            //    case 4:
-            //        text = text + "---------";
-            //        break;
-            //    default:
-            //        break;
-            //}
-            //HeaderText.DisplayedText = $"{gameObject.name}: Header ({text})";
-            //HeaderText.WriteThings();
-            PostTexts[Next].PostId = postId;
+            int textId = 0;
+            lock (_nextLock)
+            {
+                textId = Next;
+                Next++;
+                if (Next != 0)
+                {
+                    PostTexts[Next].Clear();
+                }
+            }
+            PostTexts[textId].PostId = postId;
             //if (PostTexts[Next].PostId == 0)
             //    Logger.log?.Error($"postId is 0 during TextMeshList.Post for {text}, this shouldn't happen");
-            PostTexts[Next].FontColor = color;
-            PostTexts[Next].DisplayedText = text;
+            PostTexts[textId].FontColor = color;
+            PostTexts[textId].DisplayedText = text;
 
             //FloatingTexts[Next].WriteThings();
-            Next++;
-            if (Next != 0)
-            {
-                PostTexts[Next].Clear();
-            }
         }
 
         private void Swap(int first, int second)
@@ -281,7 +264,6 @@ namespace BeatSync.UI
             //Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
             return true;
         }
-        private LinkedList<PostText> linked = new LinkedList<PostText>();
 
         public bool UnpinAndRemove(int postId)
         {
@@ -297,6 +279,11 @@ namespace BeatSync.UI
                 {
                     Swap(i, i + 1);
                 }
+            }
+            if (foundPost)
+            {
+                lock (_nextLock)
+                    Next -= 1;
             }
             return foundPost;
         }
@@ -316,7 +303,11 @@ namespace BeatSync.UI
                     Swap(i, i + 1);
                 }
             }
-            Next = Next - 1;
+            if (postRemoved)
+            {
+                lock (_nextLock)
+                    Next -= 1;
+            }
             return postRemoved;
         }
 
@@ -365,11 +356,14 @@ namespace BeatSync.UI
 
         public void Clear()
         {
-            foreach (var item in PostTexts)
+            lock (_nextLock)
             {
-                item.Clear();
+                foreach (var item in PostTexts)
+                {
+                    item.Clear();
+                }
+                Next = 0;
             }
-            Next = 0;
         }
 
         public void SetHeaderColor(FontColor color)
