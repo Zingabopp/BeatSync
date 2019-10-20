@@ -182,7 +182,7 @@ namespace BeatSync.UI
                         return true;
                 }
             }
-            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -206,7 +206,7 @@ namespace BeatSync.UI
             }
             //else
             //    Logger.log?.Debug($"Failed to append PostId {postId} at PostHistory.TryGetValue({postId})");
-            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -220,7 +220,7 @@ namespace BeatSync.UI
                         return true;
                 }
             }
-            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -234,7 +234,7 @@ namespace BeatSync.UI
                         return statusList.Pin(postId);
                 }
             }
-            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -248,7 +248,7 @@ namespace BeatSync.UI
                         return statusList.UnpinAndRemove(postId);
                 }
             }
-            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -331,7 +331,7 @@ namespace BeatSync.UI
                         successful = true;
                 }
             }
-            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return successful;
         }
 
