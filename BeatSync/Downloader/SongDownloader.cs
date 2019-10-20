@@ -396,7 +396,7 @@ namespace BeatSync.Downloader
                 SetStatus(readerName, "Finished Reading", UI.FontColor.White);
             }
             await Task.Delay(2000).ConfigureAwait(false); // Wait a bit before clearing.
-            FinishFeed(readerName, readerSongs.Values);
+            await FinishFeed(readerName, readerSongs.Values).ConfigureAwait(false);
             return readerSongs;
         }
 
@@ -613,7 +613,7 @@ namespace BeatSync.Downloader
                 SetStatus(readerName, "Finished Reading Feeds", UI.FontColor.White);
             }
             await Task.Delay(2000); // Wait a bit before clearing.
-            FinishFeed(readerName, readerSongs.Values);
+            await FinishFeed(readerName, readerSongs.Values).ConfigureAwait(false);
             return readerSongs;
         }
 
@@ -760,15 +760,16 @@ namespace BeatSync.Downloader
             {
                 SetStatus(readerName, "Finished Reading Feeds", UI.FontColor.White);
             }
-            await Task.Delay(2000); // Wait a bit before clearing.
-            FinishFeed(readerName, readerSongs.Values);
+            await Task.Delay(2000).ConfigureAwait(false); // Wait a bit before clearing.
+            await FinishFeed(readerName, readerSongs.Values).ConfigureAwait(false);
             return readerSongs;
         }
         #endregion
 
-        public void FinishFeed(string readerName, IEnumerable<ScrapedSong> readerSongs)
+        public async Task FinishFeed(string readerName, IEnumerable<ScrapedSong> readerSongs)
         {
             StatusManager.Clear(readerName);
+            await Task.Delay(100).ConfigureAwait(false);
             int songsPosted = 0;
             bool finished = false;
             Func<bool> finishedPosting = () => finished;
@@ -796,7 +797,6 @@ namespace BeatSync.Downloader
                 downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, CustomLevelsPath), out var postedJob);
                 if (postedJob != null)
                 {
-
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
                     new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
                 }
