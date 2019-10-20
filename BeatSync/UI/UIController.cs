@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using SongFeedReaders.Readers;
+using System.Collections.Concurrent;
 
 namespace BeatSync.UI
 {
@@ -28,7 +29,7 @@ namespace BeatSync.UI
             }
         }
 
-        private Dictionary<int, string> PostHistory = new Dictionary<int, string>();
+        private ConcurrentDictionary<int, string> PostHistory = new ConcurrentDictionary<int, string>();
 
         private IReadOnlyDictionary<string, TextMeshList> _readOnlyWrapper;
         public IReadOnlyDictionary<string, TextMeshList> StatusLists
@@ -145,8 +146,12 @@ namespace BeatSync.UI
                 Logger.log?.Error($"postId is 0 during Post, this shouldn't happen");
             if (StatusLists.TryGetValue(targetName, out var statusList))
             {
-                PostHistory.Add(postId, targetName);
+                if (!PostHistory.TryAdd(postId, targetName))
+                    Logger.log?.Warn($"postId {postId} for {targetName} couldn't be added.");
                 statusList.Post(postId, text, color);
+#if DEBUG
+                Logger.log?.Info($"Posting text {text} to {targetName}.{postId}");
+#endif
                 return postId;
             }
             return 0;
@@ -163,7 +168,7 @@ namespace BeatSync.UI
                         return text;
                 }
             }
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return null;
         }
 
@@ -177,7 +182,7 @@ namespace BeatSync.UI
                         return true;
                 }
             }
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -201,7 +206,7 @@ namespace BeatSync.UI
             }
             //else
             //    Logger.log?.Debug($"Failed to append PostId {postId} at PostHistory.TryGetValue({postId})");
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -215,7 +220,7 @@ namespace BeatSync.UI
                         return true;
                 }
             }
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -229,7 +234,7 @@ namespace BeatSync.UI
                         return statusList.Pin(postId);
                 }
             }
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -243,7 +248,7 @@ namespace BeatSync.UI
                         return statusList.UnpinAndRemove(postId);
                 }
             }
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
+            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
 
@@ -317,16 +322,17 @@ namespace BeatSync.UI
         /// <returns></returns>
         public bool RemovePost(int postId)
         {
+            bool successful = false;
             if (PostHistory.TryGetValue(postId, out string targetName))
             {
                 if (StatusLists.TryGetValue(targetName, out var statusList))
                 {
                     if (statusList.RemovePost(postId))
-                        return true;
+                        successful = true;
                 }
             }
-            PostHistory.Remove(postId); // Doesn't exist anymore, remove
-            return false;
+            PostHistory.Remove(postId, out var _); // Doesn't exist anymore, remove
+            return successful;
         }
 
         #region Overloads
