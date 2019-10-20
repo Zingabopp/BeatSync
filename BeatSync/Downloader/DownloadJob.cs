@@ -284,5 +284,14 @@ namespace BeatSync.Downloader
             }
             return result;
         }
+
+        public override string ToString()
+        {
+            string retStr = string.Empty;
+            if (!string.IsNullOrEmpty(SongKey))
+                retStr = $"({SongKey}) ";
+            retStr = retStr + $"{SongName} by {LevelAuthorName}";
+            return retStr;
+        }
     }
 }
