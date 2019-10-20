@@ -65,7 +65,9 @@ namespace BeatSync.Downloader
             if (StatusManagerReference.TryGetTarget(out var statusManager))
             {
                 PostId = statusManager.Post(ReaderName, $"-Downloading {job.SongName} by {job.LevelAuthorName}...");
-                //Logger.log?.Debug($"Received PostId {PostId} for {job.SongName} by {job.LevelAuthorName}");
+#if DEBUG
+                Logger.log?.Debug($"Received PostId {PostId} for {job.SongName} by {job.LevelAuthorName}");
+#endif
             }
         }
 
@@ -85,7 +87,13 @@ namespace BeatSync.Downloader
             {
                 if (successful)
                 {
-                    statusManager.AppendPost(PostId, "Done", FontColor.Green);
+                    bool postSuccessful = statusManager.AppendPost(PostId, "Done", FontColor.Green);
+#if DEBUG
+                    string name = string.Empty;
+                    if (JobReference.TryGetTarget(out var downloadJob))
+                        name = downloadJob.SongName;
+                    Logger.log?.Info($"   Attempt to update status for {name}, on {ReaderName}.{PostId}: {postSuccessful}");
+#endif
                 }
                 else
                 {
@@ -102,7 +110,13 @@ namespace BeatSync.Downloader
                         reason = "Extraction Failed";
                     }
                     stats.IncrementErroredDownloads();
-                    statusManager.AppendPost(PostId, reason, FontColor.Red);
+                    bool postSuccessful = statusManager.AppendPost(PostId, reason, FontColor.Red);
+#if DEBUG
+                    string name = string.Empty;
+                    if (JobReference.TryGetTarget(out var downloadJob))
+                        name = downloadJob.SongName;
+                    Logger.log?.Info($"   Attempt to update status for {name}, on {ReaderName}.{PostId}: {postSuccessful}");
+#endif
                 }
 
             }
@@ -112,7 +126,12 @@ namespace BeatSync.Downloader
             {
                 string errorText = string.Empty;
                 if (stats.ErroredDownloads > 0)
+                {
+#if DEBUG
+                    Logger.log?.Warn($"Errored Downloads in {ReaderName}: {stats.ErroredDownloads}");
+#endif
                     errorText = $" -- {stats.ErroredDownloads}{(stats.ErroredDownloads == 1 ? " download failed" : " downloads failed")}";
+                }
                 statusManager.SetSubHeader(ReaderName, $"{stats.FinishedDownloads}/{stats.TotalDownloads}{errorText}");
                 if (readerFinishedPosting.Invoke() && stats.FinishedDownloads == stats.TotalDownloads)
                 {
