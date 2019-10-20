@@ -225,12 +225,6 @@ namespace BeatSync.UI
             return offset;
         }
 
-        public void Clear()
-        {
-            DisplayedText = string.Empty;
-            FontColor = Color.white;
-        }
-
         public void Awake()
         {
             //Logger.log?.Info("FloatingText awake.");
@@ -255,13 +249,6 @@ namespace BeatSync.UI
         public void Start()
         {
             StartCoroutine(WaitForCanvas());
-        }
-
-        public IEnumerator<WaitForSeconds> ChangeText()
-        {
-            yield return new WaitForSeconds(5);
-            DisplayedText = "Changed! Changed! Changed! Changed! Changed! Changed!";
-            TextAlignmentOption = TextAlignmentOptions.Center;
         }
 
         public void WriteThings()

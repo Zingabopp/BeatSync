@@ -152,12 +152,13 @@ namespace BeatSync.UI
                 }
                 if (_displayedText != value)
                 {
-                    _displayedText = value;
+                    _displayedText = value ?? string.Empty;
+                    var newText = _displayedText;
                     HMMainThreadDispatcher.instance.Enqueue(() =>
                     {
                         if (_floatingText != null)
                         {
-                            _floatingText.DisplayedText = value;
+                            _floatingText.DisplayedText = newText;
                         }
                     });
                 }
