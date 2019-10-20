@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(NCrunch)' != '1'" >
-    <!--Condition="'$(Configuration)' == 'Release'">-->
-
     <ItemGroup>
       <InputAssemblies Include="$(OutputPath)BeatSync.dll" />
       <InputAssemblies Include="$(OutputPath)SongFeedReaders.dll" />
@@ -13,7 +11,6 @@
       <LibraryPaths Include="$(ProjectDir)\References\Libs" />
       <LibraryPaths Include="$(ProjectDir)\References\Plugins" />
     </ItemGroup>
-
     <ItemGroup>
       <!-- Must be a fully qualified name -->
       <!-- <DoNotInternalizeAssemblies Include="System.Threading.Tasks.Dataflow.dll" /> -->

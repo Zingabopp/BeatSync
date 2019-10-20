@@ -7,6 +7,7 @@ using BeatSync.Utilities;
 using System.Collections.Generic;
 using BeatSync.Playlists;
 using System.Linq;
+using BeatSyncTests.DownloadManager_Tests;
 
 namespace BeatSyncTests.SongDownloader_Tests
 {
@@ -42,15 +43,15 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void BeatSaverNotFound()
         {
-            Assert.Fail("Need to fix after refactor");
+            //Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "ASDFLKJACVOIAOSICJVLKXCVJ";
 
             var song = new PlaylistSong(testHash, "Missing ExpectedDiff", "fff1", "Other");
             downloader.HistoryManager.TryAdd(song, 0);
-            var testDownloadResult = new DownloadResult(song.Hash, DownloadResultStatus.NetFailed, 404);
+            var testDownloadResult = new DownloadResult(song.Hash, DownloadResultStatus.NetNotFound, 404);
             ZipExtractResult testZipResult = null;
-            var testJob = new JobResult()
+            var jobResult = new JobResult()
             {
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
@@ -58,6 +59,8 @@ namespace BeatSyncTests.SongDownloader_Tests
                 //Song = song,
                 SongDirectory = null
             };
+            var testJob = new MockDownloadJob(testHash, jobResult, false);
+            testJob.RunAsync().Wait();
             var recentPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
             recentPlaylist.TryAdd(song);
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
@@ -69,7 +72,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
             // Run test
-            //downloader.ProcessJob(testJob);
+            downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
             Assert.AreEqual(HistoryFlag.BeatSaverNotFound, entry.Flag);
             Assert.IsFalse(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
@@ -82,7 +85,6 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void DownloadFailed_IO()
         {
-            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "ASDFLKJACVOIAOSICJVLKXCVJ";
 
@@ -90,7 +92,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             downloader.HistoryManager.TryAdd(song, 0);
             var testDownloadResult = new DownloadResult(song.Hash, DownloadResultStatus.IOFailed, 200);
             ZipExtractResult testZipResult = null;
-            var testJob = new JobResult()
+            var jobResult = new JobResult()
             {
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
@@ -98,6 +100,8 @@ namespace BeatSyncTests.SongDownloader_Tests
                 //Song = song,
                 SongDirectory = null
             };
+            var testJob = new MockDownloadJob(testHash, jobResult, false);
+            testJob.RunAsync().Wait();
             var recentPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
             recentPlaylist.TryAdd(song);
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
@@ -109,8 +113,9 @@ namespace BeatSyncTests.SongDownloader_Tests
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
             // Run test
-            //downloader.ProcessJob(testJob);
-            Assert.IsFalse(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
+            downloader.ProcessJob(testJob);
+            Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
+            Assert.AreEqual(HistoryFlag.Error, entry.Flag);
             Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
         }
@@ -121,7 +126,6 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void Successful()
         {
-            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "A7SDF6A86SDF9ASDF";
             var song = new PlaylistSong(testHash, "Successful Song", "fff2", "Other");
@@ -138,7 +142,7 @@ namespace BeatSyncTests.SongDownloader_Tests
                 ResultStatus = ZipExtractResultStatus.Success,
                 SourceZip = "fff2.zip"
             };
-            var testJob = new JobResult()
+            var jobResult = new JobResult()
             {
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
@@ -146,6 +150,8 @@ namespace BeatSyncTests.SongDownloader_Tests
                 //Song = song,
                 SongDirectory = null
             };
+            var testJob = new MockDownloadJob(testHash, jobResult, false);
+            testJob.RunAsync().Wait();
             var recentPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
             recentPlaylist.TryAdd(song);
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
@@ -157,7 +163,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
             // Run test
-            //downloader.ProcessJob(testJob);
+            downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
             Assert.AreEqual(HistoryFlag.Downloaded, entry.Flag);
             Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
@@ -170,7 +176,6 @@ namespace BeatSyncTests.SongDownloader_Tests
         [TestMethod]
         public void ZipDestinationFailed()
         {
-            Assert.Fail("Need to fix after refactor");
             var downloader = GetDefaultDownloader();
             var testHash = "A7SDF6A86SDF9ASDF";
 
@@ -188,7 +193,7 @@ namespace BeatSyncTests.SongDownloader_Tests
                 ResultStatus = ZipExtractResultStatus.DestinationFailed,
                 SourceZip = "fff2.zip"
             };
-            var testJob = new JobResult()
+            var jobResult = new JobResult()
             {
                 DownloadResult = testDownloadResult,
                 ZipResult = testZipResult,
@@ -196,6 +201,8 @@ namespace BeatSyncTests.SongDownloader_Tests
                 //Song = song,
                 SongDirectory = null
             };
+            var testJob = new MockDownloadJob(testHash, jobResult, false);
+            testJob.RunAsync().Wait();
             var recentPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
             recentPlaylist.TryAdd(song);
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
@@ -207,8 +214,9 @@ namespace BeatSyncTests.SongDownloader_Tests
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
             // Run tests
-            //downloader.ProcessJob(testJob);
-            Assert.IsFalse(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
+            downloader.ProcessJob(testJob);
+            Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
+            Assert.AreEqual(HistoryFlag.Error, entry.Flag);
             Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
         }

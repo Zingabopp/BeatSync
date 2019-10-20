@@ -6,7 +6,7 @@ using BeatSync.Playlists;
 using System.IO;
 using System.Linq;
 
-namespace BeatSyncTests.Config_Tests.FavoriteMappers_Tests
+namespace BeatSyncTests.Config_Tests
 {
     [TestClass]
     public class ReadFromFile_Tests

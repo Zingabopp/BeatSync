@@ -133,6 +133,8 @@ namespace BeatSync
             yield return readWait;
             var downloadTask = Downloader.WaitDownloadCompletionAsync();
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
+            if(!downloadTask.IsCompleted)
+                Logger.log?.Info("Waiting for downloads to finish.");
             yield return downloadWait;
             PlaylistManager.WriteAllPlaylists();
             HistoryManager.TryWriteToFile();

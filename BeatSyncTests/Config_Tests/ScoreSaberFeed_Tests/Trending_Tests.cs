@@ -5,7 +5,7 @@ using SongFeedReaders;
 using BeatSync.Playlists;
 using System.Linq;
 
-namespace BeatSyncTests.Config_Tests.ScoreSaberFeed_Tests
+namespace BeatSyncTests.Config_Tests
 {
     [TestClass]
     public class Trending_Tests

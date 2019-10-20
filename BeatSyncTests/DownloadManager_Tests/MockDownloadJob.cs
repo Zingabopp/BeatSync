@@ -36,17 +36,20 @@ namespace BeatSyncTests.DownloadManager_Tests
 
         private JobResult _finalResult;
 
+        private bool UseDelays = true;
+
         public int MinDownloadTime = 50;
         public int MaxDownloadTime = 100;
         public int MinZipTime = 10;
         public int MaxZipTime = 20;
 
-        public MockDownloadJob(string songHash, JobResult finalResult)
+        public MockDownloadJob(string songHash, JobResult finalResult, bool useDelays = true)
         {
             SongHash = songHash;
             _finalResult = finalResult;
             Result = new JobResult() { SongHash = SongHash };
             Status = JobStatus.NotStarted;
+            UseDelays = useDelays;
         }
         public event EventHandler<JobStartedEventArgs> OnJobStarted;
         public event EventHandler<JobFinishedEventArgs> OnJobFinished;
@@ -56,14 +59,16 @@ namespace BeatSyncTests.DownloadManager_Tests
             Status = JobStatus.Downloading;
             int downloadTime = NumberGenerator.Next(MinDownloadTime, MaxDownloadTime);
             int extractTime = NumberGenerator.Next(MinZipTime, MaxZipTime);
-            await Task.Delay(downloadTime);
+            if(UseDelays)
+                await Task.Delay(downloadTime);
             if (Paused)
                 Console.WriteLine("We're 'Paused'");
             Result.DownloadResult = _finalResult.DownloadResult;
             if ((Result.DownloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.Success)
             { 
                 Status = JobStatus.Extracting;
-                await Task.Delay(extractTime);
+                if (UseDelays)
+                    await Task.Delay(extractTime);
                 Result.ZipResult = _finalResult.ZipResult;
                 SongDirectory = _finalResult.SongDirectory;
                 Status = JobStatus.Finished;

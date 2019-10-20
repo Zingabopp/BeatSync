@@ -49,29 +49,70 @@ namespace BeatSync.Downloader
                 //HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.Downloaded);
                 historyEntry.Flag = HistoryFlag.Downloaded;
                 RecentPlaylist?.TryAdd(playlistSong);
-
             }
             else if (job.Result.DownloadResult.Status != DownloadResultStatus.Success)
             {
-                if (job.Result.DownloadResult.HttpStatusCode == 404)
+                var result = job.Result.DownloadResult;
+                switch (result.Status)
                 {
-                    // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
-                    Logger.log?.Debug($"Setting 404 flag for {playlistSong.ToString()}");
-                    historyEntry.Flag = HistoryFlag.BeatSaverNotFound;
-                    //if (!HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.BeatSaverNotFound))
-                    //Logger.log?.Debug($"Failed to update flag for {playlistSong.ToString()}");
-                    PlaylistManager.RemoveSongFromAll(job.SongHash);
-                }
-                else
-                {
-                    // Download failed for some reason, remove from history so it tries again.
-                    historyEntry.Flag = HistoryFlag.Error;
-                    //HistoryManager.TryRemove(job.SongHash, out var _);
+                    case DownloadResultStatus.Unknown:
+                        Logger.log?.Warn($"Unknown error downloading {job.ToString()}: {result.Exception?.Message}");
+                        Logger.log?.Debug(result.Exception);
+                        historyEntry.Flag = HistoryFlag.Error;
+                        break;
+                    case DownloadResultStatus.NetFailed:
+                        if (result.HttpStatusCode == 429)
+                            Logger.log?.Warn($"Rate limit exceeded for {job.ToString()}");
+                        else
+                        {
+                            Logger.log?.Warn($"Web error downloading {job.ToString()}: {result.Exception?.Message}");
+                            Logger.log?.Debug(result.Exception);
+                        }
+                        // Download failed for some reason, remove from history so it tries again.
+                        historyEntry.Flag = HistoryFlag.Error;
+                        break;
+                    case DownloadResultStatus.IOFailed:
+                        Logger.log?.Warn($"IO error downloading {job.ToString()}: {result.Exception?.Message}");
+                        Logger.log?.Debug(result.Exception);
+                        historyEntry.Flag = HistoryFlag.Error;
+                        break;
+                    case DownloadResultStatus.InvalidRequest:
+                        Logger.log?.Warn($"Invalid URI provided for {job.ToString()}");
+                        historyEntry.Flag = HistoryFlag.Error;
+                        break;
+                    case DownloadResultStatus.NetNotFound:
+                        Logger.log?.Warn($"{job.ToString()} was deleted from BeatSaver.");
+                        //Logger.log?.Debug($"Setting 404 flag for {playlistSong.ToString()}");
+                        // Song isn't on Beat Saver anymore, keep it in history so it isn't attempted again.
+                        historyEntry.Flag = HistoryFlag.BeatSaverNotFound;
+                        PlaylistManager.RemoveSongFromAll(job.SongHash);
+                        break;
+                    default:
+                        Logger.log?.Warn($"Uncaught error downloading {job.ToString()}: {result.Exception?.Message}");
+                        Logger.log?.Debug(result.Exception);
+                        historyEntry.Flag = HistoryFlag.Error;
+                        break;
                 }
             }
             else if (job.Result.ZipResult?.ResultStatus != ZipExtractResultStatus.Success)
             {
+                var result = job.Result.ZipResult;
+                switch (result.ResultStatus)
+                {
+                    case ZipExtractResultStatus.Unknown:
+                        Logger.log?.Warn($"Unknown error extracting {job.ToString()}: {result.Exception?.Message}");
+                        break;
+                    case ZipExtractResultStatus.SourceFailed:
+                        Logger.log?.Warn($"Source error extracting {job.ToString()}: {result.Exception?.Message}");
+                        break;
+                    case ZipExtractResultStatus.DestinationFailed:
+                        Logger.log?.Warn($"Destination error extracting {job.ToString()}: {result.Exception?.Message}");
+                        break;
+                    default:
+                        break;
+                }
                 // Unzipping failed for some reason, remove from history so it tries again.
+                Logger.log?.Debug(result.Exception);
                 historyEntry.Flag = HistoryFlag.Error;
                 //HistoryManager.TryRemove(job.SongHash, out var _);
             }
@@ -92,11 +133,6 @@ namespace BeatSync.Downloader
                 jobs = DownloadManager.CompletedJobs.ToList();
                 foreach (var job in jobs)
                 {
-                    if (job.Exception != null)
-                    {
-                        Logger.log?.Warn($"Error in one of the DownloadJobs.\n{job.Exception.Message}");
-                        Logger.log?.Debug($"Error in one of the DownloadJobs.\n{job.Exception.StackTrace}");
-                    }
                     if (BeatSync.Paused)
                         await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
                     ProcessJob(job);
@@ -197,6 +233,7 @@ namespace BeatSync.Downloader
 
         }
 
+        #region Feed Read Functions
         public async Task<FeedResult> ReadFeed(IFeedReader reader, IFeedSettings settings, int postId, Playlist feedPlaylist, PlaylistStyle playlistStyle)
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
@@ -248,7 +285,6 @@ namespace BeatSync.Downloader
             return feedResult;
         }
 
-        #region Feed Read Functions
         public async Task<Dictionary<string, ScrapedSong>> ReadBeastSaber()
         {
             string readerName = string.Empty; // BeastSaberReader
@@ -764,8 +800,7 @@ namespace BeatSync.Downloader
             await FinishFeed(readerName, readerSongs.Values).ConfigureAwait(false);
             return readerSongs;
         }
-        #endregion
-
+        
         public async Task FinishFeed(string readerName, IEnumerable<ScrapedSong> readerSongs)
         {
             StatusManager.Clear(readerName);
@@ -785,6 +820,7 @@ namespace BeatSync.Downloader
             else
                 SetStatus(readerName, $"No new songs found");
         }
+        #endregion
 
         public bool PostJobToDownload(PlaylistSong playlistSong, string readerName, Func<bool> finishedPosting)
         {

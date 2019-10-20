@@ -58,7 +58,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config_Tests\FavoriteMappers_Tests\ReadFromFile_Tests.cs" />
-    <Compile Include="Config_Tests\FavoriteMappers_Tests\UnitTest1.cs" />
     <Compile Include="Config_Tests\ScoreSaberConfig_Tests.cs" />
     <Compile Include="Config_Tests\BeatSaverConfig_Tests.cs" />
     <Compile Include="Config_Tests\BeastSaberConfig_Tests.cs" />
@@ -69,6 +68,7 @@
     <Compile Include="Config_Tests\UnitTest1.cs" />
     <Compile Include="DownloadManager_Tests\PostJob_Tests.cs" />
     <Compile Include="DownloadManager_Tests\MockDownloadJob.cs" />
+    <Compile Include="FileIO_Tests\DownloadFileAsync_Tests.cs" />
     <Compile Include="FileLock_Tests\TryLock_Tests.cs" />
     <Compile Include="SongDownloader_Tests\ProcessJob_Tests.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
