@@ -210,6 +210,15 @@
   <ItemGroup>
     <Content Include="Icons\BeatSyncLogoBanner.png" />
     <Content Include="Icons\BeatSyncLogo.png" />
+    <Content Include="Icons\Playlists\BeastSaber\baseline_bookmarks_black_18dp.png" />
+    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberCurator.png" />
+    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberFollows.png" />
+    <Content Include="Icons\Playlists\BeastSaber\baseline_stars_black_18dp.png" />
+    <Content Include="Icons\Playlists\BeastSaber\baseline_visibility_black_18dp.png" />
+    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberBookmarks.png" />
+    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BeatSyncBSaber.png" />
+    <EmbeddedResource Include="Icons\Playlists\ScoreSaber\BeatSyncScoreSaber.png" />
+    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSyncBeatSaver.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icons\BeatSyncLogoSmall.png" />
