@@ -240,6 +240,7 @@ namespace BeatSync.Configs
             }
         }
         [JsonProperty(Order = -70)]
+        [JsonConverter(typeof(PlaylistStyleConverter))]
         public PlaylistStyle PlaylistStyle
         {
             get

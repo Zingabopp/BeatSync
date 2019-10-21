@@ -141,6 +141,7 @@
     <Compile Include="BeatSync.cs" />
     <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
     <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
+    <Compile Include="Configs\PlaylistStyleConverter.cs" />
     <Compile Include="Configs\StatusUiConfig.cs" />
     <Compile Include="Configs\SyncIntervalConfig.cs" />
     <Compile Include="Downloader\DownloadJob.cs" />
