@@ -23,6 +23,16 @@ namespace BeatSync.Playlists
             IsDirty = true;
         }
 
+        public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor, Lazy<string> imageLoader)
+        {
+            FileName = playlistFileName;
+            Title = playlistTitle;
+            Author = playlistAuthor;
+            ImageLoader = imageLoader;
+            Songs = new List<PlaylistSong>();
+            IsDirty = true;
+        }
+
         /// <summary>
         /// Adds a PlaylistSong to the list if a song with the same hash doesn't already exist.
         /// </summary>
@@ -163,7 +173,47 @@ namespace BeatSync.Playlists
         [JsonProperty("playlistAuthor", Order = -5)]
         public string Author { get; set; }
         [JsonProperty("image", Order = 10)]
-        public string Image { get; set; }
+        public string Image
+        {
+            get
+            {
+                string loadedImage = _image;
+                if (string.IsNullOrEmpty(_image) || _image == "1")
+                    loadedImage = ImageLoader?.Value ?? "1";
+                if (loadedImage != _image)
+                {
+                    _image = loadedImage;
+                    IsDirty = true;
+                }
+                return _image;
+            }
+            set
+            {
+                //if (_image == value)
+                //    return;
+                _image = value;
+                IsDirty = true;
+            }
+        }
+
+        [JsonIgnore]
+        private string _image;
+
+        [JsonIgnore]
+        private Lazy<string> _imageLoader;
+
+        [JsonIgnore]
+        public Lazy<string> ImageLoader
+        {
+            get { return _imageLoader; }
+            set
+            {
+                if (value == null || _imageLoader == value)
+                    return;
+                _imageLoader = value;
+                _image = string.Empty;
+            }
+        }
 
         [JsonProperty("songs")]
         public List<PlaylistSong> Songs

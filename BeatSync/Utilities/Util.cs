@@ -178,44 +178,52 @@ namespace BeatSync.Utilities
             }
         }
 
-        #region Sprite loading (From https://github.com/brian91292/BeatSaber-CustomUI/blob/master/Utilities/Utilities.cs)
-        public static Sprite LoadSpriteFromResources(string resourcePath, float PixelsPerUnit = 100.0f)
+        #region Image converting
+
+        public static string ImageToBase64(string imagePath)
         {
-            return LoadSpriteRaw(GetResource(Assembly.GetCallingAssembly(), resourcePath), PixelsPerUnit);
+            try
+            {
+                var resource = GetResource(Assembly.GetCallingAssembly(), imagePath);
+                if(resource.Length == 0)
+                {
+                    Logger.log?.Warn($"Unable to load image from path: {imagePath}");
+                    return "1";
+                }
+                return Convert.ToBase64String(resource);
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Warn($"Unable to load image from path: {imagePath}");
+                Logger.log?.Debug(ex);
+            }
+            return string.Empty;
         }
 
+        /// <summary>
+        /// Gets a resource and returns it as a byte array.
+        /// From https://github.com/brian91292/BeatSaber-CustomUI/blob/master/Utilities/Utilities.cs
+        /// </summary>
+        /// <param name="asm"></param>
+        /// <param name="ResourceName"></param>
+        /// <returns></returns>
         public static byte[] GetResource(Assembly asm, string ResourceName)
         {
-            System.IO.Stream stream = asm.GetManifestResourceStream(ResourceName);
-            byte[] data = new byte[stream.Length];
-            stream.Read(data, 0, (int)stream.Length);
-            return data;
-        }
-
-        public static Sprite LoadSpriteRaw(byte[] image, float PixelsPerUnit = 100.0f)
-        {
-            return LoadSpriteFromTexture(LoadTextureRaw(image), PixelsPerUnit);
-        }
-
-        public static Sprite LoadSpriteFromTexture(Texture2D SpriteTexture, float PixelsPerUnit = 100.0f)
-        {
-            if (SpriteTexture)
-                return Sprite.Create(SpriteTexture, new Rect(0, 0, SpriteTexture.width, SpriteTexture.height), new Vector2(0, 0), PixelsPerUnit);
-            return null;
-        }
-
-        public static Texture2D LoadTextureRaw(byte[] file)
-        {
-            if (file.Count() > 0)
+            try
             {
-                Texture2D Tex2D = new Texture2D(2, 2);
-                if (Tex2D.LoadImage(file))
-                    return Tex2D;
+                using (Stream stream = asm.GetManifestResourceStream(ResourceName))
+                {
+                    byte[] data = new byte[stream.Length];
+                    stream.Read(data, 0, (int)stream.Length);
+                    return data;
+                }
             }
-            return null;
+            catch (NullReferenceException)
+            {
+                Logger.log?.Debug($"Resource {ResourceName} was not found.");
+            }
+            return Array.Empty<byte>();
         }
-
-
         #endregion
     }
 }

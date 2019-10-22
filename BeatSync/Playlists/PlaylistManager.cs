@@ -23,23 +23,43 @@ namespace BeatSync.Playlists
         /// </summary>
         private static ConcurrentDictionary<string, Playlist> CustomPlaylists = new ConcurrentDictionary<string, Playlist>();
 
+
+        public static readonly ReadOnlyDictionary<BuiltInPlaylist, Lazy<string>> PlaylistImageLoaders = new ReadOnlyDictionary<BuiltInPlaylist, Lazy<string>>(new Dictionary<BuiltInPlaylist, Lazy<string>>()
+        {
+            {BuiltInPlaylist.BeatSyncAll, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.BeatSyncLogoSmall.png")) },
+            {BuiltInPlaylist.BeastSaberBookmarks, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeastSaber.BSaberBookmarks.png")) },
+            {BuiltInPlaylist.BeastSaberFollows, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeastSaber.BSaberFollows.png")) },
+            {BuiltInPlaylist.BeastSaberCurator, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeastSaber.BSaberCurator.png")) },
+            {BuiltInPlaylist.ScoreSaberTopRanked, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
+            {BuiltInPlaylist.ScoreSaberTrending, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
+            {BuiltInPlaylist.BeatSaverLatest, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
+            {BuiltInPlaylist.BeatSaverHot, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
+            {BuiltInPlaylist.BeatSaverPlays, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
+            {BuiltInPlaylist.BeatSaverDownloads, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
+            {BuiltInPlaylist.BeatSyncRecent, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.BeatSyncLogoSmall.png")) }
+        });
+
         public static readonly ReadOnlyDictionary<BuiltInPlaylist, Playlist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, Playlist>(new Dictionary<BuiltInPlaylist, Playlist>()
         {
-            {BuiltInPlaylist.BeatSyncAll, new Playlist("BeatSyncPlaylist.bplist", "BeatSync Playlist", "BeatSync", "1") },
-            {BuiltInPlaylist.BeastSaberBookmarks, new Playlist("BeatSyncBSaberBookmarks.bplist", "BeastSaber Bookmarks", "BeatSync", "1") },
-            {BuiltInPlaylist.BeastSaberFollows, new Playlist("BeatSyncBSaberFollows.bplist", "BeastSaber Follows", "BeatSync", "1") },
-            {BuiltInPlaylist.BeastSaberCurator, new Playlist("BeatSyncBSaberCuratorRecommended.bplist", "Curator Recommended", "BeatSync", "1") },
-            {BuiltInPlaylist.ScoreSaberTopRanked, new Playlist("BeatSyncScoreSaberTopRanked.bplist", "ScoreSaber Top Ranked", "BeatSync", "1") },
-            {BuiltInPlaylist.ScoreSaberLatestRanked, new Playlist("BeatSyncScoreSaberLatestRanked.bplist", "ScoreSaber Latest Ranked", "BeatSync", "1") },
-            {BuiltInPlaylist.ScoreSaberTopPlayed, new Playlist("BeatSyncScoreSaberTopPlayed.bplist", "ScoreSaber Top Played", "BeatSync", "1") },
-            {BuiltInPlaylist.ScoreSaberTrending, new Playlist("BeatSyncScoreSaberTrending.bplist", "ScoreSaber Trending", "BeatSync", "1") },
-            {BuiltInPlaylist.BeatSaverFavoriteMappers, new Playlist("BeatSyncFavoriteMappers.bplist", "Favorite Mappers", "BeatSync", "1") },
-            {BuiltInPlaylist.BeatSaverLatest, new Playlist("BeatSyncBeatSaverLatest.bplist", "BeatSaver Latest", "BeatSync", "1") },
-            {BuiltInPlaylist.BeatSaverHot, new Playlist("BeatSyncBeatSaverHot.bplist", "Beat Saver Hot", "BeatSync", "1") },
-            {BuiltInPlaylist.BeatSaverPlays, new Playlist("BeatSyncBeatSaverPlays.bplist", "Beat Saver Plays", "BeatSync", "1") },
-            {BuiltInPlaylist.BeatSaverDownloads, new Playlist("BeatSyncBeatSaverDownloads.bplist", "Beat Saver Downloads", "BeatSync", "1") },
-            {BuiltInPlaylist.BeatSyncRecent, new Playlist("BeatSyncRecent.bplist", "BeatSync Recent Songs", "BeatSync", "1") }
+            {BuiltInPlaylist.BeatSyncAll, new Playlist("BeatSyncPlaylist.bplist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
+            {BuiltInPlaylist.BeastSaberBookmarks, new Playlist("BeatSyncBSaberBookmarks.bplist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
+            {BuiltInPlaylist.BeastSaberFollows, new Playlist("BeatSyncBSaberFollows.bplist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
+            {BuiltInPlaylist.BeastSaberCurator, new Playlist("BeatSyncBSaberCuratorRecommended.bplist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
+            {BuiltInPlaylist.ScoreSaberTopRanked, new Playlist("BeatSyncScoreSaberTopRanked.bplist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, new Playlist("BeatSyncScoreSaberLatestRanked.bplist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, new Playlist("BeatSyncScoreSaberTopPlayed.bplist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
+            {BuiltInPlaylist.ScoreSaberTrending, new Playlist("BeatSyncScoreSaberTrending.bplist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, new Playlist("BeatSyncFavoriteMappers.bplist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
+            {BuiltInPlaylist.BeatSaverLatest, new Playlist("BeatSyncBeatSaverLatest.bplist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
+            {BuiltInPlaylist.BeatSaverHot, new Playlist("BeatSyncBeatSaverHot.bplist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
+            {BuiltInPlaylist.BeatSaverPlays, new Playlist("BeatSyncBeatSaverPlays.bplist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
+            {BuiltInPlaylist.BeatSaverDownloads, new Playlist("BeatSyncBeatSaverDownloads.bplist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
+            {BuiltInPlaylist.BeatSyncRecent, new Playlist("BeatSyncRecent.bplist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
         });
+
 
         public static Dictionary<int, Playlist> LegacyPlaylists = new Dictionary<int, Playlist>()
         {
@@ -125,6 +145,10 @@ namespace BeatSync.Playlists
                 {
                     playlist = FileIO.ReadPlaylist(path);
                     playlist.FileName = path;
+                    if (playlist.Image == "1")
+                    {
+                        playlist.ImageLoader = PlaylistImageLoaders[builtInPlaylist];
+                    }
                     Logger.log?.Debug($"Playlist loaded from file: {playlist.FileName} with {playlist.Songs?.Count ?? 0} songs.");
                 }
                 AvailablePlaylists.Add(builtInPlaylist, playlist);
@@ -144,12 +168,12 @@ namespace BeatSync.Playlists
             // Check if the playlist is one of the built in ones.
             foreach (var defaultPlaylist in DefaultPlaylists)
             {
-                if(defaultPlaylist.Value.FileName == playlistFileName)
+                if (defaultPlaylist.Value.FileName == playlistFileName)
                 {
                     playlist = GetPlaylist(defaultPlaylist.Key);
                 }
             }
-            
+
 
             // Check if this playlist exists in CustomPlaylists
             if (playlist == null && CustomPlaylists.ContainsKey(playlistFileName.ToLower()))
@@ -158,10 +182,10 @@ namespace BeatSync.Playlists
             }
 
             // Check if the playlistFileName exists
-            if(playlist == null)
+            if (playlist == null)
             {
                 var existingFile = FileIO.GetPlaylistFilePath(playlistFileName);
-                if(!string.IsNullOrEmpty(existingFile))
+                if (!string.IsNullOrEmpty(existingFile))
                 {
                     playlist = FileIO.ReadPlaylist(existingFile);
                     playlist.FileName = playlistFileName;
