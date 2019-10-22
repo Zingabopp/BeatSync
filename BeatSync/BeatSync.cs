@@ -133,15 +133,27 @@ namespace BeatSync
             var readTask = Downloader.RunReaders(CancelAllToken);
             var readWait = new WaitUntil(() => readTask.IsCompleted);
             yield return readWait;
-            var downloadTask = Downloader.WaitDownloadCompletionAsync();
+            var downloadTask = Downloader.WaitDownloadCompletionAsync(CancelAllToken);
             var downloadWait = new WaitUntil(() => downloadTask.IsCompleted);
-            if(!downloadTask.IsCompleted)
+            if (!downloadTask.IsCompleted)
                 Logger.log?.Info("Waiting for downloads to finish.");
             yield return downloadWait;
             PlaylistManager.WriteAllPlaylists();
             HistoryManager.TryWriteToFile();
-            int numDownloads = downloadTask.Result.Count;
-            Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
+            int numDownloads = 0;
+            try
+            {
+                numDownloads = downloadTask.Result.Count;
+                Logger.log?.Info($"BeatSync finished downloading songs, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
+            }
+            catch (TaskCanceledException ex)
+            {
+                if(ex.Task is Task<List<IDownloadJob>> downloads)
+                {
+                    numDownloads = downloads.Result.Count;
+                    Logger.log?.Info($"BeatSync was cancelled while downloading songs, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
+                }
+            }
             HistoryManager.TryWriteToFile();
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);
@@ -159,8 +171,8 @@ namespace BeatSync
             {
                 if (!SongHasher.ExistingSongs.ContainsKey(songHash))
                 {
-                    if (HistoryManager.TryGetValue(songHash, out var entry) && 
-                        (entry.Flag == HistoryFlag.Downloaded 
+                    if (HistoryManager.TryGetValue(songHash, out var entry) &&
+                        (entry.Flag == HistoryFlag.Downloaded
                         || entry.Flag == HistoryFlag.PreExisting
                         || entry.Flag == HistoryFlag.Missing))
                     {
@@ -190,7 +202,7 @@ namespace BeatSync
         }
 
 
-        
+
 
     }
 }

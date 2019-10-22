@@ -122,9 +122,12 @@ namespace BeatSync.Downloader
         /// <summary>
         /// Signals the DownloadManager to complete the remaining downloads, returns a List of the JobResults.
         /// </summary>
+        /// <exception cref="TaskCanceledException"></exception>
         /// <returns></returns>
-        public async Task<List<IDownloadJob>> WaitDownloadCompletionAsync()
+        public async Task<List<IDownloadJob>> WaitDownloadCompletionAsync(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return new List<IDownloadJob>();
             List<IDownloadJob> jobs = null;
             try
             {
@@ -135,7 +138,10 @@ namespace BeatSync.Downloader
                 foreach (var job in jobs)
                 {
                     if (BeatSync.Paused)
-                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500).ConfigureAwait(false);
+                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500, cancellationToken).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new TaskCanceledException(Task.FromResult(jobs));
+                    // TODO: Should probably just have ProcessJob be part of the Download job...
                     ProcessJob(job);
                 }
             }
