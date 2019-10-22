@@ -111,7 +111,7 @@ namespace BeatSync.Configs
 
         protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
 
-        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.ScoreSaberTrending;
+        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.ScoreSaberTopPlayed;
 
         protected bool DefaultRankedOnly => false;
         #endregion
