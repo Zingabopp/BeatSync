@@ -37,7 +37,7 @@ namespace BeatSyncTests.DownloadManager_Tests
             var manager = new DownloadManager(concurrentDownloads);
             var songsDir = Path.GetFullPath(@"Output\DownloadManager_Tests\PostJob_Tests");
             var jobs = GetDefaultJobs(songsDir, numJobs);
-            manager.Start();
+            manager.Start(CancellationToken.None);
             foreach (var job in jobs)
             {
                 job.OnJobFinished += OnJobFinished_Default;
@@ -72,7 +72,7 @@ namespace BeatSyncTests.DownloadManager_Tests
             var duplicateJobs = GetDefaultJobs(songsDir, numJobs);
             var originalJob = jobs.First();
             jobs.Insert(3, duplicateJobs.First());
-            manager.Start();
+            manager.Start(CancellationToken.None);
             foreach (var job in jobs)
             {
                 job.OnJobFinished += OnJobFinished_Default;
@@ -110,7 +110,7 @@ namespace BeatSyncTests.DownloadManager_Tests
                 Directory.Delete(songsDir, true);
             var song = new PlaylistSong("19f2879d11a91b51a5c090d63471c3e8d9b7aee3", "Believer", string.Empty, "rustic");
             var job = new DownloadJob(song, songsDir);
-            manager.Start();
+            manager.Start(CancellationToken.None);
             manager.TryPostJob(job, out var postedJob);
             manager.CompleteAsync().Wait();
             Assert.IsTrue(postedJob.Result.Successful);

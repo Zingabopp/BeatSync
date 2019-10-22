@@ -13,10 +13,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using BeatSync.Utilities;
 using IPALogger = IPA.Logging.Logger;
+using System.Threading;
 
 namespace BeatSync
 {
-    public class Plugin : IBeatSaberPlugin
+    public class Plugin : IBeatSaberPlugin, IDisablablePlugin
     {
         // From SongCore
         internal static readonly string CachedHashDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"..\LocalLow\Hyperbolic Magnetism\Beat Saber\SongHashData.dat");
@@ -30,13 +31,14 @@ namespace BeatSync
         internal static BeatSync BeatSyncController;
         internal static FileLock CustomLevelsLock = new FileLock(CustomLevelsPath);
         internal static FileLock PlaylistsLock = new FileLock(PlaylistsPath);
+        private static CancellationTokenSource CancelAllSource;
 
-        private bool customUIExists = false;
-        private bool beatSyncCreated = false;
+        private static bool customUIExists = false;
+        //private bool beatSyncCreated = false;
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
-            IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.All;
+            IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.InfoUp;
             Logger.log = new BeatSyncIPALogger(logger);
             Logger.log?.Debug("Logger initialied.");
             configProvider = cfgProvider;
@@ -66,40 +68,78 @@ namespace BeatSync
                 config = v;
                 StatusController?.UpdateSettings();
             });
+
+            // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
+            var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
+            SongFeedReaders.Readers.BeastSaberReader.Logger = readerLogger;
+            SongFeedReaders.Readers.BeatSaverReader.Logger = readerLogger;
+            SongFeedReaders.Readers.ScoreSaberReader.Logger = readerLogger;
+            SongFeedReaders.Utilities.Logger = readerLogger;
+            SongFeedReaders.WebUtils.Logger = readerLogger;
+            //SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;
         }
 
         public void OnApplicationStart()
         {
+
+
+        }
+
+
+        public void OnEnable()
+        {
+            if (CancelAllSource != null)
+            {
+                try
+                {
+                    CancelAllSource.Cancel();
+                    CancelAllSource.Dispose();
+                }
+                catch (Exception) { }
+            }
+            CancelAllSource = new CancellationTokenSource();
             var beatSyncVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Logger.log?.Debug($"BeatSync {beatSyncVersion} OnApplicationStart");
-            //SongFeedReaders.Util.Logger = new BeatSyncFeedReaderLogger();
+            Logger.log?.Debug($"BeatSync {beatSyncVersion} OnEnable");
             // Check if CustomUI is installed.
             try
             {
-                customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
+                if (!customUIExists)
+                    customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
                 // If Custom UI is installed, create the UI
                 if (customUIExists)
+                {
+                    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
                     CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+                }
                 // Called to set the WebClient SongFeedReaders uses
                 var userAgent = $"BeatSync/{beatSyncVersion}";
                 SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                 SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
                 SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
 
-                // TODO: Need to make this better, use a LoggerFactory, have the readers only auto-get a logger if null?
-                var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
-                SongFeedReaders.Readers.BeastSaberReader.Logger = readerLogger;
-                SongFeedReaders.Readers.BeatSaverReader.Logger = readerLogger;
-                SongFeedReaders.Readers.ScoreSaberReader.Logger = readerLogger;
-                SongFeedReaders.Utilities.Logger = readerLogger;
-                SongFeedReaders.WebUtils.Logger = readerLogger;
-                //SongFeedReaders.DataflowAlternative.TransformBlock.Logger = readerLogger;
+                BeatSync.Paused = false;
+                BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
+                BeatSyncController.CancelAllToken = CancelAllSource.Token;
+                StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
+                //beatSyncCreated = true;
+                GameObject.DontDestroyOnLoad(BeatSyncController);
+                GameObject.DontDestroyOnLoad(StatusController);
             }
             catch (Exception ex)
             {
                 Logger.log?.Error(ex);
             }
+        }
 
+        public void OnDisable()
+        {
+            CancelAllSource.Cancel();
+            CancelAllSource.Dispose();
+            CancelAllSource = null;
+            GameObject.Destroy(BeatSyncController);
+            GameObject.Destroy(StatusController);
+            BeatSyncController = null;
+            StatusController = null;
         }
 
         public void OnApplicationQuit()
@@ -117,12 +157,12 @@ namespace BeatSync
             Logger.log?.Debug($"OnActiveSceneChanged: {nextScene.name}");
             try
             {
+                /*
                 if (nextScene.name == "HealthWarning")
                 {
                     BeatSync.Paused = false;
                     BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
                     StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
-                    //testText.DisplayedText = "Testing";
                     beatSyncCreated = true;
                     GameObject.DontDestroyOnLoad(BeatSyncController);
                     GameObject.DontDestroyOnLoad(StatusController);
@@ -134,7 +174,7 @@ namespace BeatSync
                     beatSyncCreated = true;
                     GameObject.DontDestroyOnLoad(BeatSyncController);
                 }
-
+                */
                 if (nextScene.name == "GameCore")
                 {
                     BeatSync.Paused = true;
@@ -158,7 +198,7 @@ namespace BeatSync
         /// Called when BSEvents.menuSceneLoadedFresh is triggered. UI creation is in here instead of
         /// OnSceneLoaded because some settings won't work otherwise.
         /// </summary>
-        public void MenuLoadedFresh()
+        public static void MenuLoadedFresh()
         {
             try
             {
@@ -183,7 +223,7 @@ namespace BeatSync
             }
         }
 
-        private void SettingsMenu_didFinishEvent(SettingsFlowCoordinator sender, SettingsFlowCoordinator.FinishAction finishAction)
+        private static void SettingsMenu_didFinishEvent(SettingsFlowCoordinator sender, SettingsFlowCoordinator.FinishAction finishAction)
         {
             try
             {
@@ -287,5 +327,6 @@ namespace BeatSync
         {
 
         }
+
     }
 }

@@ -24,6 +24,7 @@ namespace BeatSync.Downloader
         private bool _acceptingJobs = false;
         private bool _running = false;
         private int _concurrentDownloads = 1;
+        private CancellationToken _externalCancellation;
         private CancellationTokenSource _cancellationSource;
         private Task[] _tasks;
 
@@ -47,13 +48,14 @@ namespace BeatSync.Downloader
             _tasks = new Task[ConcurrentDownloads];
         }
 
-        public void Start()
+        public void Start(CancellationToken cancellationToken)
         {
+            _externalCancellation = cancellationToken;
             if (_running)
                 return;
             _running = true;
             if (_cancellationSource == null || _cancellationSource.IsCancellationRequested)
-                _cancellationSource = new CancellationTokenSource();
+                _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(_externalCancellation);
             for (int i = 0; i < ConcurrentDownloads; i++)
             {
                 int taskId = i; // Apparently using 'i' directly for HandlerStartAsync doesn't work well...
@@ -66,6 +68,8 @@ namespace BeatSync.Downloader
             //_queuedJobs.CompleteAdding();
             _running = false;
             _cancellationSource.Cancel();
+            _cancellationSource.Dispose();
+            _cancellationSource = null;
         }
 
         public async Task StopAsync()
@@ -129,15 +133,13 @@ namespace BeatSync.Downloader
             }
         }
 
-        private async Task HandlerStartAsync(object cancellationToken, int taskId)
+        private async Task HandlerStartAsync(CancellationToken cancellationToken, int taskId)
         {
-            if (!(cancellationToken is CancellationToken token))
-                throw new ArgumentException("OnHandlerStart parameter must be a CancellationToken", nameof(cancellationToken));
             try
             {
-                foreach (var job in _queuedJobs.GetConsumingEnumerable(token))
+                foreach (var job in _queuedJobs.GetConsumingEnumerable(cancellationToken))
                 {
-                    await job.RunAsync().ConfigureAwait(false);
+                    await job.RunAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

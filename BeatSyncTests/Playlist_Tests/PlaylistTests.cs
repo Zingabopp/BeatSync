@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using BeatSync.Logging;
 using BeatSync;
+using System.Threading;
 
 namespace BeatSyncTests.Playlist_Tests
 {
@@ -33,6 +34,20 @@ namespace BeatSyncTests.Playlist_Tests
             {
                 
             }
+        }
+
+        [TestMethod]
+        public void CTSDispose()
+        {
+            CancellationTokenSource cts = new CancellationTokenSource();
+            var token = cts.Token;
+            cts.Cancel();
+            //cts.Dispose();
+            Assert.IsTrue(token.IsCancellationRequested);
+            var newCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            Assert.IsTrue(newCts.IsCancellationRequested);
+
+
         }
     }
 }

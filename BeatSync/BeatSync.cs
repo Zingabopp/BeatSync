@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using static BeatSync.Utilities.Util;
@@ -50,6 +51,7 @@ namespace BeatSync
         private SongDownloader Downloader;
         public SongHasher SongHasher;
         public HistoryManager HistoryManager;
+        public CancellationToken CancelAllToken { get; set; }
 
 
         public void Awake()
@@ -128,7 +130,7 @@ namespace BeatSync
         public IEnumerator<WaitUntil> ScrapeSongsCoroutine()
         {
             Logger.log?.Debug("Starting ScrapeSongsCoroutine");
-            var readTask = Downloader.RunReaders();
+            var readTask = Downloader.RunReaders(CancelAllToken);
             var readWait = new WaitUntil(() => readTask.IsCompleted);
             yield return readWait;
             var downloadTask = Downloader.WaitDownloadCompletionAsync();
@@ -139,14 +141,14 @@ namespace BeatSync
             PlaylistManager.WriteAllPlaylists();
             HistoryManager.TryWriteToFile();
             int numDownloads = downloadTask.Result.Count;
-            IsRunning = false;
             Logger.log?.Info($"BeatSync finished reading feeds, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
             HistoryManager.TryWriteToFile();
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();
+            IsRunning = false;
             StartCoroutine(UpdateLevelPacks());
-            Plugin.StatusController.TriggerFade();
+            Plugin.StatusController?.TriggerFade();
         }
 
         public async Task UpdateHistory()

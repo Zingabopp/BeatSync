@@ -8,6 +8,7 @@ using BeatSync.Downloader;
 using System.IO;
 using System.Reflection;
 using BeatSync.Utilities;
+using System.Threading;
 
 namespace BeatSyncTests.SongDownloader_Tests
 {
@@ -36,7 +37,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         public void SongDoesntExist()
         {
             var downloadManager = new DownloadManager(1);
-            downloadManager.Start();
+            downloadManager.Start(CancellationToken.None);
             var doesntExist = new PlaylistSong("196be1af64958d8b5375b328b0eafae2151d46f8", "Doesn't Exist", "ffff", "Who knows");
             var job = new DownloadJob(doesntExist, DefaultSongsPath);
             Assert.IsTrue(downloadManager.TryPostJob(job, out var postedJob));
@@ -53,7 +54,7 @@ namespace BeatSyncTests.SongDownloader_Tests
         public void SongDoesExist()
         {
             var downloadManager = new DownloadManager(1);
-            downloadManager.Start();
+            downloadManager.Start(CancellationToken.None);
             var existingSong = new PlaylistSong("d375405d047d6a2a4dd0f4d40d8da77554f1f677", "Does Exist", "5e20", "ejiejidayo");
             var job = new DownloadJob(existingSong, DefaultSongsPath);
             Assert.IsTrue(downloadManager.TryPostJob(job, out var postedJob));
