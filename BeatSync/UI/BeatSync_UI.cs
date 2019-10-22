@@ -216,7 +216,7 @@ namespace BeatSync.UI
 
         private static float[] GetFloatList(ListParameters p)
         {
-            Logger.log?.Warn($"FloatList: {p}");
+            //Logger.log?.Warn($"FloatList: {p}");
             return GetFloatList(p.Minimum, p.Maximum, p.Increment);
         }
         private static float[] GetFloatList(float min, float max, float increment)
