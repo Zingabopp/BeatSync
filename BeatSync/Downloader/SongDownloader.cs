@@ -822,23 +822,29 @@ namespace BeatSync.Downloader
         
         public async Task FinishFeed(string readerName, IEnumerable<ScrapedSong> readerSongs, CancellationToken cancellationToken)
         {
-            StatusManager.Clear(readerName);
-            await Task.Delay(100).ConfigureAwait(false);
-            int songsPosted = 0;
-            bool finished = false;
-            Func<bool> finishedPosting = () => finished;
-            foreach (var song in readerSongs)
+            if (readerSongs.Count() > 0)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-                if (PostJobToDownload(song, readerName, finishedPosting))
-                    songsPosted++;
+                StatusManager.Clear(readerName);
+                await Task.Delay(100).ConfigureAwait(false);
+                int songsPosted = 0;
+                bool finished = false;
+                Func<bool> finishedPosting = () => finished;
+                foreach (var song in readerSongs)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
+                    if (PostJobToDownload(song, readerName, finishedPosting))
+                        songsPosted++;
+                }
+                finished = true;
+                if (songsPosted > 0)
+                    SetStatus(readerName, $"Downloading {songsPosted} {(songsPosted == 1 ? "song" : "songs")}");
+                else
+                    SetStatus(readerName, $"No new songs found");
             }
-            finished = true;
-            if (songsPosted > 0)
-                SetStatus(readerName, $"Downloading {songsPosted} {(songsPosted == 1 ? "song" : "songs")}");
             else
                 SetStatus(readerName, $"No new songs found");
+
         }
         #endregion
 
