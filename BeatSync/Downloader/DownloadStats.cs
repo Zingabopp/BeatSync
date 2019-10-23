@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BeatSync.Downloader
 {
-    public class ReaderStats
+    public class DownloadStats
     {
         private object _totalLock = new object();
         private object _finishedLock = new object();

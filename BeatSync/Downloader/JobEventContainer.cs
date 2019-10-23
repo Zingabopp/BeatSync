@@ -11,7 +11,7 @@ namespace BeatSync.Downloader
 {
     public sealed class JobEventContainer
     {
-        public static ConcurrentDictionary<string, ReaderStats> DownloadTracker = new ConcurrentDictionary<string, ReaderStats>();
+        public static ConcurrentDictionary<string, DownloadStats> DownloadTracker = new ConcurrentDictionary<string, DownloadStats>();
         private string ReaderName;
         private WeakReference<IDownloadJob> JobReference;
         private int PostId;
@@ -22,7 +22,7 @@ namespace BeatSync.Downloader
         public JobEventContainer(IDownloadJob job, string readerName, IStatusManager statusManager, Func<bool> readerFinished)
         {
             readerFinishedPosting = readerFinished;
-            var stats = DownloadTracker.GetOrAdd(readerName, new ReaderStats());
+            var stats = DownloadTracker.GetOrAdd(readerName, new DownloadStats());
             stats.IncrementTotalDownloads();
             JobReference = new WeakReference<IDownloadJob>(job);
             ReaderName = readerName;
@@ -80,7 +80,7 @@ namespace BeatSync.Downloader
             finishedStatusUpdated = true;
             if (PostId == 0)
                 Logger.log?.Warn($"PostId during FinishedUpdateStatus is 0: {job.SongKey} {job.LevelAuthorName}");
-            var stats = DownloadTracker.GetOrAdd(ReaderName, new ReaderStats());
+            var stats = DownloadTracker.GetOrAdd(ReaderName, new DownloadStats());
             var haveStatusManager = StatusManagerReference.TryGetTarget(out var statusManager);
 
             if (haveStatusManager)
