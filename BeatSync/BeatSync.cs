@@ -81,8 +81,8 @@ namespace BeatSync
                 {
                     if (!recentPlaylist.TryWriteFile(out Exception ex))
                     {
-                        Logger.log.Warn($"Unable to write {recentPlaylist.FileName}: {ex.Message}");
-                        Logger.log.Debug(ex);
+                        Logger.log?.Warn($"Unable to write {recentPlaylist.FileName}: {ex.Message}");
+                        Logger.log?.Debug(ex);
                     }
                     else
                         Logger.log?.Info($"Removed {removedCount} old songs from the RecentPlaylist.");
@@ -96,7 +96,7 @@ namespace BeatSync
             if (Plugin.config.Value.LastRun + syncInterval <= nowTime)
             {
                 if (Plugin.config.Value.LastRun != DateTime.MinValue)
-                    Logger.log.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago");
+                    Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago");
                 SongHasher = new SongHasher(Plugin.CustomLevelsPath, Plugin.CachedHashDataPath);
                 HistoryManager = new HistoryManager(Path.Combine(Plugin.UserDataPath, "BeatSyncHistory.json"));
                 Task.Run(() => HistoryManager.Initialize());
@@ -108,7 +108,7 @@ namespace BeatSync
             }
             else
             {
-                Logger.log.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.config.Value.TimeBetweenSyncs}");
+                Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.config.Value.TimeBetweenSyncs}");
             }
         }
 
