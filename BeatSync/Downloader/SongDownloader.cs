@@ -229,7 +229,7 @@ namespace BeatSync.Downloader
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
             var feedName = reader.GetFeedName(settings);
-            var feedResult = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, FeedResultErrorLevel.Error);
+            var feedResult = await reader.GetSongsFromFeedAsync(settings).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, null, FeedResultErrorLevel.Error);
             if (feedResult.Count > 0 && playlistStyle == PlaylistStyle.Replace)
                 feedPlaylist.Clear();
             var addDate = DateTime.Now;
@@ -259,6 +259,7 @@ namespace BeatSync.Downloader
             feedPlaylist?.TryWriteFile();
             var pages = feedResult.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             string historyPostFix = string.Empty;
+            string appendText = string.Empty;
             if (skippedForHistory > 0)
             {
                 Logger.log?.Critical($"Skipped {skippedForHistory} songs in {reader.Name}.{feedName}");
@@ -272,12 +273,13 @@ namespace BeatSync.Downloader
             {
                 Logger.log?.Info($"{reader.Name}.{feedName} Feed: Found {feedResult.Count} songs from {pages} {(pages == 1 ? "page" : "pages")}.{historyPostFix}");
             }
-            if (feedResult.Exception == null)
-                StatusManager?.AppendPost(postId, $"{(feedResult.Count == 1 ? "1 song found" : $"{feedResult.Count} songs found")}.{historyPostFix}");
-            else
+            FontColor color = FontColor.None;
+            if (feedResult.ErrorLevel != FeedResultErrorLevel.Error)
+                appendText = $"{(feedResult.Count == 1 ? "1 song found" : $"{feedResult.Count} songs found")}.{historyPostFix}";
+            if(feedResult.ErrorLevel > FeedResultErrorLevel.None)
             {
                 string errorText = "Warning";
-                FontColor color = FontColor.Yellow;
+                color = FontColor.Yellow;
                 if (feedResult.Exception is FeedReaderException feedReaderException)
                 {
                     if (feedReaderException.FailureCode == FeedReaderFailureCode.SourceFailed)
@@ -291,10 +293,19 @@ namespace BeatSync.Downloader
                         color = FontColor.Red;
                     }
                 }
-
+                else
+                {
+                    if (feedResult.PageErrors.Length > 0)
+                        errorText = string.Join(", ", feedResult.PageErrors.Select(e => e.ErrorToString()));
+                    else
+                        errorText = "Unknown Error";
+                    if (feedResult.ErrorLevel == FeedResultErrorLevel.Error)
+                        color = FontColor.Red;
+                }
+                appendText = $"{appendText} ({errorText})";
                 StatusManager?.SetHeaderColor(reader.Name, FontColor.Yellow);
-                StatusManager?.AppendPost(postId, errorText, color);
             }
+            StatusManager?.AppendPost(postId, appendText, color);
             return feedResult;
         }
 
