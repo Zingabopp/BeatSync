@@ -34,7 +34,8 @@ namespace BeatSync.Downloader
         Downloading = 1,
         Extracting = 2,
         Finished = 3,
-        Canceled = 4
+        Canceled = 4,
+        Faulted = 5
     }
 
     public class JobStartedEventArgs : EventArgs

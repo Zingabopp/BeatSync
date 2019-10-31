@@ -154,6 +154,10 @@ namespace BeatSync
                     Logger.log?.Info($"BeatSync was cancelled while downloading songs, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
                 }
             }
+            catch(OperationCanceledException)
+            {
+                Logger.log?.Info($"BeatSync was cancelled while downloading songs.");
+            }
             HistoryManager.TryWriteToFile();
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);

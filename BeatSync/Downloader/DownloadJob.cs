@@ -122,6 +122,7 @@ namespace BeatSync.Downloader
         private ZipExtractResult zipResult;
         private string hashAfterDownload;
 
+        // TODO: This is horrendous
         public async Task RunAsync(CancellationToken cancellationToken)
         {
             Status = JobStatus.Downloading;
@@ -132,7 +133,7 @@ namespace BeatSync.Downloader
             {
                 if (string.IsNullOrEmpty(SongKey))
                 {
-                    var songDetail = await BeatSaverReader.GetSongByHashAsync(SongHash);
+                    var songDetail = await BeatSaverReader.GetSongByHashAsync(SongHash, cancellationToken);
                     SongKey = songDetail.SongKey;
                     _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
                 }
@@ -154,9 +155,13 @@ namespace BeatSync.Downloader
                 }
                 
                 // Download Zip
-                downloadResult = await DownloadSongAsync(SongTempPath).ConfigureAwait(false);
-
-                if ((downloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.Success)
+                downloadResult = await DownloadSongAsync(SongTempPath, cancellationToken).ConfigureAwait(false);
+                if (downloadResult.Status == DownloadResultStatus.Canceled)
+                {
+                    FinishJob(true);
+                    return;
+                }
+                else if ((downloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.Success)
                 {
                     // Extract Zip
                     if (cancellationToken.IsCancellationRequested)
@@ -219,9 +224,17 @@ namespace BeatSync.Downloader
                 else
                     Exception = downloadResult.Exception;
             }
+            catch(OperationCanceledException ex)
+            {
+                FinishJob(true, ex);
+                return;
+            }
             catch (Exception ex)
             {
+                Logger.log?.Warn($"Error in DownloadJob.RunAsync: {ex.Message}");
+                Logger.log?.Debug(ex.StackTrace);
                 FinishJob(false, ex);
+                return;
             }
             // Finish
             FinishJob();
@@ -230,10 +243,12 @@ namespace BeatSync.Downloader
 
         private void FinishJob(bool canceled = false, Exception exception = null)
         {
-            if (canceled)
+            if (canceled || exception is OperationCanceledException)
                 Status = JobStatus.Canceled;
             else
+            {
                 Status = JobStatus.Finished;
+            }
             if (exception != null)
                 Exception = exception;
             Result = new JobResult()
@@ -265,18 +280,22 @@ namespace BeatSync.Downloader
         /// <param name="song"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        public async Task<DownloadResult> DownloadSongAsync(string target)
+        public async Task<DownloadResult> DownloadSongAsync(string target, CancellationToken cancellationToken)
         {
             DownloadResult result = null;
             try
             {
                 var downloadUri = new Uri(BeatSaverDownloadUrlBase + SongHash.ToLower());
                 var downloadTarget = Path.Combine(target, SongKey ?? SongHash);
-                result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, true).ConfigureAwait(false);
+                result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, cancellationToken, true).ConfigureAwait(false);
+            }
+            catch(OperationCanceledException ex)
+            {
+                result = new DownloadResult(null, DownloadResultStatus.Canceled, 0, ex.Message, ex);
             }
             catch (Exception ex)
             {
-                Logger.log?.Error($"Error downloading song {SongKey ?? SongHash}.\n{ex.Message}");
+                Logger.log?.Error($"Uncaught error downloading song {SongKey ?? SongHash} in DownloadJob.DownloadSongAsync: \n{ex.Message}");
                 Logger.log?.Debug(ex);
                 // TODO: Be more specific
                 if (result == null)
@@ -291,6 +310,9 @@ namespace BeatSync.Downloader
             if (!string.IsNullOrEmpty(SongKey))
                 retStr = $"({SongKey}) ";
             retStr = retStr + $"{SongName} by {LevelAuthorName}";
+#if DEBUG
+            retStr = retStr + $"({Status.ToString()})";
+#endif
             return retStr;
         }
     }

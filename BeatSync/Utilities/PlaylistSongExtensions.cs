@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BeatSync.Downloader;
 using BeatSync.Playlists;
@@ -17,7 +18,7 @@ namespace BeatSync.Utilities
             if (string.IsNullOrEmpty(song?.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
                 return false;
 
-            var scrape = await BeatSaverReader.GetSongByHashAsync(song.Hash).ConfigureAwait(false);
+            var scrape = await BeatSaverReader.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
             if (scrape == null)
                 return false;
             song.Key = scrape.SongKey;

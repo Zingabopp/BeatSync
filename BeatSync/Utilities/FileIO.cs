@@ -33,7 +33,7 @@ namespace BeatSync.Utilities
                     bakFile.CopyTo(path, true);
                     bakFile.Delete();
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     Logger.log?.Warn($"Error recovering {bakFile.FullName}: {ex.Message}");
                     Logger.log?.Debug(ex.StackTrace);
@@ -164,7 +164,7 @@ namespace BeatSync.Utilities
         /// <param name="uri"></param>
         /// <param name="path"></param>
         /// <returns></returns> 
-        public static async Task<DownloadResult> DownloadFileAsync(Uri uri, string path, bool overwrite = true)
+        public static async Task<DownloadResult> DownloadFileAsync(Uri uri, string path, CancellationToken cancellationToken, bool overwrite = true)
         {
             string actualPath = path;
             int statusCode = 0;
@@ -174,7 +174,7 @@ namespace BeatSync.Utilities
                 return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
             {
-                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, 30, 2).ConfigureAwait(false))
+                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, cancellationToken, 30, 2).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
                     if (!(response?.IsSuccessStatusCode ?? false))
@@ -187,7 +187,7 @@ namespace BeatSync.Utilities
                     try
                     {
                         Directory.GetParent(path).Create();
-                        actualPath = await response.Content.ReadAsFileAsync(path, overwrite).ConfigureAwait(false);
+                        actualPath = await response.Content.ReadAsFileAsync(path, overwrite, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException ex)
                     {
@@ -199,11 +199,19 @@ namespace BeatSync.Utilities
                         // File already exists and overwrite is false.
                         return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
                     }
                 }
+            }
+            catch (OperationCanceledException ex)
+            {
+                return new DownloadResult(null, DownloadResultStatus.Canceled, 0, ex?.Message, ex);
             }
             catch (Exception ex)
             {
@@ -463,7 +471,8 @@ namespace BeatSync.Utilities
         NetFailed = 2,
         IOFailed = 3,
         InvalidRequest = 4,
-        NetNotFound = 5
+        NetNotFound = 5,
+        Canceled = 6
     }
 
     public class ZipExtractResult

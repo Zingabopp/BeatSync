@@ -1,5 +1,6 @@
 ﻿using BeatSync;
 using BeatSync.Logging;
+using SongFeedReaders.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace BeatSyncTests
         {
             if(Logger.log == null)
                 Logger.log = new BeatSyncConsoleLogger();
+            LoggingController.DefaultLogger = new BeatSyncFeedReaderLogger(LoggingController.DefaultLogController);
         }
     }
 }

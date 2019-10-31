@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.AccessControl;
 using static BeatSync.Utilities.FileIO;
 using System.Reflection;
+using System.Threading;
 
 namespace BeatSyncTests.FileIO_Tests
 {
@@ -34,7 +35,7 @@ namespace BeatSyncTests.FileIO_Tests
             string key = "d0b7";
             Uri uri = new Uri(DownloadUrlPrefix + hash);
             string downloadPath = Path.Combine(DownloadPath, "NotFound", key);
-            DownloadResult result = DownloadFileAsync(uri, downloadPath, true).Result;
+            DownloadResult result = DownloadFileAsync(uri, downloadPath, CancellationToken.None, true).Result;
             Assert.AreEqual(DownloadResultStatus.NetNotFound, result.Status);
         }
 

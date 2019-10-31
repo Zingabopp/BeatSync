@@ -142,6 +142,10 @@ namespace BeatSync.Downloader
                     await job.RunAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
+            catch(OperationCanceledException)
+            {
+                Logger.log?.Warn($"DownloadManager task {taskId} canceled.");
+            }
             catch (Exception ex)
             {
                 Logger.log?.Warn($"Exception in DownloadManager task {taskId}:{ex.Message}");
