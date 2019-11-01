@@ -18,7 +18,7 @@ namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
-        private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
+        private static readonly string SongTempPath = DownloadJob.SongTempPath;
         private readonly string CustomLevelsPath;
         private PluginConfig Config;
         private Playlist RecentPlaylist;
@@ -53,7 +53,9 @@ namespace BeatSync.Downloader
             }
             else if(job.Status == JobStatus.Canceled)
             {
-
+                Logger.log?.Warn($"Download canceled for {job.ToString()}");
+                if (!HistoryManager.TryRemove(job.SongHash, out var _) && historyEntry != null)
+                    historyEntry.Flag = HistoryFlag.Error;
             }
             else if (job.Result.DownloadResult.Status != DownloadResultStatus.Success)
             {
@@ -145,16 +147,16 @@ namespace BeatSync.Downloader
                 await DownloadManager.CompleteAsync().ConfigureAwait(false);
                 Logger.log?.Debug($"All downloads should be complete.");
                 jobs = DownloadManager.CompletedJobs.ToList();
-                foreach (var job in jobs)
-                {
-                    if (BeatSync.Paused)
-                        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500, cancellationToken).ConfigureAwait(false);
-                    if (cancellationToken.IsCancellationRequested)
-                        throw new TaskCanceledException(Task.FromResult(processedJobs));
-                    // TODO: Should probably just have ProcessJob be part of the Download job...
-                    ProcessJob(job);
-                    processedJobs.Add(job);
-                }
+                //foreach (var job in jobs)
+                //{
+                //    if (BeatSync.Paused)
+                //        await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500, cancellationToken).ConfigureAwait(false);
+                //    if (cancellationToken.IsCancellationRequested)
+                //        throw new TaskCanceledException(Task.FromResult(processedJobs));
+                //    // TODO: Should probably just have ProcessJob be part of the Download job...
+                //    ProcessJob(job);
+                //    processedJobs.Add(job);
+                //}
             }
             catch (Exception ex)
             {
@@ -163,12 +165,6 @@ namespace BeatSync.Downloader
                 Logger.log?.Error($"Error processing downloads:\n {ex.Message}");
                 Logger.log?.Debug($"Error processing downloads:\n {ex.StackTrace}");
             }
-            try
-            {
-                if (Directory.Exists(SongTempPath))
-                    Directory.Delete(SongTempPath, true);
-            }
-            catch (Exception) { }
             return processedJobs;
         }
 

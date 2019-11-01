@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SongFeedReaders;
+using WebUtilities;
 
 namespace BeatSync.Downloader
 {
@@ -95,11 +96,24 @@ namespace BeatSync.Downloader
         public async Task CompleteAsync()
         {
             Complete();
+            //if (cancellationToken.IsCancellationRequested)
+            //{
+            //    _running = false;
+            //    return;
+            //}
             try
             {
                 if(_running)
                     await SongFeedReaders.Utilities.WaitUntil(() => _queuedJobs.Count == 0);
-                await Task.WhenAll(_tasks).ConfigureAwait(false);
+                //if (cancellationToken.CanBeCanceled)
+                //{
+                //    var cancelTask = cancellationToken.AsTask();
+                //    await Task.WhenAny(Task.WhenAll(_tasks), cancelTask).ConfigureAwait(false);
+                //}
+                //else
+                //{
+                    await Task.WhenAll(_tasks).ConfigureAwait(false);
+                //}
             }
             catch (Exception) { }
             _running = false;

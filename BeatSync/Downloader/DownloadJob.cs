@@ -15,7 +15,7 @@ namespace BeatSync.Downloader
 {
     public class DownloadJob : IDownloadJob
     {
-        private static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
+        public static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
         private readonly string CustomLevelsPath;
         private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         public Exception Exception { get; private set; }

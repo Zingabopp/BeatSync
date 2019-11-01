@@ -130,7 +130,8 @@ namespace BeatSync
             CancelAllSource.Cancel();
             CancelAllSource.Dispose();
             CancelAllSource = null;
-            GameObject.Destroy(BeatSyncController);
+            Logger.log?.Critical($"Disabling BeatSync...");
+            SharedCoroutineStarter.instance.StartCoroutine(BeatSyncController.DestroyAfterFinishing());
             GameObject.Destroy(StatusController);
             BeatSyncController = null;
             StatusController = null;

@@ -32,12 +32,13 @@ namespace BeatSyncTests.DownloadManager_Tests
         [TestMethod]
         public void PostJob_Normal()
         {
+            CancellationToken cancellationToken = CancellationToken.None;
             int concurrentDownloads = 3;
             int numJobs = 10;
             var manager = new DownloadManager(concurrentDownloads);
             var songsDir = Path.GetFullPath(@"Output\DownloadManager_Tests\PostJob_Tests");
             var jobs = GetDefaultJobs(songsDir, numJobs);
-            manager.Start(CancellationToken.None);
+            manager.Start(cancellationToken);
             foreach (var job in jobs)
             {
                 job.OnJobFinished += OnJobFinished_Default;
@@ -64,6 +65,7 @@ namespace BeatSyncTests.DownloadManager_Tests
         [TestMethod]
         public void PostJob_Duplicate()
         {
+            CancellationToken cancellationToken = CancellationToken.None;
             int concurrentDownloads = 3;
             int numJobs = 10;
             var manager = new DownloadManager(concurrentDownloads);
@@ -72,7 +74,7 @@ namespace BeatSyncTests.DownloadManager_Tests
             var duplicateJobs = GetDefaultJobs(songsDir, numJobs);
             var originalJob = jobs.First();
             jobs.Insert(3, duplicateJobs.First());
-            manager.Start(CancellationToken.None);
+            manager.Start(cancellationToken);
             foreach (var job in jobs)
             {
                 job.OnJobFinished += OnJobFinished_Default;
@@ -103,6 +105,7 @@ namespace BeatSyncTests.DownloadManager_Tests
         [TestMethod]
         public void PostJob_Actual()
         {
+            CancellationToken cancellationToken = CancellationToken.None;
             int concurrentDownloads = 3;
             var manager = new DownloadManager(concurrentDownloads);
             var songsDir = Path.GetFullPath(@"Output\DownloadManager_Tests\PostJob_Actual_Test");
@@ -110,7 +113,7 @@ namespace BeatSyncTests.DownloadManager_Tests
                 Directory.Delete(songsDir, true);
             var song = new PlaylistSong("19f2879d11a91b51a5c090d63471c3e8d9b7aee3", "Believer", string.Empty, "rustic");
             var job = new DownloadJob(song, songsDir);
-            manager.Start(CancellationToken.None);
+            manager.Start(cancellationToken);
             manager.TryPostJob(job, out var postedJob);
             manager.CompleteAsync().Wait();
             Assert.IsTrue(postedJob.Result.Successful);

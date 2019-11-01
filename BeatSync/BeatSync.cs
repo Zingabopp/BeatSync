@@ -48,21 +48,29 @@ namespace BeatSync
         }
 
         private static WaitUntil WaitForUnPause = new WaitUntil(() => !Paused);
+        private bool _destroying;
         private SongDownloader Downloader;
         public SongHasher SongHasher;
         public HistoryManager HistoryManager;
         public CancellationToken CancelAllToken { get; set; }
-
 
         public void Awake()
         {
             //Logger.log?.Debug("BeatSync Awake()");
             if (Instance != null)
             {
-                Logger.log?.Debug("BeatSync component already exists, destroying this one.");
-                GameObject.DestroyImmediate(this);
+                if (!Instance._destroying)
+                {
+                    Logger.log?.Debug("BeatSync component already exists, destroying this one.");
+                    GameObject.DestroyImmediate(this);
+                }
+                else
+                    Logger.log?.Warn($"Creating a new BeatSync controller before the old finished destroying itself.");
             }
             Instance = this;
+            _destroying = false;
+            var instances = GameObject.FindObjectsOfType<BeatSync>().ToList();
+            Logger.log?.Critical($"Number of controllers: {instances.Count}");
             //FinishedHashing += OnHashingFinished;
         }
 
@@ -148,13 +156,13 @@ namespace BeatSync
             }
             catch (TaskCanceledException ex)
             {
-                if(ex.Task is Task<List<IDownloadJob>> downloads)
+                if (ex.Task is Task<List<IDownloadJob>> downloads)
                 {
                     numDownloads = downloads.Result.Count;
                     Logger.log?.Info($"BeatSync was cancelled while downloading songs, downloaded {(numDownloads == 1 ? "1 song" : numDownloads + " songs")}.");
                 }
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 Logger.log?.Info($"BeatSync was cancelled while downloading songs.");
             }
@@ -162,9 +170,16 @@ namespace BeatSync
             Plugin.config.Value.LastRun = DateTime.Now;
             Plugin.configProvider.Store(Plugin.config.Value);
             Plugin.config.Value.ResetFlags();
-            IsRunning = false;
             StartCoroutine(UpdateLevelPacks());
             Plugin.StatusController?.TriggerFade();
+            Logger.log?.Info("BeatSync finished.");
+            try
+            {
+                if (Directory.Exists(DownloadJob.SongTempPath))
+                    Directory.Delete(DownloadJob.SongTempPath, true);
+            }
+            catch (Exception) { }
+            IsRunning = false;
         }
 
         public async Task UpdateHistory()
@@ -205,9 +220,15 @@ namespace BeatSync
             SongCore.Loader.Instance?.RefreshSongs(true);
         }
 
-
-
-
+        public IEnumerator<WaitUntil> DestroyAfterFinishing()
+        {
+            _destroying = true;
+            Instance = null;
+            Logger.log?.Debug($"Waiting for BeatSyncController to finish.");
+            yield return new WaitUntil(() => IsRunning == false);
+            Logger.log?.Debug($"Destroying BeatSyncController"); 
+            GameObject.Destroy(this);
+        }
     }
 }
 
