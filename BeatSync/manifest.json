@@ -2,10 +2,10 @@
   "$schema": "https://raw.githubusercontent.com/nike4613/ModSaber-MetadataFileSchema/master/Schema.json",
   "author": "Zingabopp",
   "description": "Automatically finds and downloads maps for Beat Saber.",
-  "gameVersion": "1.4.0",
+  "gameVersion": "1.4.2",
   "id": "BeatSync",
   "name": "BeatSync",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "icon": "BeatSync.Icons.BeatSyncLogoSmall.png",
   "dependsOn": {
     "BSIPA": "^3.13.2",
