@@ -383,11 +383,9 @@
 
                     }
                     else
-                        badParse = true;
-                }
-                if (badParse)
-                {
-                    Log.LogError("Build", "BSMOD03", "", assemblyFile, 0, 0, 0, 0, "Unable to parse the AssemblyFileVersion from {0}", assemblyFile);
+                    {
+                        Log.LogError("Build", "BSMOD03", "", assemblyFile, 0, 0, 0, 0, "Unable to parse the AssemblyFileVersion from {0}", assemblyFile);
+                    }
                 }
                 return true;
             }
