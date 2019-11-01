@@ -91,7 +91,7 @@
     <Compile Include="SongHasher_Tests\AddMissingHashes_Tests.cs" />
     <Compile Include="SongHasher_Tests\LoadCachedSongHashesAsync_Test.cs" />
     <Compile Include="TestSetup.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="BuildTaskTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>

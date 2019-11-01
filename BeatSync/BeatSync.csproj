@@ -292,12 +292,20 @@
       <Using Namespace="Newtonsoft.Json.Linq" />
       <Using Namespace="System.Text.RegularExpressions" />
       <Code Type="Fragment" Language="cs"><![CDATA[
-try
+            try
             {
-                string manifestFile = @"manifest.json";
-                string assemblyFile = @"Properties\AssemblyInfo.cs";
-                var assemblyVersionRegex = new Regex(@"^\[assembly: AssemblyVersion\(\""?(.*)\""\)\]",
-                    RegexOptions.Multiline | RegexOptions.Compiled);
+                string manifestFile = "manifest.json";
+                string assemblyFile = "Properties\\AssemblyInfo.cs";
+                string startString = "[assembly: AssemblyVersion(\"";
+                string secondStartString = "[assembly: AssemblyFileVersion(\"";
+                string assemblyFileVersion = null;
+                string firstLineStr = null;
+                string endLineStr = null;
+                bool badParse = false;
+                int startLine = 1;
+                int endLine = 0;
+                int startColumn = 0;
+                int endColumn = 0;
                 if (!File.Exists(manifestFile))
                 {
                     throw new FileNotFoundException("Could not find manifest: " + Path.GetFullPath(manifestFile));
@@ -318,15 +326,69 @@ try
                     GameVersion = string.IsNullOrEmpty(gameVersion) ? "E.R.R" : gameVersion;
                 }
 
-                var assemblyText = File.ReadAllText(assemblyFile);
-                AssemblyVersion = assemblyVersionRegex.Match(assemblyText).Groups[1].Value ?? "0.0.0";
-                if (AssemblyVersion != PluginVersion)
+                string line;
+                using (StreamReader assemblyStream = new StreamReader(assemblyFile))
                 {
-				            Log.LogError("Build", "BSMOD01", "", assemblyFile, 35, 29, 35, 34, "PluginVersion {0} in manifest.json does not match AssemblyVersion {1} in AssemblyInfo.cs", PluginVersion, AssemblyVersion, assemblyFile);
-                    Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, AssemblyVersion);
+                    while ((line = assemblyStream.ReadLine()) != null)
+                    {
+                        if (line.Trim().StartsWith(startString))
+                        {
+                            firstLineStr = line;
+                            break;
+                        }
+                        startLine++;
+                        endLine = startLine + 1;
+                    }
+                    while ((line = assemblyStream.ReadLine()) != null)
+                    {
+                        if (line.Trim().StartsWith(secondStartString))
+                        {
+                            endLineStr = line;
+                            break;
+                        }
+                        endLine++;
+                    }
+                }
+                if (!string.IsNullOrEmpty(firstLineStr))
+                {
+                    startColumn = firstLineStr.IndexOf('"') + 1;
+                    endColumn = firstLineStr.LastIndexOf('"');
+                    if (startColumn > 0 && endColumn > 0)
+                        AssemblyVersion = firstLineStr.Substring(startColumn, endColumn - startColumn);
+                    else
+                        badParse = true;
+                }
+                else
+                    badParse = true;
+                if (badParse)
+                {
+                    Log.LogError("Build", "BSMOD03", "", assemblyFile, 0, 0, 0, 0, "Unable to parse the AssemblyVersion from {0}", assemblyFile);
+                    badParse = false;
                 }
 
+                if (AssemblyVersion != PluginVersion)
+                {
+                    Log.LogError("Build", "BSMOD01", "", assemblyFile, startLine, startColumn + 1, startLine, endColumn + 1, "PluginVersion {0} in manifest.json does not match AssemblyVersion {1} in AssemblyInfo.cs", PluginVersion, AssemblyVersion, assemblyFile);
+                    Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, AssemblyVersion);
+                }
+                if (!string.IsNullOrEmpty(endLineStr))
+                {
+                    startColumn = endLineStr.IndexOf('"') + 1;
+                    endColumn = endLineStr.LastIndexOf('"');
+                    if (startColumn > 0 && endColumn > 0)
+                    {
+                        assemblyFileVersion = endLineStr.Substring(startColumn, endColumn - startColumn);
+                        if (AssemblyVersion != assemblyFileVersion)
+                            Log.LogWarning("Build", "BSMOD02", "", assemblyFile, endLine, startColumn + 1, endLine, endColumn + 1, "AssemblyVersion {0} does not match AssemblyFileVersion {1} in AssemblyInfo.cs", AssemblyVersion, assemblyFileVersion);
 
+                    }
+                    else
+                        badParse = true;
+                }
+                if (badParse)
+                {
+                    Log.LogError("Build", "BSMOD03", "", assemblyFile, 0, 0, 0, 0, "Unable to parse the AssemblyFileVersion from {0}", assemblyFile);
+                }
                 return true;
             }
             catch (Exception ex)
