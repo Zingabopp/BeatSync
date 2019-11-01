@@ -13,12 +13,12 @@ namespace BeatSync.Playlists
         [JsonIgnore]
         public bool IsDirty { get; private set; }
         public Playlist() { }
-        public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor, string image)
+        public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor)//, string image)
         {
             FileName = playlistFileName;
             Title = playlistTitle;
             Author = playlistAuthor;
-            Image = image;
+            //Image = image;
             Songs = new List<PlaylistSong>();
             IsDirty = true;
         }
@@ -187,13 +187,13 @@ namespace BeatSync.Playlists
                 }
                 return _image;
             }
-            set
-            {
-                //if (_image == value)
-                //    return;
-                _image = value;
-                IsDirty = true;
-            }
+            //set
+            //{
+            //    //if (_image == value)
+            //    //    return;
+            //    //_image = value;
+            //    //IsDirty = true;
+            //}
         }
 
         [JsonIgnore]

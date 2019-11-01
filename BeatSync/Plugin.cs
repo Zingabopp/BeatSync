@@ -106,11 +106,13 @@ namespace BeatSync
                     CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
                 }
                 // Called to set the WebClient SongFeedReaders uses
-                var userAgent = $"BeatSync/{beatSyncVersion}";
-                SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
-                SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
-                SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
-
+                if (!SongFeedReaders.WebUtils.IsInitialized)
+                {
+                    var userAgent = $"BeatSync/{beatSyncVersion}";
+                    SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+                    SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
+                    SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
+                }
                 BeatSync.Paused = false;
                 BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
                 BeatSyncController.CancelAllToken = CancelAllSource.Token;
@@ -135,6 +137,9 @@ namespace BeatSync
             GameObject.Destroy(StatusController);
             BeatSyncController = null;
             StatusController = null;
+#if DEBUG
+            TestDestroyed();
+#endif
         }
 
         public void OnApplicationQuit()
@@ -269,7 +274,7 @@ namespace BeatSync
             }
         }
 
-        public IEnumerator<WaitForSeconds> TestDestroyed()
+        public static IEnumerator<WaitForSeconds> TestDestroyed()
         {
             yield return new WaitForSeconds(1);
             var notDestroyed = Resources.FindObjectsOfTypeAll<UI.TextMeshList>();

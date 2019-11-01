@@ -550,7 +550,7 @@ namespace BeatSync.Downloader
                         if (config.FavoriteMappers.CreatePlaylist && config.FavoriteMappers.SeparateMapperPlaylists)
                         {
                             var playlistFileName = $"{author}.bplist";
-                            feedPlaylist = PlaylistManager.GetOrAdd(playlistFileName, () => new Playlist(playlistFileName, author, "BeatSync", "1"));
+                            feedPlaylist = PlaylistManager.GetOrAdd(playlistFileName, () => new Playlist(playlistFileName, author, "BeatSync", PlaylistManager.PlaylistImageLoaders[BuiltInPlaylist.BeatSaverMapper]));
                         }
                         var authorSongs = await ReadFeed(reader, feedSettings, authorPosts[postIndex], feedPlaylist, playlistStyle, cancellationToken).ConfigureAwait(false);
                         postIndex++;

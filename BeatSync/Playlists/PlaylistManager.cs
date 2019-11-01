@@ -24,22 +24,28 @@ namespace BeatSync.Playlists
         private static ConcurrentDictionary<string, Playlist> CustomPlaylists = new ConcurrentDictionary<string, Playlist>();
 
 
+        public static Lazy<string> GetImageLoader(string resourcePath)
+        {
+            return new Lazy<string>(() => Util.ImageToBase64(resourcePath));
+        }
+
         public static readonly ReadOnlyDictionary<BuiltInPlaylist, Lazy<string>> PlaylistImageLoaders = new ReadOnlyDictionary<BuiltInPlaylist, Lazy<string>>(new Dictionary<BuiltInPlaylist, Lazy<string>>()
         {
-            {BuiltInPlaylist.BeatSyncAll, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.BeatSyncLogoSmall.png")) },
-            {BuiltInPlaylist.BeastSaberBookmarks, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeastSaber.BSaberBookmarks.png")) },
-            {BuiltInPlaylist.BeastSaberFollows, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeastSaber.BSaberFollows.png")) },
-            {BuiltInPlaylist.BeastSaberCurator, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeastSaber.BSaberCurator.png")) },
-            {BuiltInPlaylist.ScoreSaberTopRanked, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
-            {BuiltInPlaylist.ScoreSaberLatestRanked, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
-            {BuiltInPlaylist.ScoreSaberTopPlayed, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
-            {BuiltInPlaylist.ScoreSaberTrending, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.ScoreSaber.BeatSyncScoreSaber.png")) },
-            {BuiltInPlaylist.BeatSaverFavoriteMappers, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
-            {BuiltInPlaylist.BeatSaverLatest, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
-            {BuiltInPlaylist.BeatSaverHot, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
-            {BuiltInPlaylist.BeatSaverPlays, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
-            {BuiltInPlaylist.BeatSaverDownloads, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.Playlists.BeatSaver.BeatSyncBeatSaver.png")) },
-            {BuiltInPlaylist.BeatSyncRecent, new Lazy<string>(() => Util.ImageToBase64("BeatSync.Icons.BeatSyncLogoSmall.png")) }
+            {BuiltInPlaylist.BeatSyncAll, GetImageLoader("BeatSync.Icons.Playlists.BeatSync.BeatSyncAll.png") },
+            {BuiltInPlaylist.BeatSyncRecent, GetImageLoader("BeatSync.Icons.Playlists.BeatSync.BeatSyncRecent.png") },
+            {BuiltInPlaylist.BeastSaberBookmarks, GetImageLoader("BeatSync.Icons.Playlists.BeastSaber.BSaberBookmarks.png") },
+            {BuiltInPlaylist.BeastSaberFollows, GetImageLoader("BeatSync.Icons.Playlists.BeastSaber.BSaberFollows.png") },
+            {BuiltInPlaylist.BeastSaberCurator, GetImageLoader("BeatSync.Icons.Playlists.BeastSaber.BSaberCurator.png") },
+            {BuiltInPlaylist.ScoreSaberTopRanked, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberTopRanked.png") },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberLatestRanked.png") },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberTopPlayed.png") },
+            {BuiltInPlaylist.ScoreSaberTrending, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberTrending.png") },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverFavoriteMappers.png") },
+            {BuiltInPlaylist.BeatSaverLatest, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverLatest.png") },
+            {BuiltInPlaylist.BeatSaverHot, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverHot.png") },
+            {BuiltInPlaylist.BeatSaverPlays, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverPlays.png") },
+            {BuiltInPlaylist.BeatSaverDownloads, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverDownloads.png") },
+            {BuiltInPlaylist.BeatSaverMapper, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverMapper.png") }
         });
 
         public static readonly ReadOnlyDictionary<BuiltInPlaylist, Playlist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, Playlist>(new Dictionary<BuiltInPlaylist, Playlist>()
@@ -61,14 +67,14 @@ namespace BeatSync.Playlists
         });
 
 
-        public static Dictionary<int, Playlist> LegacyPlaylists = new Dictionary<int, Playlist>()
-        {
-            { 0, new Playlist("SyncSaberPlaylist.json", "SyncSaber Playlist", "SyncSaber", "1") },
-            { 1, new Playlist("SyncSaberBookmarksPlaylist.json", "BeastSaber Bookmarks", "brian91292", "1") },
-            { 2, new Playlist("SyncSaberFollowingsPlaylist.json", "BeastSaber Followings", "brian91292", "1") },
-            { 3, new Playlist("SyncSaberCuratorRecommendedPlaylist.json", "BeastSaber Curator Recommended", "brian91292", "1") },
-            { 4, new Playlist("ScoreSaberTopRanked.json", "ScoreSaber Top Ranked", "SyncSaber", "1") }
-        };
+        //public static Dictionary<int, Playlist> LegacyPlaylists = new Dictionary<int, Playlist>()
+        //{
+        //    { 0, new Playlist("SyncSaberPlaylist.json", "SyncSaber Playlist", "SyncSaber", "1") },
+        //    { 1, new Playlist("SyncSaberBookmarksPlaylist.json", "BeastSaber Bookmarks", "brian91292", "1") },
+        //    { 2, new Playlist("SyncSaberFollowingsPlaylist.json", "BeastSaber Followings", "brian91292", "1") },
+        //    { 3, new Playlist("SyncSaberCuratorRecommendedPlaylist.json", "BeastSaber Curator Recommended", "brian91292", "1") },
+        //    { 4, new Playlist("ScoreSaberTopRanked.json", "ScoreSaber Top Ranked", "SyncSaber", "1") }
+        //};
 
         /// <summary>
         /// Attempts to remove the song with the matching hash from all loaded playlists.
@@ -222,37 +228,37 @@ namespace BeatSync.Playlists
         }
 
 
-        public static void ConvertLegacyPlaylists()
-        {
-            foreach (var playlistPair in LegacyPlaylists)
-            {
-                var legPath = FileIO.GetPlaylistFilePath(playlistPair.Value.FileName);
-                var legPlaylist = FileIO.ReadPlaylist(playlistPair.Value);
-                var songCount = legPlaylist?.Songs.Count ?? 0;
-                if (songCount > 0)
-                {
-                    var newPlaylist = DefaultPlaylists.Values.ElementAt(playlistPair.Key);
-                    newPlaylist.Songs = newPlaylist.Songs.Union(legPlaylist.Songs).ToList();
-                    foreach (var song in newPlaylist.Songs)
-                    {
-                        song.AddPlaylist(newPlaylist);
-                        //MasterList.AddOrUpdate(song.Hash, song, (hash, existingSong) =>
-                        //{
-                        //    existingSong.AddPlaylist(newPlaylist);
-                        //    return existingSong;
-                        //});
-                    }
-                    FileIO.WritePlaylist(DefaultPlaylists.Values.ElementAt(playlistPair.Key));
+        //public static void ConvertLegacyPlaylists()
+        //{
+        //    foreach (var playlistPair in LegacyPlaylists)
+        //    {
+        //        var legPath = FileIO.GetPlaylistFilePath(playlistPair.Value.FileName);
+        //        var legPlaylist = FileIO.ReadPlaylist(playlistPair.Value);
+        //        var songCount = legPlaylist?.Songs.Count ?? 0;
+        //        if (songCount > 0)
+        //        {
+        //            var newPlaylist = DefaultPlaylists.Values.ElementAt(playlistPair.Key);
+        //            newPlaylist.Songs = newPlaylist.Songs.Union(legPlaylist.Songs).ToList();
+        //            foreach (var song in newPlaylist.Songs)
+        //            {
+        //                song.AddPlaylist(newPlaylist);
+        //                //MasterList.AddOrUpdate(song.Hash, song, (hash, existingSong) =>
+        //                //{
+        //                //    existingSong.AddPlaylist(newPlaylist);
+        //                //    return existingSong;
+        //                //});
+        //            }
+        //            FileIO.WritePlaylist(DefaultPlaylists.Values.ElementAt(playlistPair.Key));
 
-                }
+        //        }
 
-                if (File.Exists(legPath))
-                {
-                    Directory.CreateDirectory(ConvertedPlaylistPath);
-                    File.Move(legPath, Path.Combine(ConvertedPlaylistPath, Path.GetFileName(legPath)));
-                }
-            }
-        }
+        //        if (File.Exists(legPath))
+        //        {
+        //            Directory.CreateDirectory(ConvertedPlaylistPath);
+        //            File.Move(legPath, Path.Combine(ConvertedPlaylistPath, Path.GetFileName(legPath)));
+        //        }
+        //    }
+        //}
     }
 
     public enum BuiltInPlaylist
@@ -270,6 +276,7 @@ namespace BeatSync.Playlists
         BeatSaverHot = 10,
         BeatSaverPlays = 11,
         BeatSaverDownloads = 12,
-        BeatSyncRecent = 13
+        BeatSaverMapper = 13,
+        BeatSyncRecent = 14
     }
 }

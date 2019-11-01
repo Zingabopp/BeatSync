@@ -57,9 +57,10 @@ namespace BeatSync
         public void Awake()
         {
             //Logger.log?.Debug("BeatSync Awake()");
-            if (Instance != null)
+            var previousInstance = Instance;
+            if (previousInstance != null)
             {
-                if (!Instance._destroying)
+                if (!previousInstance._destroying)
                 {
                     Logger.log?.Debug("BeatSync component already exists, destroying this one.");
                     GameObject.DestroyImmediate(this);
@@ -69,8 +70,10 @@ namespace BeatSync
             }
             Instance = this;
             _destroying = false;
+#if DEBUG
             var instances = GameObject.FindObjectsOfType<BeatSync>().ToList();
             Logger.log?.Critical($"Number of controllers: {instances.Count}");
+#endif
             //FinishedHashing += OnHashingFinished;
         }
 
@@ -203,7 +206,7 @@ namespace BeatSync
             HistoryManager.TryWriteToFile();
         }
 
-        public IEnumerator<WaitUntil> UpdateLevelPacks()
+        public static IEnumerator<WaitUntil> UpdateLevelPacks()
         {
             yield return WaitForUnPause;
             BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
