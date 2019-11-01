@@ -9,7 +9,7 @@
   "icon": "BeatSync.Icons.BeatSyncLogoSmall.png",
   "dependsOn": {
     "BSIPA": "^3.13.2",
-    "SongCore": "^2.2.1",
+    "SongCore": "^2.4.0",
     "CustomUI": "^1.6.0",
     "BeatSaverDownloader": "^4.4.0"
   },
