@@ -322,7 +322,7 @@ try
                 AssemblyVersion = assemblyVersionRegex.Match(assemblyText).Groups[1].Value ?? "0.0.0";
                 if (AssemblyVersion != PluginVersion)
                 {
-				  Log.LogError("PluginVersion {0} in manifest.json does not match AssemblyVersion {1} in AssemblyInfo.cs", PluginVersion, AssemblyVersion);
+				            Log.LogError("Build", "BSMOD01", "", assemblyFile, 35, 29, 35, 34, "PluginVersion {0} in manifest.json does not match AssemblyVersion {1} in AssemblyInfo.cs", PluginVersion, AssemblyVersion, assemblyFile);
                     Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, AssemblyVersion);
                 }
 
