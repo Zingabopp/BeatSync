@@ -3,9 +3,7 @@ using BeatSync.Playlists;
 using BeatSync.Utilities;
 using SongFeedReaders;
 using SongFeedReaders.Readers;
-using SongFeedReaders.DataflowAlternative;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +16,6 @@ namespace BeatSync.Downloader
 {
     public class SongDownloader
     {
-        private static readonly string SongTempPath = DownloadJob.SongTempPath;
         private readonly string CustomLevelsPath;
         private PluginConfig Config;
         private Playlist RecentPlaylist;

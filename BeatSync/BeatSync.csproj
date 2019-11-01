@@ -243,9 +243,9 @@
     <Content Include="Icons\Playlists\BeastSaber\baseline_stars_black_18dp.png" />
     <Content Include="Icons\Playlists\BeastSaber\baseline_visibility_black_18dp.png" />
     <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberBookmarks.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BeatSyncBSaber.png" />
-    <EmbeddedResource Include="Icons\Playlists\ScoreSaber\BeatSyncScoreSaber.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSyncBeatSaver.png" />
+    <Content Include="Icons\Playlists\BeastSaber\BeatSyncBSaber.png" />
+    <None Include="Icons\Playlists\ScoreSaber\BeatSyncScoreSaber.png" />
+    <None Include="Icons\Playlists\BeatSaver\BeatSyncBeatSaver.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icons\BeatSyncLogoSmall.png" />
