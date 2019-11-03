@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BeatSync.Downloader;
 using BeatSync.Playlists;
 using SongFeedReaders;
+using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Readers;
 
 namespace BeatSync.Utilities
@@ -18,10 +19,11 @@ namespace BeatSync.Utilities
             if (string.IsNullOrEmpty(song?.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
                 return false;
 
-            var scrape = await BeatSaverReader.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
-            if (scrape == null)
+            var result = await BeatSaverReader.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
+            var scrapedSong = result?.Songs?.FirstOrDefault();
+            if (scrapedSong == null)
                 return false;
-            song.Key = scrape.SongKey;
+            song.Key = scrapedSong.SongKey;
             return true;
         }
 

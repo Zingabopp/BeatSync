@@ -6,6 +6,9 @@ using BeatSync.Downloader;
 using BeatSync.Logging;
 using System.Threading;
 using SongFeedReaders.Readers;
+using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Readers.BeastSaber;
+using SongFeedReaders.Readers.ScoreSaber;
 using System.Reflection;
 using System.Linq;
 
@@ -88,7 +91,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             var result = resultTask.Result;
             Assert.IsNotNull(result);
             Assert.IsFalse(result.Successful);
-            Assert.AreEqual(FeedResultErrorLevel.Cancelled, result.ErrorLevel);
+            Assert.AreEqual(FeedResultError.Cancelled, result.ErrorCode);
         }
 
         [TestMethod]
@@ -110,7 +113,7 @@ namespace BeatSyncTests.SongDownloader_Tests
             var result = resultTask.Result;
             Assert.IsNotNull(result);
             Assert.IsFalse(result.Successful);
-            Assert.AreEqual(FeedResultErrorLevel.Cancelled, result.ErrorLevel);
+            Assert.AreEqual(FeedResultError.Cancelled, result.ErrorCode);
         }
     }
 }

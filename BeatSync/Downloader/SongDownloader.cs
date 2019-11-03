@@ -3,6 +3,9 @@ using BeatSync.Playlists;
 using BeatSync.Utilities;
 using SongFeedReaders;
 using SongFeedReaders.Readers;
+using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Readers.BeastSaber;
+using SongFeedReaders.Readers.ScoreSaber;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -235,7 +238,7 @@ namespace BeatSync.Downloader
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
             var feedName = reader.GetFeedName(settings);
-            FeedResult feedResult = await reader.GetSongsFromFeedAsync(settings, cancellationToken).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, null, FeedResultErrorLevel.Error);
+            FeedResult feedResult = await reader.GetSongsFromFeedAsync(settings, cancellationToken).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, null, FeedResultError.Error);
             if (feedResult.Count > 0 && playlistStyle == PlaylistStyle.Replace)
                 feedPlaylist.Clear();
             var addDate = DateTime.Now;
@@ -289,9 +292,9 @@ namespace BeatSync.Downloader
                 }
             }
             FontColor color = FontColor.None;
-            if (feedResult.ErrorLevel != FeedResultErrorLevel.Error)
+            if (feedResult.ErrorCode != FeedResultError.Error)
                 appendText = $"{(feedResult.Count == 1 ? "1 song found" : $"{feedResult.Count} songs found")}.{historyPostFix}";
-            if(feedResult.ErrorLevel > FeedResultErrorLevel.None)
+            if(feedResult.ErrorCode > FeedResultError.None)
             {
                 string errorText = "Warning";
                 color = FontColor.Yellow;
@@ -313,11 +316,11 @@ namespace BeatSync.Downloader
                 }
                 else
                 {
-                    if (feedResult.PageErrors.Length > 0)
+                    if (feedResult.PageErrors.Count > 0)
                         errorText = string.Join(", ", feedResult.PageErrors.Select(e => e.ErrorToString()));
                     else
                         errorText = "Unknown Error";
-                    if (feedResult.ErrorLevel == FeedResultErrorLevel.Error)
+                    if (feedResult.ErrorCode == FeedResultError.Error)
                         color = FontColor.Red;
                 }
                 appendText = $"{appendText} ({errorText})";

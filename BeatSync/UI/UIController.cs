@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using SongFeedReaders.Readers;
+using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Readers.BeastSaber;
+using SongFeedReaders.Readers.ScoreSaber;
 using System.Collections.Concurrent;
 
 namespace BeatSync.UI

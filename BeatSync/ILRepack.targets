@@ -18,11 +18,11 @@
 
     <ILRepack
         Parallel="true"
-        Internalize="true"
+        Internalize="false"
         InternalizeExclude="@(DoNotInternalizeAssemblies)"
         InputAssemblies="@(InputAssemblies)"
         TargetKind="Dll"
-        OutputFile="$(OutputPath)$(AssemblyName)-merged.dll"
+        OutputFile="$(OutputPath)\Merged\$(AssemblyName).dll"
         Verbose="true"
         LibraryPath="@(LibraryPaths)"
         DebugInfo="true"

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BeatSync.Playlists;
 using SongFeedReaders.Readers;
+using SongFeedReaders.Readers.BeastSaber;
 
 namespace BeatSync.Configs
 {

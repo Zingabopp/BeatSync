@@ -1,6 +1,7 @@
 ﻿using BeatSync.Playlists;
 using Newtonsoft.Json;
 using SongFeedReaders.Readers;
+using SongFeedReaders.Readers.BeatSaver;
 using System;
 
 namespace BeatSync.Configs

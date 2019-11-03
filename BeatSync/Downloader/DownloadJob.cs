@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SongFeedReaders;
-using SongFeedReaders.Readers;
+using SongFeedReaders.Readers.BeatSaver;
 
 namespace BeatSync.Downloader
 {
@@ -133,8 +133,8 @@ namespace BeatSync.Downloader
             {
                 if (string.IsNullOrEmpty(SongKey))
                 {
-                    var songDetail = await BeatSaverReader.GetSongByHashAsync(SongHash, cancellationToken);
-                    SongKey = songDetail.SongKey;
+                    var result = await BeatSaverReader.GetSongByHashAsync(SongHash, cancellationToken).ConfigureAwait(false);
+                    SongKey = result?.Songs?.FirstOrDefault()?.SongKey;
                     _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
                 }
                 OnJobStarted?.Invoke(this, new JobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
