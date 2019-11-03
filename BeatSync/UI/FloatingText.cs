@@ -253,7 +253,6 @@ namespace BeatSync.UI
 
         public void WriteThings()
         {
-            return;
             _textMesh.ForceMeshUpdate();
             
             Logger.log?.Warn($"{gameObject.name} Text: {_displayedText}\n  TransformPos: {_textMesh.transform.position}\n  LocalPos: {_textMesh.transform.localPosition}\n  RT_anchored: {_textMesh.rectTransform.anchoredPosition}");

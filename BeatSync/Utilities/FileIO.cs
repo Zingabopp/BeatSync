@@ -387,7 +387,7 @@ namespace BeatSync.Utilities
                     {
                         Directory.Delete(createdDirectory, true);
                     }
-                    else
+                    else // TODO: What is this doing here...
                     {
                         foreach (var file in createdFiles)
                         {
@@ -398,6 +398,7 @@ namespace BeatSync.Utilities
                 catch (Exception cleanUpException)
                 {
                     // Failed at cleanup
+                    Logger.log?.Debug($"Failed to clean up zip file: {cleanUpException.Message}");
                 }
 
                 result.Exception = ex;

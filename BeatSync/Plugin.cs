@@ -212,7 +212,7 @@ namespace BeatSync
                     settingsMenu.didFinishEvent -= SettingsMenu_didFinishEvent;
                     settingsMenu.didFinishEvent += SettingsMenu_didFinishEvent;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
                 }

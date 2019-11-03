@@ -43,7 +43,7 @@ namespace BeatSyncTests.HistoryManager_Tests
         {
             var historyManager = new HistoryManager();
             string key = "LKSJDFLKJASDLFKJ";
-            string value = null;
+            //string value = null;
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.ContainsKey(key));
         }
 

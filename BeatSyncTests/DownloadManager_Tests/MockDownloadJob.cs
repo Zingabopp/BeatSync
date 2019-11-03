@@ -57,6 +57,7 @@ namespace BeatSyncTests.DownloadManager_Tests
         public async Task RunAsync(CancellationToken cancellationToken)
         {
             Status = JobStatus.Downloading;
+            OnJobStarted?.Invoke(this, new JobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
             int downloadTime = NumberGenerator.Next(MinDownloadTime, MaxDownloadTime);
             int extractTime = NumberGenerator.Next(MinZipTime, MaxZipTime);
             if(UseDelays)
