@@ -157,7 +157,7 @@ namespace BeatSync
             Logger.log?.Debug($"OnActiveSceneChanged: {nextScene.name}");
             try
             {
-                /*
+                /* Shouldn't need this anymore.
                 if (nextScene.name == "HealthWarning")
                 {
                     BeatSync.Paused = false;
@@ -223,6 +223,12 @@ namespace BeatSync
             }
         }
 
+        /// <summary>
+        /// Event handler for when the settings menu is exited (or 'Applied').
+        /// If the button pressed isn't 'Cancel', save BeatSync's settings to json.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="finishAction"></param>
         private static void SettingsMenu_didFinishEvent(SettingsFlowCoordinator sender, SettingsFlowCoordinator.FinishAction finishAction)
         {
             try
