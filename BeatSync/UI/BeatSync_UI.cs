@@ -43,13 +43,23 @@ namespace BeatSync.UI
         /// </summary>
         public static void CreateSettingsUI()
         {
-            ////This will create a menu tab in the settings menu for your plugin
-            var pluginSettingsSubmenu = SettingsUI.CreateSubMenu("BeatSync", true);
-            CreateBeatSyncSettingsUI(pluginSettingsSubmenu);
-            var sourceSettings = pluginSettingsSubmenu.AddSubMenu("Source Settings", "Settings to configure song sources.", true);
-            CreateSourceSettingsUI(sourceSettings);
-            var statusUiSettings = pluginSettingsSubmenu.AddSubMenu("Status UI Settings", "Settings to configure the in-game status display.", true);
-            CreateStatusUiSettings(statusUiSettings);
+            Logger.log?.Debug($"Creating settings UI.");
+            try
+            {
+                ////This will create a menu tab in the settings menu for your plugin
+                var pluginSettingsSubmenu = SettingsUI.CreateSubMenu("BeatSync", true);
+                CreateBeatSyncSettingsUI(pluginSettingsSubmenu);
+                var sourceSettings = pluginSettingsSubmenu.AddSubMenu("Source Settings", "Settings to configure song sources.", true);
+                CreateSourceSettingsUI(sourceSettings);
+                var statusUiSettings = pluginSettingsSubmenu.AddSubMenu("Status UI Settings", "Settings to configure the in-game status display.", true);
+                CreateStatusUiSettings(statusUiSettings);
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Error($"Error creating settings UI: {ex.Message}");
+                Logger.log?.Debug(ex);
+            }
+
         }
 
         public static void CreateBeatSyncSettingsUI(SubMenu parent)
@@ -63,8 +73,8 @@ namespace BeatSync.UI
                 if (Config.DownloadTimeout == value)
                     return;
                 Config.DownloadTimeout = value;
-            //Config.SetConfigChanged();
-        };
+                //Config.SetConfigChanged();
+            };
 
             var maxConcurrentDownloads = parent.AddInt("Max Concurrent Downloads",
                 "How many song downloads can happen at the same time.",
@@ -75,8 +85,8 @@ namespace BeatSync.UI
                 if (Config.MaxConcurrentDownloads == value)
                     return;
                 Config.MaxConcurrentDownloads = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var recentPlaylistDays = parent.AddInt("Recent Playlist Days",
                 "How long in days songs downloaded by BeatSync are kept in the BeatSync Recent playlist (0 to disable the playlist).",
@@ -87,8 +97,8 @@ namespace BeatSync.UI
                 if (Config.RecentPlaylistDays == value)
                     return;
                 Config.RecentPlaylistDays = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var allBeatSyncSongs = parent.AddBool("Enable All BeatSync Songs",
                 "Maintain a playlist that has all the songs downloaded by BeatSync.");
@@ -98,8 +108,8 @@ namespace BeatSync.UI
                 if (Config.AllBeatSyncSongsPlaylist == value)
                     return;
                 Config.AllBeatSyncSongsPlaylist = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var timeBetweenSyncs = parent.AddSubMenu("Time Between Syncs",
                 "Minimum amount of time between BeatSync syncs (Set both to 0 to run BeatSync every time the game is started).", true);
@@ -110,8 +120,8 @@ namespace BeatSync.UI
                 if (Config.TimeBetweenSyncs.Hours == value)
                     return;
                 Config.TimeBetweenSyncs.Hours = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var minutes = timeBetweenSyncs.AddInt("Minutes", "Number of minutes between BeatSync syncs.", 0, 59, 1);
             minutes.GetValue += delegate { return Config.TimeBetweenSyncs.Minutes; };
@@ -120,8 +130,8 @@ namespace BeatSync.UI
                 if (Config.TimeBetweenSyncs.Minutes == value)
                     return;
                 Config.TimeBetweenSyncs.Minutes = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
         }
 
         public static void CreateSourceSettingsUI(SubMenu parent)
@@ -247,8 +257,8 @@ namespace BeatSync.UI
                 if (sourceConfig.MaxConcurrentPageChecks == value)
                     return;
                 sourceConfig.MaxConcurrentPageChecks = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var username = parent.AddString("Username", "Your BeastSaber username. Required to use the Bookmarks and Follows feeds");
             username.GetValue += delegate { return sourceConfig.Username ?? ""; };
@@ -257,8 +267,8 @@ namespace BeatSync.UI
                 if (sourceConfig.Username == value)
                     return;
                 sourceConfig.Username = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var bookmarks = CreateFeedSettings("Bookmarks", sourceName, sourceConfig.Bookmarks, parent);
             var follows = CreateFeedSettings("Follows", sourceName, sourceConfig.Follows, parent);
@@ -279,8 +289,8 @@ namespace BeatSync.UI
                 if (sourceConfig.MaxConcurrentPageChecks == value)
                     return;
                 sourceConfig.MaxConcurrentPageChecks = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var favoriteMappers = CreateFeedSettings("Favorite Mappers", sourceName, sourceConfig.FavoriteMappers, parent, "Feed to get songs from mappers listed in UserData\\FavoriteMappers.ini. Max Songs is per mapper.");
             var separateMapperPlaylists = favoriteMappers.AddBool("Separate Mapper Playlists",
@@ -312,8 +322,8 @@ namespace BeatSync.UI
                 if (sourceConfig.Trending.RankedOnly == value)
                     return;
                 sourceConfig.Trending.RankedOnly = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
             var topPlayed = CreateFeedSettings("Top Played", sourceName, sourceConfig.TopPlayed, parent);
             var topPlayedRankedOnly = topPlayed.AddBool("Ranked Only",
                             $"Get only ranked songs from the Trending feed.");
@@ -323,8 +333,8 @@ namespace BeatSync.UI
                 if (sourceConfig.TopPlayed.RankedOnly == value)
                     return;
                 sourceConfig.TopPlayed.RankedOnly = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
         }
 
         public static void CreateSourceSettings(string sourceName, SubMenu parent, SourceConfigBase sourceConfig)
@@ -337,8 +347,8 @@ namespace BeatSync.UI
                 if (sourceConfig.Enabled == value)
                     return;
                 sourceConfig.Enabled = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
         }
 
@@ -355,8 +365,8 @@ namespace BeatSync.UI
                 if (feedConfig.Enabled == value)
                     return;
                 feedConfig.Enabled = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var maxSongs = feedSubMenu.AddInt("Max Songs",
                 "Maximum number of songs to download (0 for all).",
@@ -367,8 +377,8 @@ namespace BeatSync.UI
                 if (feedConfig.MaxSongs == value)
                     return;
                 feedConfig.MaxSongs = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             var createPlaylist = feedSubMenu.AddBool("Create Playlist",
                             $"Maintain a playlist for this feed.");
@@ -378,8 +388,8 @@ namespace BeatSync.UI
                 if (feedConfig.CreatePlaylist == value)
                     return;
                 feedConfig.CreatePlaylist = value;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
 
             string[] textSegmentOptions = new string[] { "Append", "Replace" };
             var textSegmentsExample = feedSubMenu.AddTextSegments("Playlist Style", "Select 'Append' to add new songs to playlist, 'Replace' to create a fresh playlist with songs read from the feed this session.", textSegmentOptions);
@@ -390,8 +400,8 @@ namespace BeatSync.UI
                 if (feedConfig.PlaylistStyle == newStyle)
                     return;
                 feedConfig.PlaylistStyle = newStyle;
-            // Config.ConfigChanged = true;
-        };
+                // Config.ConfigChanged = true;
+            };
             return feedSubMenu;
         }
 
