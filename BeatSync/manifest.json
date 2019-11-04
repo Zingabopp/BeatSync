@@ -5,7 +5,7 @@
   "gameVersion": "1.4.2",
   "id": "BeatSync",
   "name": "BeatSync",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "icon": "BeatSync.Icons.BeatSyncLogoSmall.png",
   "dependsOn": {
     "BSIPA": "^3.13.2",
