@@ -41,8 +41,6 @@ namespace BeatSync
         internal static FileLock CustomLevelsLock = new FileLock(CustomLevelsPath);
         internal static FileLock PlaylistsLock = new FileLock(PlaylistsPath);
         private static CancellationTokenSource CancelAllSource;
-
-        private static bool customUIExists = false;
         //private bool beatSyncCreated = false;
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
@@ -159,24 +157,6 @@ namespace BeatSync
             Logger.log?.Debug($"OnActiveSceneChanged: {nextScene.name}");
             try
             {
-                /* Shouldn't need this anymore.
-                if (nextScene.name == "HealthWarning")
-                {
-                    BeatSync.Paused = false;
-                    BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
-                    StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
-                    beatSyncCreated = true;
-                    GameObject.DontDestroyOnLoad(BeatSyncController);
-                    GameObject.DontDestroyOnLoad(StatusController);
-                }
-                if (!beatSyncCreated && nextScene.name == "MenuCore")
-                {
-                    BeatSync.Paused = false;
-                    BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
-                    beatSyncCreated = true;
-                    GameObject.DontDestroyOnLoad(BeatSyncController);
-                }
-                */
                 if (nextScene.name == "GameCore")
                 {
                     BeatSync.Paused = true;
@@ -196,6 +176,7 @@ namespace BeatSync
             }
         }
 
+        //private static bool customUIExists = false;
         /// <summary>
         /// Called when BSEvents.menuSceneLoadedFresh is triggered. UI creation is in here instead of
         /// OnSceneLoaded because some settings won't work otherwise.
@@ -204,14 +185,14 @@ namespace BeatSync
         {
             try
             {
-                if (!customUIExists)
-                    customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
-                // If Custom UI is installed, create the UI
-                if (!customUIExists)
-                {
-                    Logger.log?.Warn($"Couldn't find CustomUI, settings UI won't be created.");
-                    return;
-                }
+                //if (!customUIExists)
+                //    customUIExists = IPA.Loader.PluginManager.GetPluginFromId("Custom UI") != null;
+                //// If Custom UI is installed, create the UI
+                //if (!customUIExists)
+                //{
+                //    Logger.log?.Warn($"Couldn't find CustomUI, settings UI won't be created.");
+                //    return;
+                //}
 
                 Logger.log?.Debug("Creating BeatSync's UI");
                 UI.BeatSync_UI.CreateUI();
