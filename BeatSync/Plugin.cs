@@ -24,7 +24,16 @@ namespace BeatSync
         internal const string PlaylistsPath = "Playlists";
         internal const string CustomLevelsPath = @"Beat Saber_Data\CustomLevels";
         internal const string UserDataPath = "UserData";
-
+        private static string _version;
+        public static string PluginVersion
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_version))
+                    _version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                return _version;
+            }
+        }
         internal static Ref<PluginConfig> config;
         internal static IConfigProvider configProvider;
         internal static UI.UIController StatusController;
@@ -76,9 +85,8 @@ namespace BeatSync
         public void OnApplicationStart()
         {
 
-
         }
-
+        
 
         public void OnEnable()
         {
@@ -92,23 +100,17 @@ namespace BeatSync
                 catch (Exception) { }
             }
             CancelAllSource = new CancellationTokenSource();
-            var beatSyncVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            Logger.log?.Debug($"BeatSync {beatSyncVersion} OnEnable");
+            Logger.log?.Debug($"BeatSync {PluginVersion} OnEnable");
             // Check if CustomUI is installed.
             try
             {
-                if (!customUIExists)
-                    customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
-                // If Custom UI is installed, create the UI
-                if (customUIExists)
-                {
-                    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
-                    CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
-                }
+                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
+                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+
                 // Called to set the WebClient SongFeedReaders uses
                 if (!SongFeedReaders.WebUtils.IsInitialized)
                 {
-                    var userAgent = $"BeatSync/{beatSyncVersion}";
+                    var userAgent = $"BeatSync/{PluginVersion}";
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
                     SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
@@ -202,6 +204,15 @@ namespace BeatSync
         {
             try
             {
+                if (!customUIExists)
+                    customUIExists = IPA.Loader.PluginManager.AllPlugins.FirstOrDefault(c => c.Metadata.Name == "Custom UI") != null;
+                // If Custom UI is installed, create the UI
+                if (!customUIExists)
+                {
+                    Logger.log?.Warn($"Couldn't find CustomUI, settings UI won't be created.");
+                    return;
+                }
+
                 Logger.log?.Debug("Creating BeatSync's UI");
                 UI.BeatSync_UI.CreateUI();
                 config.Value.ResetConfigChanged();
