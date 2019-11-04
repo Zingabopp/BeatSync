@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WebUtilities;
 
 namespace BeatSync.Utilities
 {
@@ -163,6 +164,7 @@ namespace BeatSync.Utilities
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="path"></param>
+        /// <exception cref="OperationCanceledException"></exception>
         /// <returns></returns> 
         public static async Task<DownloadResult> DownloadFileAsync(Uri uri, string path, CancellationToken cancellationToken, bool overwrite = true)
         {
@@ -177,13 +179,7 @@ namespace BeatSync.Utilities
                 using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, cancellationToken, 30, 2).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
-                    if (!(response?.IsSuccessStatusCode ?? false))
-                    {
-                        DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
-                        if (statusCode == 404)
-                            downloadResultStatus = DownloadResultStatus.NetNotFound;
-                        return new DownloadResult(null, downloadResultStatus, statusCode, response.ReasonPhrase, response.Exception);
-                    }
+
                     try
                     {
                         Directory.GetParent(path).Create();
@@ -208,6 +204,14 @@ namespace BeatSync.Utilities
                         return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
                     }
                 }
+            }
+            catch (WebClientException ex)
+            {
+                var faultedCode = ex.Response?.StatusCode ?? 0;
+                DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
+                if (faultedCode == 404)
+                    downloadResultStatus = DownloadResultStatus.NetNotFound;
+                return new DownloadResult(null, downloadResultStatus, faultedCode, ex.Response?.ReasonPhrase, ex.Response?.Exception);
             }
             catch (OperationCanceledException ex)
             {
