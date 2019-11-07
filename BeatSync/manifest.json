@@ -5,13 +5,13 @@
   "gameVersion": "1.4.2",
   "id": "BeatSync",
   "name": "BeatSync",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "icon": "BeatSync.Icons.BeatSyncLogoSmall.png",
   "dependsOn": {
     "BSIPA": "^3.13.2",
-    "SongCore": "^2.4.0",
-    "CustomUI": "^1.6.0",
-    "BeatSaverDownloader": "^4.4.0"
+    "SongCore": "^2.4.1",
+    "CustomUI": "^1.7.1",
+    "BeatSaverDownloader": "^4.4.1"
   },
   "features": []
 }
