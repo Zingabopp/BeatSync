@@ -22,7 +22,7 @@
         InternalizeExclude="@(DoNotInternalizeAssemblies)"
         InputAssemblies="@(InputAssemblies)"
         TargetKind="Dll"
-        OutputFile="$(OutputPath)\Merged\$(AssemblyName).dll"
+        OutputFile="$(OutputPath)Merged\$(AssemblyName).dll"
         Verbose="true"
         LibraryPath="@(LibraryPaths)"
         DebugInfo="true"

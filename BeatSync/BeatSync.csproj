@@ -253,11 +253,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyToPlugins" AfterTargets="ILRepacker" Condition="'$(NCrunch)' != '1'">
     <Message Text="Copying $(OutputPath)$(AssemblyName).dll to Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)\Merged\$(AssemblyName).dll" DestinationFiles="$(ProjectDir)\References\Plugins\$(AssemblyName).dll" />
+    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).dll" DestinationFiles="$(ProjectDir)References\Plugins\$(AssemblyName).dll" />
   </Target>
   <Target Name="CopyPDBToPlugins" AfterTargets="CopyToPlugins" Condition="'$(NCrunch)' != '1'">
-    <Message Text="Copying $(OutputPath)\Merged\$(AssemblyName).pdb to Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)\Merged\$(AssemblyName).pdb" DestinationFiles="$(ProjectDir)\References\Plugins\$(AssemblyName).pdb" />
+    <Message Text="Copying $(OutputPath)Merged\$(AssemblyName).pdb to Plugins folder" Importance="high" />
+    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).pdb" DestinationFiles="$(ProjectDir)References\Plugins\$(AssemblyName).pdb" />
   </Target>
   <Target Name="ZipRelease" AfterTargets="ILRepacker" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
     <Message Text="Zipping plugin for release. $(AssemblyVersion)" Importance="high" />
@@ -271,7 +271,7 @@
       <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
     </BuildManifestInfo>
     <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
-    <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
+    <ZipDir ZipFileName="$(OutDir)zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" DirectoryName="$(IntermediateOutputPath)zip" />
   </Target>
   <UsingTask TaskName="BuildManifestInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
@@ -423,7 +423,7 @@
 		  
           if(File.Exists(ZipFileName))
             File.Delete(ZipFileName);
-          Log.LogMessage(string.Format("Zipping Directory {0} to {1}", DirectoryName, ZipFileName));
+          Log.LogMessage(MessageImportance.High, "Zipping Directory {0} to {1}", DirectoryName, ZipFileName);
           ZipFile.CreateFromDirectory( DirectoryName, ZipFileName );
           return true;
         }
@@ -447,7 +447,7 @@
             CommitShortHash = "local";
             try
             {
-				SolutionDir = Path.GetFullPath(SolutionDir);
+				        SolutionDir = Path.GetFullPath(SolutionDir);
                 Log.LogMessage(MessageImportance.High, "Solution Directory {0}", SolutionDir);
                 Process process = new Process();
                 string arg = "rev-parse HEAD";
@@ -458,7 +458,7 @@
                 process.Start();
                 var thing = process.StandardOutput.ReadToEnd();
                 CommitShortHash = thing.Substring(0, 7);
-				Log.LogMessage(MessageImportance.High, "ShortCommitHash: {0}", CommitShortHash);
+				        Log.LogMessage(MessageImportance.High, "ShortCommitHash: {0}", CommitShortHash);
                 return true;
             }
             catch (Exception ex)
