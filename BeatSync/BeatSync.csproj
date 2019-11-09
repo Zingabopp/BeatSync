@@ -259,17 +259,11 @@
     <Message Text="Copying $(OutputPath)\Merged\$(AssemblyName).pdb to Plugins folder" Importance="high" />
     <Copy SourceFiles="$(OutputPath)\Merged\$(AssemblyName).pdb" DestinationFiles="$(ProjectDir)\References\Plugins\$(AssemblyName).pdb" />
   </Target>
-  <!-- Source: Mostly from https://github.com/opl-/beatsaber-http-status -->
   <Target Name="ZipRelease" AfterTargets="ILRepacker" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
     <Message Text="Zipping plugin for release. $(AssemblyVersion)" Importance="high" />
-    <Exec Command="git rev-parse HEAD &gt; $(IntermediateOutputPath)head" />
-    <ReadLinesFromFile File="$(IntermediateOutputPath)head">
-      <Output TaskParameter="Lines" PropertyName="FullCommitHash" />
-    </ReadLinesFromFile>
-    <Delete Files="$(IntermediateOutputPath)head" />
-    <PropertyGroup>
-      <CommitHash>$(FullCommitHash.Substring(0, 8))</CommitHash>
-    </PropertyGroup>
+    <GetCommitHash SolutionDir="$(ProjectDir)..">
+      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
+    </GetCommitHash>
     <Copy SourceFiles="$(OutputPath)\Merged\$(AssemblyName).dll" DestinationFiles="$(IntermediateOutputPath)\zip\Plugins\$(AssemblyName).dll" />
     <BuildManifestInfo>
       <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
@@ -277,7 +271,7 @@
       <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
     </BuildManifestInfo>
     <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
-    <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
+    <ZipDir ZipFileName="$(OutDir)\zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" DirectoryName="$(IntermediateOutputPath)\zip" />
   </Target>
   <UsingTask TaskName="BuildManifestInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
@@ -439,6 +433,41 @@
           return false;
         }
       ]]></Code>
+    </Task>
+  </UsingTask>
+  <UsingTask TaskName="GetCommitHash" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <SolutionDir ParameterType="System.String" Required="true" />
+      <CommitShortHash ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Diagnostics" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            CommitShortHash = "local";
+            try
+            {
+				SolutionDir = Path.GetFullPath(SolutionDir);
+                Log.LogMessage(MessageImportance.High, "Solution Directory {0}", SolutionDir);
+                Process process = new Process();
+                string arg = "rev-parse HEAD";
+                process.StartInfo = new ProcessStartInfo("git", arg);
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.WorkingDirectory = SolutionDir;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.Start();
+                var thing = process.StandardOutput.ReadToEnd();
+                CommitShortHash = thing.Substring(0, 7);
+				Log.LogMessage(MessageImportance.High, "ShortCommitHash: {0}", CommitShortHash);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.LogErrorFromException(ex);
+                return false;
+            }
+      ]]>
+      </Code>
     </Task>
   </UsingTask>
   <PropertyGroup>

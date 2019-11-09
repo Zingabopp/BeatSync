@@ -4,9 +4,8 @@ using BeatSync;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
-using System.Threading;
+using System.Diagnostics;
 
 namespace BeatSyncTests
 {
@@ -18,12 +17,42 @@ namespace BeatSyncTests
         {
 
         }
+        private string ProjectDir = @"C:\Users\Jared\source\repos\BeatSync\BeatSync";
+        private string CommitShortHash;
+
+        [TestMethod]
+        public bool GetCommitHash()
+        {
+            CommitShortHash = "local";
+            try
+            {
+                Process process = new Process();
+                string arg = "rev-parse HEAD";
+                process.StartInfo = new ProcessStartInfo("git", arg);
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.WorkingDirectory = ProjectDir;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.Start();
+                var outText = process.StandardOutput.ReadToEnd();
+                if(outText.Length >= 7)
+                    CommitShortHash = outText.Substring(0, 7);
+                //return true;
+            }
+            catch (Exception ex)
+            {
+                Log.LogErrorFromException(ex);
+                return true;
+            }
+            Assert.AreEqual(7, CommitShortHash.Length);
+            Console.WriteLine($"CommitShortHash: {CommitShortHash}");
+            return true;
+        }
+
         private string PluginVersion;
         private string AssemblyVersion;
         private string GameVersion;
-
         [TestMethod]
-        public bool GetStuff()
+        public bool GetManifestInfo()
         {
             try
             {
