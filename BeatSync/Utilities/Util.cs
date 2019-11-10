@@ -61,6 +61,11 @@ namespace BeatSync.Utilities
                     sb.Append("1 day ");
                 else
                     sb.Append($"{(int)Math.Floor(timeSpan.TotalDays)} days ");
+            if (timeSpan.Hours > 0)
+                if (timeSpan.Hours == 1)
+                    sb.Append("1 hour ");
+                else
+                    sb.Append($"{timeSpan.Hours} hours ");
             if (timeSpan.Minutes > 0)
                 if (timeSpan.Minutes == 1)
                     sb.Append("1 min ");
