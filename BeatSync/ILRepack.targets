@@ -7,9 +7,9 @@
       <InputAssemblies Include="$(OutputPath)WebUtilities.dll" />
     </ItemGroup>
     <ItemGroup>
-      <LibraryPaths Include="$(ProjectDir)\References\Managed" />
-      <LibraryPaths Include="$(ProjectDir)\References\Libs" />
-      <LibraryPaths Include="$(ProjectDir)\References\Plugins" />
+      <LibraryPaths Include="$(BeatSaberDir)\Beat Saber_Data\Managed" />
+      <LibraryPaths Include="$(BeatSaberDir)\References\Libs" />
+      <LibraryPaths Include="$(BeatSaberDir)\References\Plugins" />
     </ItemGroup>
     <ItemGroup>
       <!-- Must be a fully qualified name -->
