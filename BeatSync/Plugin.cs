@@ -102,8 +102,8 @@ namespace BeatSync
             // Check if CustomUI is installed.
             try
             {
-                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
-                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
 
                 // Called to set the WebClient SongFeedReaders uses
                 if (!SongFeedReaders.WebUtils.IsInitialized)
@@ -133,6 +133,7 @@ namespace BeatSync
             CancelAllSource.Dispose();
             CancelAllSource = null;
             Logger.log?.Critical($"Disabling BeatSync...");
+            
             SharedCoroutineStarter.instance.StartCoroutine(BeatSyncController.DestroyAfterFinishing());
             GameObject.Destroy(StatusController);
             BeatSyncController = null;

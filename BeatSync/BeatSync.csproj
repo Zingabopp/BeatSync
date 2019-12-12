@@ -65,6 +65,22 @@
       <HintPath>$(BeatSaberDir)\Plugins\BeatSaverDownloader.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="BS_Utils, Version=1.3.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+      <HintPath>$(BeatSaberDir)\Plugins\BS_Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="HMLib">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="HMUI">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MainAssembly">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\MainAssembly.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="SemVer.1.2.0.0, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -103,10 +119,6 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="IPA.Loader">
@@ -258,7 +270,7 @@
   </Target>
   <Target Name="CopyPDBToPlugins" AfterTargets="CopyToPlugins" Condition="'$(NCrunch)' != '1'">
     <Message Text="Copying $(OutputPath)Merged\$(AssemblyName).pdb to Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).pdb" DestinationFiles="$(BeatSaberDir)\Plugins\$(AssemblyName).pdb" />
+    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).pdb" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).pdb" />
   </Target>
   <Target Name="ZipRelease" AfterTargets="ILRepacker" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
     <Message Text="Zipping plugin for release. $(AssemblyVersion)" Importance="high" />
