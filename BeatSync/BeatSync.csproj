@@ -293,16 +293,18 @@
       <AssemblyVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
-      <Reference Include="$(USERPROFILE)\.nuget\packages\newtonsoft.json\12.0.2\lib\netstandard1.3\Newtonsoft.Json.dll" />
       <Using Namespace="System.IO" />
-      <Using Namespace="Newtonsoft.Json" />
-      <Using Namespace="Newtonsoft.Json.Linq" />
       <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+              <![CDATA[
             try
             {
                 string manifestFile = "manifest.json";
                 string assemblyFile = "Properties\\AssemblyInfo.cs";
+                string manifest_gameVerStart = "\"gameVersion\"";
+                string manifest_versionStart = "\"version\"";
+                string manifest_gameVerLine = null;
+                string manifest_versionLine = null;
                 string startString = "[assembly: AssemblyVersion(\"";
                 string secondStartString = "[assembly: AssemblyFileVersion(\"";
                 string assemblyFileVersion = null;
@@ -321,19 +323,43 @@
                 {
                     throw new FileNotFoundException("Could not find AssemblyInfo: " + Path.GetFullPath(assemblyFile));
                 }
-                JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText(manifestFile));
-                if (manifestJson["version"] != null)
+                string line;
+                using (StreamReader manifestStream = new StreamReader(manifestFile))
                 {
-                    string version = manifestJson["version"].Value<string>();
-                    PluginVersion = string.IsNullOrEmpty(version) ? "E.R.R" : version;
+                    while ((line = manifestStream.ReadLine()) != null && (manifest_versionLine == null || manifest_gameVerLine == null))
+                    {
+                        line = line.Trim();
+                        if (line.StartsWith(manifest_gameVerStart))
+                        {
+                            manifest_gameVerLine = line;
+                        }
+                        else if (line.StartsWith(manifest_versionStart))
+                        {
+                            manifest_versionLine = line;
+                        }
+                    }
                 }
-                if (manifestJson["gameVersion"] != null)
+                if (!string.IsNullOrEmpty(manifest_versionLine))
                 {
-                    string gameVersion = manifestJson["gameVersion"].Value<string>();
-                    GameVersion = string.IsNullOrEmpty(gameVersion) ? "E.R.R" : gameVersion;
+                    PluginVersion = manifest_versionLine.Substring(manifest_versionStart.Length).Replace(":", "").Replace("\"", "").TrimEnd(',').Trim();
+                }
+                else
+                {
+                    Log.LogError("Build", "BSMOD04", "", manifestFile, 0, 0, 0, 0, "PluginVersion not found in manifest.json");
+                    PluginVersion = "E.R.R";
                 }
 
-                string line;
+                if (!string.IsNullOrEmpty(manifest_gameVerLine))
+                {
+                    GameVersion = manifest_gameVerLine.Substring(manifest_gameVerStart.Length).Replace(":", "").Replace("\"", "").TrimEnd(',').Trim();
+                }
+                else
+                {
+                    Log.LogError("Build", "BSMOD05", "", manifestFile, 0, 0, 0, 0, "GameVersion not found in manifest.json");
+                    GameVersion = "E.R.R";
+                }
+
+                line = null;
                 using (StreamReader assemblyStream = new StreamReader(assemblyFile))
                 {
                     while ((line = assemblyStream.ReadLine()) != null)
@@ -373,7 +399,7 @@
                     badParse = false;
                 }
 
-                if (AssemblyVersion != PluginVersion)
+                if (PluginVersion != "E.R.R" && AssemblyVersion != PluginVersion)
                 {
                     Log.LogError("Build", "BSMOD01", "", assemblyFile, startLine, startColumn + 1, startLine, endColumn + 1, "PluginVersion {0} in manifest.json does not match AssemblyVersion {1} in AssemblyInfo.cs", PluginVersion, AssemblyVersion, assemblyFile);
                     Log.LogMessage(MessageImportance.High, "PluginVersion {0} does not match AssemblyVersion {1}", PluginVersion, AssemblyVersion);
@@ -391,7 +417,7 @@
                     }
                     else
                     {
-                        Log.LogError("Build", "BSMOD03", "", assemblyFile, 0, 0, 0, 0, "Unable to parse the AssemblyFileVersion from {0}", assemblyFile);
+                        Log.LogWarning("Build", "BSMOD06", "", assemblyFile, 0, 0, 0, 0, "Unable to parse the AssemblyFileVersion from {0}", assemblyFile);
                     }
                 }
                 return true;
