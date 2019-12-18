@@ -264,39 +264,40 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="CopyToPlugins" AfterTargets="ILRepacker" Condition="'$(NCrunch)' != '1'">
-    <Message Text="Copying $(OutputPath)$(AssemblyName).dll to Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).dll" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).dll" />
+  <!--Build Targets-->
+  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="'$(NCrunch)' != '1'">
+    <Message Text="Copying $(OutputPath)$(AssemblyName).dll to IPA\Pending\Plugins folder" Importance="high" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).dll" />
   </Target>
-  <Target Name="CopyPDBToPlugins" AfterTargets="CopyToPlugins" Condition="'$(NCrunch)' != '1'">
-    <Message Text="Copying $(OutputPath)Merged\$(AssemblyName).pdb to Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).pdb" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).pdb" />
-  </Target>
-  <Target Name="ZipRelease" AfterTargets="ILRepacker" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
-    <Message Text="Zipping plugin for release. $(AssemblyVersion)" Importance="high" />
-    <GetCommitHash SolutionDir="$(ProjectDir)..">
+  <Target Name="ZipRelease" AfterTargets="Build" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
+    <Message Text="Zipping plugin for release." Importance="high" />
+    <GetCommitHash ProjectDir="$(ProjectDir)">
       <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
     </GetCommitHash>
-    <Copy SourceFiles="$(OutputPath)\Merged\$(AssemblyName).dll" DestinationFiles="$(IntermediateOutputPath)\zip\Plugins\$(AssemblyName).dll" />
-    <BuildManifestInfo>
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFiles="$(IntermediateOutputPath)zip\Plugins\$(AssemblyName).dll" />
+    <GetManifestInfo>
       <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
       <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
       <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
-    </BuildManifestInfo>
+    </GetManifestInfo>
     <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
-    <ZipDir ZipFileName="$(OutDir)zip\BeatSync-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" DirectoryName="$(IntermediateOutputPath)zip" />
+    <ZipDir ZipFileName="$(OutDir)zip\$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" DirectoryName="$(IntermediateOutputPath)zip" />
   </Target>
-  <UsingTask TaskName="BuildManifestInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+  <!--Build Tasks-->
+  <UsingTask TaskName="GetManifestInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
       <GameVersion ParameterType="System.String" Output="true" />
       <PluginVersion ParameterType="System.String" Output="true" />
       <AssemblyVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
+      <Reference Include="System.Runtime" />
+      <Reference Include="System.Dynamic.Runtime" />
+      <Reference Include="System.ObjectModel" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Text.RegularExpressions" />
       <Code Type="Fragment" Language="cs">
-              <![CDATA[
+        <![CDATA[
             try
             {
                 string manifestFile = "manifest.json";
@@ -428,7 +429,8 @@
                 Log.LogErrorFromException(ex);
                 return false;
             }
-      ]]></Code>
+      ]]>
+      </Code>
     </Task>
   </UsingTask>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
@@ -443,7 +445,8 @@
       <Using Namespace="System.IO.Compression" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Threading" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
         try
         {
           var zipDir = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(ZipFileName)));
@@ -462,7 +465,7 @@
 		  
           if(File.Exists(ZipFileName))
             File.Delete(ZipFileName);
-          Log.LogMessage(MessageImportance.High, "Zipping Directory {0} to {1}", DirectoryName, ZipFileName);
+          Log.LogMessage(MessageImportance.High, "Zipping Directory \"{0}\" to \"{1}\"", DirectoryName, ZipFileName);
           ZipFile.CreateFromDirectory( DirectoryName, ZipFileName );
           return true;
         }
@@ -471,40 +474,44 @@
           Log.LogErrorFromException(ex);
           return false;
         }
-      ]]></Code>
+      ]]>
+      </Code>
     </Task>
   </UsingTask>
   <UsingTask TaskName="GetCommitHash" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
-      <SolutionDir ParameterType="System.String" Required="true" />
+      <ProjectDir ParameterType="System.String" Required="true" />
       <CommitShortHash ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System.Diagnostics" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
             CommitShortHash = "local";
             try
             {
-				        SolutionDir = Path.GetFullPath(SolutionDir);
-                Log.LogMessage(MessageImportance.High, "Solution Directory {0}", SolutionDir);
+                ProjectDir = Path.GetFullPath(ProjectDir);
                 Process process = new Process();
                 string arg = "rev-parse HEAD";
                 process.StartInfo = new ProcessStartInfo("git", arg);
                 process.StartInfo.UseShellExecute = false;
-                process.StartInfo.WorkingDirectory = SolutionDir;
+                process.StartInfo.WorkingDirectory = ProjectDir;
                 process.StartInfo.RedirectStandardOutput = true;
                 process.Start();
-                var thing = process.StandardOutput.ReadToEnd();
-                CommitShortHash = thing.Substring(0, 7);
-				        Log.LogMessage(MessageImportance.High, "ShortCommitHash: {0}", CommitShortHash);
+                var outText = process.StandardOutput.ReadToEnd();
+                if(outText.Length >= 7)
+                  CommitShortHash = outText.Substring(0, 7);
+                else
+                  Log.LogMessage(MessageImportance.High, "Unable to retrieve current commit hash.");
                 return true;
             }
             catch (Exception ex)
             {
                 Log.LogErrorFromException(ex);
-                return false;
+                return true;
             }
-      ]]></Code>
+      ]]>
+      </Code>
     </Task>
   </UsingTask>
   <PropertyGroup>
