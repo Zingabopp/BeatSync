@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace BeatSync.Utilities
@@ -44,7 +45,6 @@ namespace BeatSync.Utilities
                 yield return wait;
             }
             //yield return waitFunc;
-
         }
 
 
@@ -181,6 +181,28 @@ namespace BeatSync.Utilities
                 }
                 return charSum;
             }
+        }
+
+        internal static Regex oldKeyRX = new Regex(@"^\d+-(\d+)$", RegexOptions.Compiled);
+        internal static Regex newKeyRX = new Regex(@"^[0-9a-f]+$", RegexOptions.Compiled);
+
+        internal static string ParseKey(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return null;
+            if (newKeyRX.IsMatch(key))
+            {
+                return key.ToLower();
+            }
+            Match isOld = oldKeyRX.Match(key);
+            if (isOld.Success)
+            {
+                string oldKey = isOld.Groups[1].Value;
+                int oldKeyInt = int.Parse(oldKey);
+                return oldKeyInt.ToString("x");
+            }
+            else
+                return null;
         }
 
         #region Image converting

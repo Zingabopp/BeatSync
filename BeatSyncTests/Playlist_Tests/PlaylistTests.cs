@@ -28,7 +28,7 @@ namespace BeatSyncTests.Playlist_Tests
             var thingything = BeatSync.Utilities.Util.GetResource(callingAssembly, "BeatSync.Icons.BeatSyncLogoSmall.png");
             var thingyLength = thingything.Length;
             
-            var imageStr = okay.Image;
+            var imageStr = okay.Cover;
             //StackTest();
             foreach (var playlist in playlists.Values)
             {

@@ -15,6 +15,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSaberDataProvider", "Li
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blister", "Libs\Blister\Blister\Blister.csproj", "{1555B0D2-112F-4501-9E65-7692E9920322}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiaUtil", "Libs\SiaUtil\SiaUtil\SiaUtil.csproj", "{148C83EB-C782-4A8F-B8A9-DCD3096056F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlaylistCore", "Libs\PlaylistCore\PlaylistCore\PlaylistCore.csproj", "{30373419-0401-4B9B-8859-545241B94D3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blister.Conversion", "Libs\Blister\Blister.Conversion\Blister.Conversion.csproj", "{BE35DBC0-A6AC-41C2-875C-FD43E5335586}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlisterLoader", "Libs\Blister\BlisterLoader\BlisterLoader.csproj", "{2E2454A3-47B7-4E30-B6FD-2508DC84592C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +53,22 @@ Global
 		{1555B0D2-112F-4501-9E65-7692E9920322}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1555B0D2-112F-4501-9E65-7692E9920322}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1555B0D2-112F-4501-9E65-7692E9920322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{148C83EB-C782-4A8F-B8A9-DCD3096056F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{148C83EB-C782-4A8F-B8A9-DCD3096056F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{148C83EB-C782-4A8F-B8A9-DCD3096056F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{148C83EB-C782-4A8F-B8A9-DCD3096056F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30373419-0401-4B9B-8859-545241B94D3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30373419-0401-4B9B-8859-545241B94D3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30373419-0401-4B9B-8859-545241B94D3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30373419-0401-4B9B-8859-545241B94D3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE35DBC0-A6AC-41C2-875C-FD43E5335586}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE35DBC0-A6AC-41C2-875C-FD43E5335586}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE35DBC0-A6AC-41C2-875C-FD43E5335586}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE35DBC0-A6AC-41C2-875C-FD43E5335586}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

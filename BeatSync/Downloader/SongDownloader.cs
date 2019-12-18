@@ -49,7 +49,7 @@ namespace BeatSync.Downloader
             {
                 //HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.Downloaded);
                 historyEntry.Flag = HistoryFlag.Downloaded;
-                RecentPlaylist?.TryAdd(playlistSong);
+                RecentPlaylist?.TryAdd(job.SongHash, job.SongName, job.SongKey, job.LevelAuthorName);
             }
             else if(job.Status == JobStatus.Canceled)
             {
@@ -223,11 +223,7 @@ namespace BeatSync.Downloader
 
             foreach (var pair in songsToDownload)
             {
-
-                var playlistSong = new PlaylistSong(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
-
-                allPlaylist?.TryAdd(playlistSong);
-
+                allPlaylist?.TryAdd(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
             }
             allPlaylist?.TryWriteFile();
 

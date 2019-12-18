@@ -70,18 +70,19 @@ namespace BeatSync.Utilities
         public static string WritePlaylist(Playlist playlist)
         {
             var path = Path.Combine(PlaylistManager.PlaylistPath,
-                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".bplist")
-                || playlist.FileName.ToLower().EndsWith(".json") ? "" : ".bplist"));
+                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".blist")
+                || playlist.FileName.ToLower().EndsWith(".json") ? "" : ".blist"));
 
             if (File.Exists(path))
             {
                 File.Copy(path, path + ".bak", true);
                 File.Delete(path);
             }
+            Logger.log?.Debug($"Writing playlist {playlist.FileName} with {playlist.Count} songs.");
+            using (var memStream = Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist))
             using (var sw = File.CreateText(path))
             {
-                var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
-                serializer.Serialize(sw, playlist);
+                memStream.CopyTo(sw.BaseStream);
             }
             File.Delete(path + ".bak");
             return path;
@@ -121,10 +122,9 @@ namespace BeatSync.Utilities
                 bakFile.CopyTo(path, true);
                 bakFile.Delete();
             }
-            var serializer = new JsonSerializer();
-            using (var sr = File.OpenText(path))
+            using (var sr = File.OpenRead(path))
             {
-                playlist = (Playlist)serializer.Deserialize(sr, typeof(Playlist));
+                playlist = new Playlist() { BlisterPlaylist = Blister.PlaylistLib.Deserialize(sr) };
             }
             playlist.FileName = fileName;
             Logger.log?.Debug($"ReadPlaylist(): Found Playlist {playlist.Title}");

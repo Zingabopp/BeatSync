@@ -222,9 +222,17 @@
       <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
       <Name>WebUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Libs\Blister\Blister.Conversion\Blister.Conversion.csproj">
+      <Project>{be35dbc0-a6ac-41c2-875c-fd43e5335586}</Project>
+      <Name>Blister.Conversion</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj">
       <Project>{1555b0d2-112f-4501-9e65-7692e9920322}</Project>
       <Name>Blister</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\PlaylistCore\PlaylistCore\PlaylistCore.csproj">
+      <Project>{30373419-0401-4b9b-8859-545241b94d3a}</Project>
+      <Name>PlaylistCore</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

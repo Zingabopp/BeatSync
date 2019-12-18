@@ -66,8 +66,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
             bSaberPlaylist.TryAdd(song);
             // Verify setup
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out var entry));
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
@@ -75,8 +75,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
             Assert.AreEqual(HistoryFlag.BeatSaverNotFound, entry.Flag);
-            Assert.IsFalse(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsFalse(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsFalse(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsFalse(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
         }
 
         /// <summary>
@@ -107,8 +107,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
             bSaberPlaylist.TryAdd(song);
             // Verify setup
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out var entry));
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
@@ -116,8 +116,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
             Assert.AreEqual(HistoryFlag.Error, entry.Flag);
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
         }
 
         /// <summary>
@@ -157,8 +157,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
             bSaberPlaylist.TryAdd(song);
             // Verify setup
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out var entry));
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
@@ -166,8 +166,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
             Assert.AreEqual(HistoryFlag.Downloaded, entry.Flag);
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
         }
 
         /// <summary>
@@ -208,8 +208,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             var bSaberPlaylist = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberCurator);
             bSaberPlaylist.TryAdd(song);
             // Verify setup
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out var entry));
             Assert.AreEqual(HistoryFlag.None, entry.Flag);
 
@@ -217,8 +217,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             downloader.ProcessJob(testJob);
             Assert.IsTrue(downloader.HistoryManager.TryGetValue(song.Hash, out entry));
             Assert.AreEqual(HistoryFlag.Error, entry.Flag);
-            Assert.IsTrue(recentPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
-            Assert.IsTrue(bSaberPlaylist.Songs.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(recentPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
+            Assert.IsTrue(bSaberPlaylist.Beatmaps.Any(s => song.Hash.Equals(s.Hash)));
         }
 
     }
