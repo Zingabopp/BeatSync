@@ -15,6 +15,7 @@
     <PathMap>$(SolutionDir)=C:\</PathMap>
     <DebugType>portable</DebugType>
     <BeatSaberDir>$(ProjectDir)References</BeatSaberDir>
+    <FinalOutputAssembly>$(OutputPath)Merged\$(AssemblyName).dll</FinalOutputAssembly>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -210,7 +211,7 @@
       <Version>2.0.18</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.3</Version>
+      <Version>12.0.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -278,15 +279,16 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!--Build Targets-->
   <Target Name="CopyToPlugins" AfterTargets="Build" Condition="'$(NCrunch)' != '1'">
-    <Message Text="Copying $(OutputPath)$(AssemblyName).dll to IPA\Pending\Plugins folder" Importance="high" />
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).dll" />
+    <Message Text="Copying $(OutputPath)Merged\$(AssemblyName).dll to IPA\Pending\Plugins folder" Importance="high" />
+    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).dll" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).dll" />
+    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).pdb" DestinationFiles="$(BeatSaberDir)\IPA\Pending\Plugins\$(AssemblyName).pdb" />
   </Target>
   <Target Name="ZipRelease" AfterTargets="Build" Condition="'$(NCrunch' != '1' AND '$(Configuration)' == 'Release'">
     <Message Text="Zipping plugin for release." Importance="high" />
     <GetCommitHash ProjectDir="$(ProjectDir)">
       <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
     </GetCommitHash>
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFiles="$(IntermediateOutputPath)zip\Plugins\$(AssemblyName).dll" />
+    <Copy SourceFiles="$(OutputPath)Merged\$(AssemblyName).dll" DestinationFiles="$(IntermediateOutputPath)zip\Plugins\$(AssemblyName).dll" />
     <GetManifestInfo>
       <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
       <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
