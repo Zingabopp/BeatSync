@@ -25,7 +25,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeastSaberFeedSettings((int)BeastSaberFeed.Following)
+            return new BeastSaberFeedSettings((int)BeastSaberFeedName.Following)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -48,7 +48,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeastSaberFeedSettings((int)BeastSaberFeed.Bookmarks)
+            return new BeastSaberFeedSettings((int)BeastSaberFeedName.Bookmarks)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -71,7 +71,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeastSaberFeedSettings((int)BeastSaberFeed.CuratorRecommended)
+            return new BeastSaberFeedSettings((int)BeastSaberFeedName.CuratorRecommended)
             {
                 MaxSongs = this.MaxSongs
             };

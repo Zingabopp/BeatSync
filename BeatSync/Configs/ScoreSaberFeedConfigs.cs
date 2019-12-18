@@ -70,7 +70,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.Trending)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeedName.Trending)
             {
                 MaxSongs = this.MaxSongs,
                 RankedOnly = this.RankedOnly
@@ -94,7 +94,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.LatestRanked)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeedName.LatestRanked)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -161,7 +161,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.TopPlayed)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeedName.TopPlayed)
             {
                 MaxSongs = this.MaxSongs,
                 RankedOnly = this.RankedOnly
@@ -185,7 +185,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new ScoreSaberFeedSettings((int)ScoreSaberFeed.TopRanked)
+            return new ScoreSaberFeedSettings((int)ScoreSaberFeedName.TopRanked)
             {
                 MaxSongs = this.MaxSongs
             };

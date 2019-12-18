@@ -209,7 +209,7 @@ namespace BeatSync
         public static IEnumerator<WaitUntil> UpdateLevelPacks()
         {
             yield return WaitForUnPause;
-            BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
+            //BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
             if (!SongCore.Loader.AreSongsLoaded)
             {
                 yield break;

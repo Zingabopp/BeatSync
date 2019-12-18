@@ -1,0 +1,10 @@
+﻿<bg>
+  <vertical child-control-height='false' child-control-width='true'
+            child-expand-width='true'
+            preferred-width='105' pad-top='-40' pad-left='25'
+            spacing='0'>
+    <horizontal bg='panel-top' pad-top='0' preferred-height='12'>
+      <text text='BeatSync Settings' align='Center' font-size='10' />
+    </horizontal>
+  </vertical>
+</bg>
