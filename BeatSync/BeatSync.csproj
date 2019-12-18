@@ -55,17 +55,11 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BeatSaberCustomUI, Version=1.5.11.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="BSML, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BeatSaberDir)\Plugins\BeatSaberCustomUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="BeatSaverDownloader, Version=4.3.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BeatSaberDir)\Plugins\BeatSaverDownloader.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="BS_Utils, Version=1.3.7.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="BS_Utils">
       <Private>False</Private>
       <HintPath>$(BeatSaberDir)\Plugins\BS_Utils.dll</HintPath>
     </Reference>
@@ -177,6 +171,10 @@
     <Compile Include="Logging\IBeatSyncLogger.cs" />
     <Compile Include="Downloader\SongDownloader.cs" />
     <Compile Include="SongHasher.cs" />
+    <None Include="UI\BSML\BeatSyncFlowCoordinator.cs" />
+    <None Include="UI\BSML\BeatSyncSettings.cs" />
+    <None Include="UI\BSML\ConfigUiBase.cs" />
+    <None Include="UI\BSML\StatusUiSettings.cs" />
     <Compile Include="UI\IStatusManager.cs" />
     <Compile Include="UI\PostText.cs" />
     <Compile Include="UI\TextMeshList.cs" />
@@ -205,13 +203,14 @@
     <None Include="CreateJunctions.bat" />
     <None Include=".gitignore" />
     <None Include="ILRepack.targets" />
+    <None Include="UI\BSML\BeatSyncSettings.bsml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ILRepack.Lib.MSBuild.Task">
       <Version>2.0.18</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.2</Version>
+      <Version>12.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -263,6 +262,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Icons\BeatSyncLogoSmall.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyToPlugins" AfterTargets="ILRepacker" Condition="'$(NCrunch)' != '1'">
     <Message Text="Copying $(OutputPath)$(AssemblyName).dll to Plugins folder" Importance="high" />

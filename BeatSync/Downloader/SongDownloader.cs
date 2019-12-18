@@ -282,9 +282,9 @@ namespace BeatSync.Downloader
                     Logger.log?.Critical($"Skipped {skippedForHistory} songs in {reader.Name}.{feedName}");
                     historyPostFix = $" Skipped {skippedForHistory} {(skippedForHistory == 1 ? "song" : $"songs")} in history.";
                 }
-                if (settings is BeatSaverFeedSettings beatSaverSettings && beatSaverSettings.Feed == BeatSaverFeed.Author)
+                if (settings is BeatSaverFeedSettings beatSaverSettings && beatSaverSettings.Feed == BeatSaverFeedName.Author)
                 {
-                    Logger.log?.Info($"   FavoriteMappers: Found {feedResult.Count} songs by {beatSaverSettings.Criteria}.{historyPostFix}");
+                    Logger.log?.Info($"   FavoriteMappers: Found {feedResult.Count} songs by {beatSaverSettings.SearchQuery.Value.Criteria}.{historyPostFix}");
                 }
                 else
                 {
@@ -541,9 +541,11 @@ namespace BeatSync.Downloader
                     var songs = new Dictionary<string, ScrapedSong>();
                     int[] authorPosts = new int[FavoriteMappers.Mappers.Count];
                     int postIndex = 0;
+                    var queryBuilder = new SearchQueryBuilder(BeatSaverSearchType.author, string.Empty);
                     foreach (var author in FavoriteMappers.Mappers)
                     {
-                        feedSettings.Criteria = author;
+                        queryBuilder.Criteria = author;
+                        feedSettings.SearchQuery = queryBuilder.GetQuery();
                         if (BeatSync.Paused)
                             await SongFeedReaders.Utilities.WaitUntil(() => !BeatSync.Paused, 500, cancellationToken).ConfigureAwait(false);
                         authorPosts[postIndex] = StatusManager?.Post(readerName, $"  {author}...") ?? 0;

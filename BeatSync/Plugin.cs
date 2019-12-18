@@ -196,7 +196,7 @@ namespace BeatSync
                 //}
 
                 Logger.log?.Debug("Creating BeatSync's UI");
-                UI.BeatSync_UI.CreateUI();
+                //UI.BeatSync_UI.CreateUI();
                 config.Value.ResetConfigChanged();
                 config.Value.FillDefaults();
                 var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();

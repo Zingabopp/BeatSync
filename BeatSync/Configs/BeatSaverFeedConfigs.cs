@@ -52,7 +52,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeed.Author)
+            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Author)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -89,7 +89,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeed.Latest)
+            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Latest)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -112,7 +112,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeed.Hot)
+            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Hot)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -136,7 +136,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeed.Plays)
+            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Plays)
             {
                 MaxSongs = this.MaxSongs
             };
@@ -159,7 +159,7 @@ namespace BeatSync.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeed.Downloads)
+            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Downloads)
             {
                 MaxSongs = this.MaxSongs
             };
