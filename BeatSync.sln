@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SongFeedReaders", "Libs\Bea
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSaberDataProvider", "Libs\BeatSaberDataProvider\BeatSaberDataProvider\BeatSaberDataProvider.csproj", "{EB4FAB34-2596-4640-AF08-9DD5558877CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blister", "Libs\Blister\Blister\Blister.csproj", "{1555B0D2-112F-4501-9E65-7692E9920322}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{EB4FAB34-2596-4640-AF08-9DD5558877CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB4FAB34-2596-4640-AF08-9DD5558877CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB4FAB34-2596-4640-AF08-9DD5558877CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1555B0D2-112F-4501-9E65-7692E9920322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1555B0D2-112F-4501-9E65-7692E9920322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1555B0D2-112F-4501-9E65-7692E9920322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1555B0D2-112F-4501-9E65-7692E9920322}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

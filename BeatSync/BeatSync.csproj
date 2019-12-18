@@ -222,6 +222,10 @@
       <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
       <Name>WebUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj">
+      <Project>{1555b0d2-112f-4501-9e65-7692e9920322}</Project>
+      <Name>Blister</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Icons\BeatSyncLogoBanner.png" />
@@ -296,8 +300,7 @@
       <Reference Include="System.ObjectModel" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
+      <Code Type="Fragment" Language="cs"><![CDATA[
             try
             {
                 string manifestFile = "manifest.json";
@@ -429,8 +432,7 @@
                 Log.LogErrorFromException(ex);
                 return false;
             }
-      ]]>
-      </Code>
+      ]]></Code>
     </Task>
   </UsingTask>
   <!-- Source: https://stackoverflow.com/a/38127938 -->
@@ -445,8 +447,7 @@
       <Using Namespace="System.IO.Compression" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Threading" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
+      <Code Type="Fragment" Language="cs"><![CDATA[
         try
         {
           var zipDir = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(ZipFileName)));
@@ -474,8 +475,7 @@
           Log.LogErrorFromException(ex);
           return false;
         }
-      ]]>
-      </Code>
+      ]]></Code>
     </Task>
   </UsingTask>
   <UsingTask TaskName="GetCommitHash" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
@@ -485,8 +485,7 @@
     </ParameterGroup>
     <Task>
       <Using Namespace="System.Diagnostics" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
+      <Code Type="Fragment" Language="cs"><![CDATA[
             CommitShortHash = "local";
             try
             {
@@ -510,8 +509,7 @@
                 Log.LogErrorFromException(ex);
                 return true;
             }
-      ]]>
-      </Code>
+      ]]></Code>
     </Task>
   </UsingTask>
   <PropertyGroup>

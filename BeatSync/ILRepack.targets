@@ -3,6 +3,8 @@
   <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(NCrunch)' != '1'" >
     <ItemGroup>
       <InputAssemblies Include="$(OutputPath)BeatSync.dll" />
+      <InputAssemblies Include="$(OutputPath)Blister.dll" />
+      <InputAssemblies Include="$(OutputPath)Newtonsoft.Json.Bson.dll" />
       <InputAssemblies Include="$(OutputPath)SongFeedReaders.dll" />
       <InputAssemblies Include="$(OutputPath)WebUtilities.dll" />
     </ItemGroup>
