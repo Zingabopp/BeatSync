@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blister.Conversion", "Libs\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlisterLoader", "Libs\Blister\BlisterLoader\BlisterLoader.csproj", "{2E2454A3-47B7-4E30-B6FD-2508DC84592C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncConsole", "BeatSyncConsole\BeatSyncConsole.csproj", "{AF36D218-6A12-455D-86CC-4E7921535E34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncLib", "BeatSyncLib\BeatSyncLib.csproj", "{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E2454A3-47B7-4E30-B6FD-2508DC84592C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF36D218-6A12-455D-86CC-4E7921535E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF36D218-6A12-455D-86CC-4E7921535E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF36D218-6A12-455D-86CC-4E7921535E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF36D218-6A12-455D-86CC-4E7921535E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

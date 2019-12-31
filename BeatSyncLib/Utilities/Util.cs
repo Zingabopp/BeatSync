@@ -7,47 +7,48 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using UnityEngine;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace BeatSync.Utilities
+namespace BeatSyncLib.Utilities
 {
     public static class Util
     {
-        /// <summary>
-        /// Attempts to find a resource of type TResource with the given name. An action can be provided to execute when the object is found.
-        /// pollRateMillis is the interval in milliseconds to check for the existance of the object.
-        /// </summary>
-        /// <typeparam name="TResource"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="action"></param>
-        /// <param name="pollRateMillis"></param>
-        /// <returns></returns>
-        public static IEnumerator<WaitForSeconds> WaitForResource<TResource>(string name, Action<TResource> action = null, int pollRateMillis = 100)
-            where TResource : UnityEngine.Object
+        public static bool Paused { get; set; }
+        public static async Task WaitForPause(CancellationToken cancellationToken)
         {
-            Func<bool> waitFunc = () => Resources.FindObjectsOfTypeAll<TResource>().Any(o =>
-            {
-                if (o.name != name)
-                    return false;
-                try
-                {
-                    action?.Invoke(o);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log?.Error($"Error invoking action for WaitForResource<{typeof(TResource)}> with name {name}.\n{ex?.Message}\n{ex?.StackTrace}");
-                }
-                return true;
-            });
-            var wait = new WaitForSeconds(Math.Max(pollRateMillis / 1000f, .02f));
-            while (!waitFunc.Invoke())
-            {
-                yield return wait;
-            }
-            //yield return waitFunc;
+            if (!Paused)
+                return;
+            await SongFeedReaders.Utilities.WaitUntil(() => !Paused, 500, cancellationToken).ConfigureAwait(false);
+        }
+        #region IPA Utilities
+        /// <summary>
+        /// Converts a hex string to a byte array.
+        /// </summary>
+        /// <param name="hex">the hex stream</param>
+        /// <returns>the corresponding byte array</returns>
+        public static byte[] StringToByteArray(string hex)
+        {
+            int numberChars = hex.Length;
+            byte[] bytes = new byte[numberChars / 2];
+            for (int i = 0; i < numberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
         }
 
-
+        /// <summary>
+        /// Converts a byte array to a hex string.
+        /// </summary>
+        /// <param name="ba">the byte array</param>
+        /// <returns>the hex form of the array</returns>
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+        #endregion
         /// <summary>
         /// Outputs a TimeSpan in hours, minutes, and seconds.
         /// </summary>
@@ -204,7 +205,6 @@ namespace BeatSync.Utilities
             else
                 return null;
         }
-
 
         #region Image converting
 

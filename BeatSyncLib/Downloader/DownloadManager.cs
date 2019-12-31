@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BeatSync.Downloader
+namespace BeatSyncLib.Downloader
 {
     public class DownloadManager
     {
