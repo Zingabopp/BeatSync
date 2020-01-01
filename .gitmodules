@@ -7,6 +7,3 @@
 [submodule "Libs/PlaylistCore"]
 	path = Libs/PlaylistCore
 	url = https://github.com/AurosX/PlaylistCore.git
-[submodule "Libs/SiaUtil"]
-	path = Libs/SiaUtil
-	url = https://github.com/AurosX/SiaUtil.git
