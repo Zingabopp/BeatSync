@@ -51,7 +51,7 @@ namespace BeatSyncLib.Downloader
                 historyEntry.Flag = HistoryFlag.Downloaded;
                 RecentPlaylist?.TryAdd(job.SongHash, job.SongName, job.SongKey, job.LevelAuthorName);
             }
-            else if(job.Status == JobStatus.Canceled)
+            else if(job.Status == DownloadJobStatus.Canceled)
             {
                 Logger.log?.Warn($"Download canceled for {job.ToString()}");
                 if (!HistoryManager.TryRemove(job.SongHash, out var _) && historyEntry != null)
@@ -866,7 +866,7 @@ namespace BeatSyncLib.Downloader
             return downloadPosted;
         }
 
-        private void PostedJob_OnJobFinished(object sender, JobFinishedEventArgs e)
+        private void PostedJob_OnJobFinished(object sender, DownloadJobFinishedEventArgs e)
         {
             if(sender is IDownloadJob job)
             {

@@ -56,8 +56,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BSML, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="BSML">
+      <HintPath>$(BeatSaberDir)\Plugins\BSML.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BS_Utils">
@@ -80,6 +80,11 @@
     <Reference Include="SemVer.1.2.0.0, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(BeatSaberDir)\Libs\SemVer.1.2.0.0.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SiaUtil, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BeatSaberDir)\Plugins\SiaUtil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">

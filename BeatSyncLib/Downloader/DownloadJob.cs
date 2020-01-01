@@ -16,45 +16,49 @@ namespace BeatSyncLib.Downloader
 {
     public class DownloadJob : IDownloadJob
     {
-        public static readonly string SongTempPath = Path.GetFullPath(Path.Combine("UserData", "BeatSyncTemp"));
-        private readonly string CustomLevelsPath;
-        private const string BeatSaverDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
+        private static readonly string BeatSaverHashDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
+        private static readonly string BeatSaverKeyDownloadUrlBase = "https://beatsaver.com/api/download/key/";
         public Exception Exception { get; private set; }
-        public event EventHandler<JobStartedEventArgs> OnJobStarted;
-        public event EventHandler<JobFinishedEventArgs> OnJobFinished;
+        public event EventHandler<DownloadJobStartedEventArgs> OnJobStarted;
+        public event EventHandler<DownloadJobFinishedEventArgs> OnJobFinished;
+
+        private readonly Action<IDownloadJob> JobFinishedCallback;
+        private string _targetFile;
+        private DownloadResult _downloadResult;
+
+        public DownloadManager DownloadManager { get; set; }
         //public PlaylistSong Song { get; private set; }
+        public string FileLocation { get; private set; }
         public string SongHash { get; private set; }
         public string SongKey { get; private set; }
         public string SongName { get; private set; }
         public string LevelAuthorName { get; private set; }
-        private WeakReference<Func<bool>> PauseFlag = new WeakReference<Func<bool>>(() => SongFeedReaders.Utilities.IsPaused);
         public bool Paused
         {
             get
             {
-                if (PauseFlag == null)
+                if (DownloadManager?.WeakPauseFlag == null)
                     return false;
-                if (PauseFlag.TryGetTarget(out var reference))
-                    return reference.Invoke();
+                if (DownloadManager.WeakPauseFlag.TryGetTarget(out var reference))
+                    return reference?.Invoke() ?? false;
                 return false;
             }
         }
-        public string SongDirectory { get; private set; }
-        private string _defaultSongDirectoryName;
-        public JobResult Result { get; private set; }
+        public DownloadResult Result { get; private set; }
 
-        public JobStatus Status { get; private set; }
+        public DownloadJobStatus Status { get; private set; }
 
         /// <summary>
         /// Private constructor to use with the others.
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
-        /// <param name="customLevelsPath"></param>
-        private DownloadJob(string customLevelsPath)
+        /// <param name="targetFile"></param>
+        private DownloadJob(string targetFile, Action<IDownloadJob> jobFinishedCallback = null)
         {
-            if (string.IsNullOrEmpty(customLevelsPath))
-                throw new ArgumentNullException(nameof(customLevelsPath), "customLevelsPath cannot be null when creating a DownloadJob.");
-            CustomLevelsPath = customLevelsPath;
+            if (string.IsNullOrEmpty(targetFile))
+                throw new ArgumentNullException(nameof(targetFile), "customLevelsPath cannot be null when creating a DownloadJob.");
+            _targetFile = targetFile;
+            JobFinishedCallback = jobFinishedCallback;
         }
 
         /// <summary>
@@ -64,8 +68,8 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
         /// <param name="customLevelsPath"></param>
-        public DownloadJob(PlaylistSong song, string customLevelsPath)
-            : this(customLevelsPath)
+        public DownloadJob(PlaylistSong song, string customLevelsPath, Action<IDownloadJob> jobFinishedCallback = null)
+            : this(customLevelsPath, jobFinishedCallback)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "song cannot be null.");
@@ -78,7 +82,6 @@ namespace BeatSyncLib.Downloader
             SongKey = song.Key;
             SongName = song.Name;
             LevelAuthorName = song.LevelAuthorName;
-            _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
         }
         /// <summary>
         /// 
@@ -90,8 +93,8 @@ namespace BeatSyncLib.Downloader
         /// <param name="songKey"></param>
         /// <param name="mapperName"></param>
         /// <param name="customLevelsPath"></param>
-        public DownloadJob(string songHash, string songName, string songKey, string mapperName, string customLevelsPath)
-            : this(customLevelsPath)
+        public DownloadJob(string songHash, string songName, string songKey, string mapperName, string customLevelsPath, Action<IDownloadJob> jobFinishedCallback = null)
+            : this(customLevelsPath, jobFinishedCallback)
         {
             if (string.IsNullOrEmpty(songHash))
                 throw new ArgumentNullException();
@@ -99,7 +102,6 @@ namespace BeatSyncLib.Downloader
             SongKey = songKey;
             SongName = songName;
             LevelAuthorName = mapperName;
-            _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
         }
 
         /// <summary>
@@ -108,39 +110,26 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
-        /// <param name="customLevelsPath"></param>
-        public DownloadJob(ScrapedSong song, string customLevelsPath)
-            : this(customLevelsPath)
+        /// <param name="targetDirectory"></param>
+        public DownloadJob(ScrapedSong song, string targetDirectory, Action<IDownloadJob> jobFinishedCallback = null)
+            : this(targetDirectory, jobFinishedCallback)
         {
             SongHash = song.Hash;
             SongKey = song.SongKey;
             SongName = song.SongName;
             LevelAuthorName = song.MapperName;
-            _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
         }
 
-        private DownloadResult downloadResult;
-        private ZipExtractResult zipResult;
-        private string hashAfterDownload;
 
-        // TODO: This is horrendous
         public async Task RunAsync(CancellationToken cancellationToken)
         {
-            Status = JobStatus.Downloading;
+            Status = DownloadJobStatus.Downloading;
 
             bool overwrite = true;
-            string extractDirectory = null;
             try
             {
-                if (string.IsNullOrEmpty(SongKey))
-                {
-                    var result = await BeatSaverReader.GetSongByHashAsync(SongHash, cancellationToken).ConfigureAwait(false);
-                    SongKey = result?.Songs?.FirstOrDefault()?.SongKey;
-                    _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
-                }
-                OnJobStarted?.Invoke(this, new JobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
-                var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelsPath, _defaultSongDirectoryName));
-                bool directoryCreated = !Directory.Exists(songDirPath);
+                OnJobStarted?.Invoke(this, new DownloadJobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
+                var targetFile = new FileInfo(Path.GetFullPath(Path.Combine(_targetFile)));
                 if (cancellationToken.IsCancellationRequested)
                 {
                     FinishJob(true);
@@ -154,120 +143,46 @@ namespace BeatSyncLib.Downloader
                         return;
                     }
                 }
-                
+
                 // Download Zip
-                downloadResult = await DownloadSongAsync(SongTempPath, cancellationToken).ConfigureAwait(false);
-                if (downloadResult.Status == DownloadResultStatus.Canceled)
+                _downloadResult = await DownloadSongAsync(targetFile.FullName, cancellationToken).ConfigureAwait(false);
+                if (_downloadResult.Status == DownloadResultStatus.Canceled)
                 {
                     FinishJob(true);
                     return;
                 }
-                else if ((downloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.Success)
-                {
-                    // Extract Zip
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        FinishJob(true);
-                        return;
-                    }
-                    if (Paused)
-                    {
-                        if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
-                        {
-                            FinishJob(true); // Cancellation requested while waiting for Unpause
-                            return;
-                        }
-                    }
-                    Status = JobStatus.Extracting;
-
-                    zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
-                    // Try to delete zip file
-                    try
-                    {
-                        var deleteSuccessful = await FileIO.TryDeleteAsync(downloadResult.FilePath).ConfigureAwait(false);
-                    }
-                    catch (IOException ex)
-                    {
-                        Logger.log?.Warn($"Unable to delete zip file after extraction: {downloadResult.FilePath}.\n{ex.Message}");
-                    }
-                    extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
-                    if (!overwrite && !songDirPath.Equals(extractDirectory))
-                    {
-                        directoryCreated = true;
-                    }
-                    if (zipResult.ResultStatus == ZipExtractResultStatus.Success)
-                    {
-                        try
-                        {
-                            if (Paused)
-                            {
-                                if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
-                                {
-                                    FinishJob(true); // Cancellation requested while waiting for Unpause
-                                    return;
-                                }
-                            }
-                            int parentPathLength = CustomLevelsPath.Length + 1;
-                            hashAfterDownload = (await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false)).songHash;
-                            if (!SongHash.Equals(hashAfterDownload))
-                                Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for '{extractDirectory.Substring(parentPathLength)}'");
-                            else
-                                Logger.log?.Debug($"Extracted hash matches Beat Saver hash for '{extractDirectory.Substring(parentPathLength)}'");
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.log?.Debug($"Error checking hash of {extractDirectory}\n {ex.Message}\n {ex.StackTrace}");
-                        }
-                    }
-                    else
-                        Exception = zipResult.Exception;
-                }
                 else
-                    Exception = downloadResult.Exception;
-            }
-            catch(OperationCanceledException ex)
-            {
-                FinishJob(true, ex);
-                return;
+                    Exception = _downloadResult.Exception;
             }
             catch (Exception ex)
             {
-                Logger.log?.Warn($"Error in DownloadJob.RunAsync: {ex.Message}");
+                string message = $"Error in DownloadJob.RunAsync: {ex.Message}";
+                Logger.log?.Warn(message);
                 Logger.log?.Debug(ex.StackTrace);
+                _downloadResult = new DownloadResult(null, DownloadResultStatus.Unknown, 0, message, ex);
                 FinishJob(false, ex);
                 return;
             }
             // Finish
             FinishJob();
-            //await Task.Delay(5000).ConfigureAwait(false);
         }
 
         private void FinishJob(bool canceled = false, Exception exception = null)
         {
             if (canceled || exception is OperationCanceledException)
-                Status = JobStatus.Canceled;
+                Status = DownloadJobStatus.Canceled;
             else
             {
-                Status = JobStatus.Finished;
+                Status = DownloadJobStatus.Finished;
             }
             if (exception != null)
                 Exception = exception;
-            Result = new JobResult()
-            {
-                SongHash = SongHash,
-                SongKey = SongKey,
-                DownloadResult = downloadResult,
-                ZipResult = zipResult,
-                SongDirectory = SongDirectory,
-                HashAfterDownload = hashAfterDownload,
-                Exception = exception
-            };
+            Result = _downloadResult;
+            FileLocation = Result?.FilePath;
             OnJobFinished?.Invoke(this,
-                new JobFinishedEventArgs(SongHash,
-                Result.Successful,
-                downloadResult?.Status ?? DownloadResultStatus.Unknown,
-                zipResult?.ResultStatus ?? ZipExtractResultStatus.Unknown,
-                SongDirectory));
+                    new DownloadJobFinishedEventArgs(SongHash,
+                    _downloadResult?.Status ?? DownloadResultStatus.Unknown,
+                    FileLocation));
         }
 
         public Task RunAsync()
@@ -278,29 +193,26 @@ namespace BeatSyncLib.Downloader
         /// <summary>
         /// Attempts to download a song to the specified target path.
         /// </summary>
-        /// <param name="song"></param>
-        /// <param name="target"></param>
+        /// <param name="target">Full path to the downloaded file.</param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<DownloadResult> DownloadSongAsync(string target, CancellationToken cancellationToken)
+        public async Task<DownloadResult> DownloadSongAsync(string target, CancellationToken cancellationToken, bool overwriteExisting = true)
         {
             DownloadResult result = null;
             try
             {
-                var downloadUri = new Uri(BeatSaverDownloadUrlBase + SongHash.ToLower());
-                var downloadTarget = Path.Combine(target, SongKey ?? SongHash);
-                result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, cancellationToken, true).ConfigureAwait(false);
+                Uri downloadUri;
+                if (!string.IsNullOrEmpty(SongHash))
+                    downloadUri = new Uri(BeatSaverHashDownloadUrlBase + SongHash.ToLower());
+                else if (!string.IsNullOrEmpty(SongKey))
+                    downloadUri = new Uri(BeatSaverDownloadUrlKeyBase + SongKey.ToLower());
+                else
+                    return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "No SongHash or SongKey provided to the DownloadJob.");
+                result = await FileIO.DownloadFileAsync(downloadUri, target, cancellationToken, overwriteExisting).ConfigureAwait(false);
             }
-            catch(OperationCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 result = new DownloadResult(null, DownloadResultStatus.Canceled, 0, ex.Message, ex);
-            }
-            catch (Exception ex)
-            {
-                Logger.log?.Error($"Uncaught error downloading song {SongKey ?? SongHash} in DownloadJob.DownloadSongAsync: \n{ex.Message}");
-                Logger.log?.Debug(ex);
-                // TODO: Be more specific
-                if (result == null)
-                    result = new DownloadResult(null, DownloadResultStatus.Unknown, 0, ex.Message, ex);
             }
             return result;
         }

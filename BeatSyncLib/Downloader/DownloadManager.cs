@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,12 +11,17 @@ namespace BeatSyncLib.Downloader
 {
     public class DownloadManager
     {
-
+        internal Func<bool> PauseFlag;
+        internal WeakReference<Func<bool>> WeakPauseFlag;
         private BlockingCollection<IDownloadJob> _queuedJobs = new BlockingCollection<IDownloadJob>();
-        private ConcurrentDictionary<string, IDownloadJob> _downloadResults = new ConcurrentDictionary<string, IDownloadJob>();
+
+        private ConcurrentDictionary<string, IDownloadJob> _existingJobs = new ConcurrentDictionary<string, IDownloadJob>();
+        private ConcurrentDictionary<string, IDownloadJob> _completedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
+        private ConcurrentDictionary<string, IDownloadJob> _failedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
+        private ConcurrentDictionary<string, IDownloadJob> _cancelledDownloads = new ConcurrentDictionary<string, IDownloadJob>();
         public IReadOnlyList<IDownloadJob> CompletedJobs
         {
-            get { return _downloadResults.Values.Where(j => j.Status == JobStatus.Finished).ToList(); }
+            get { return _completedDownloads.Values.ToList(); }
         }
         private bool _acceptingJobs = false;
         private bool _running = false;
@@ -23,6 +29,13 @@ namespace BeatSyncLib.Downloader
         private CancellationToken _externalCancellation;
         private CancellationTokenSource _cancellationSource;
         private Task[] _tasks;
+
+        public void SetPauseFlag(Func<bool> pauseFlag, bool keepTargetAlive = false)
+        {
+            WeakPauseFlag.SetTarget(pauseFlag);
+            if (!keepTargetAlive)
+                PauseFlag = pauseFlag;
+        }
 
         public int ConcurrentDownloads
         {
@@ -120,25 +133,42 @@ namespace BeatSyncLib.Downloader
         /// </summary>
         /// <param name="job"></param>
         /// <returns></returns>
-        public bool TryPostJob(IDownloadJob job, out IDownloadJob postedJob)
+        public bool TryPostJob(IDownloadJob job, out IDownloadJob postedOrExistingJob)
         {
             if (_acceptingJobs)
             {
-                if (_downloadResults.TryAdd(job.SongHash, job) && _queuedJobs.TryAdd(job))
+                if (_existingJobs.TryAdd(job.SongHash, job) && _queuedJobs.TryAdd(job))
                 {
-                    postedJob = job;
+                    job.OnJobFinished += Job_OnJobFinished;
+                    postedOrExistingJob = job;
                     return true;
                 }
             }
-            if (_downloadResults.TryGetValue(job.SongHash, out var existingJob))
+            if (_existingJobs.TryGetValue(job.SongHash, out var existingJob))
             {
-                postedJob = existingJob;
+                postedOrExistingJob = existingJob;
                 return false;
             }
             else
             {
-                postedJob = null;
+                postedOrExistingJob = null;
                 return false;
+            }
+        }
+
+        private void Job_OnJobFinished(object sender, DownloadJobFinishedEventArgs e)
+        {
+            switch (e.DownloadResult)
+            {
+                case Utilities.DownloadResultStatus.Success:
+                    _completedDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
+                    break;
+                case Utilities.DownloadResultStatus.Canceled:
+                    _cancelledDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
+                    break;
+                default:
+                    _failedDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
+                    break;
             }
         }
 
@@ -164,7 +194,7 @@ namespace BeatSyncLib.Downloader
 
         public bool TryGetJob(string songHash, out IDownloadJob job)
         {
-            return _downloadResults.TryGetValue(songHash, out job);
+            return _existingJobs.TryGetValue(songHash, out job);
         }
 
 

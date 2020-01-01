@@ -176,7 +176,9 @@ namespace BeatSyncTests
             catch (Exception ex)
             {
                 throw;
+#pragma warning disable CS0162 // Unreachable code detected
                 Log.LogErrorFromException(ex);
+#pragma warning restore CS0162 // Unreachable code detected
                 return false;
             }
 

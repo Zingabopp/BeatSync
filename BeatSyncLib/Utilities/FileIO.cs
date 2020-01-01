@@ -162,28 +162,28 @@ namespace BeatSyncLib.Utilities
         /// Downloads a file from the specified URI to the specified path (path includes file name).
         /// Creates the target directory if it doesn't exist. All exceptions are stored in the DownloadResult.
         /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="path"></param>
+        /// <param name="downloadUri"></param>
+        /// <param name="target"></param>
         /// <exception cref="OperationCanceledException"></exception>
         /// <returns></returns> 
-        public static async Task<DownloadResult> DownloadFileAsync(Uri uri, string path, CancellationToken cancellationToken, bool overwrite = true)
+        public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, string target, CancellationToken cancellationToken, bool overwriteExisting = true)
         {
-            string actualPath = path;
+            string actualPath = target;
             int statusCode = 0;
-            if (uri == null)
+            if (downloadUri == null)
                 return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0);
-            if (!overwrite && File.Exists(path))
+            if (!overwriteExisting && File.Exists(target))
                 return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
             {
-                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, cancellationToken, 30, 2).ConfigureAwait(false))
+                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(downloadUri, cancellationToken, 30, 2).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
 
                     try
                     {
-                        Directory.GetParent(path).Create();
-                        actualPath = await response.Content.ReadAsFileAsync(path, overwrite, cancellationToken).ConfigureAwait(false);
+                        Directory.GetParent(target).Create();
+                        actualPath = await response.Content.ReadAsFileAsync(target, overwriteExisting, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException ex)
                     {
@@ -201,7 +201,7 @@ namespace BeatSyncLib.Utilities
                     }
                     catch (Exception ex)
                     {
-                        return new DownloadResult(null, DownloadResultStatus.Unknown, statusCode, response?.ReasonPhrase, ex);
+                        return new DownloadResult(null, DownloadResultStatus.NetFailed, statusCode, response?.ReasonPhrase, ex);
                     }
                 }
             }

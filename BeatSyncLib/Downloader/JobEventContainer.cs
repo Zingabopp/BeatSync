@@ -28,13 +28,13 @@ namespace BeatSyncLib.Downloader
             ReaderName = readerName;
             StatusManagerReference = new WeakReference<IStatusManager>(statusManager);
             job.OnJobStarted += Job_OnJobStarted;
-            if (job.Status != JobStatus.NotStarted)
+            if (job.Status != DownloadJobStatus.NotStarted)
             {
                 //Logger.log?.Warn($"Job already started: ({job.SongKey}) {job.SongName} by {job.LevelAuthorName}");
                 StartedUpdateStatus();
             }
             job.OnJobFinished += Job_OnJobFinished;
-            if (job.Status == JobStatus.Finished)
+            if (job.Status == DownloadJobStatus.Finished)
             {
                 //Logger.log?.Warn($"Job already finished: ({job.SongKey}) {job.SongName} by {job.LevelAuthorName}");
                 FinishedUpdateStatus(job.Result?.Successful ?? false,
@@ -43,12 +43,12 @@ namespace BeatSyncLib.Downloader
             }
         }
 
-        private void Job_OnJobStarted(object sender, JobStartedEventArgs e)
+        private void Job_OnJobStarted(object sender, DownloadJobStartedEventArgs e)
         {
             StartedUpdateStatus();
         }
 
-        private void Job_OnJobFinished(object sender, JobFinishedEventArgs e)
+        private void Job_OnJobFinished(object sender, DownloadJobFinishedEventArgs e)
         {
             FinishedUpdateStatus(e.JobSuccessful, e?.DownloadResult ?? DownloadResultStatus.Unknown, e?.ZipExtractResult ?? ZipExtractResultStatus.Unknown);
         }
