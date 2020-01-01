@@ -16,7 +16,22 @@ namespace BeatSync.Playlists
         [JsonIgnore]
         public bool IsDirty { get; private set; }
 
-        public Blister.Types.Playlist BlisterPlaylist;
+        public Blister.Types.Playlist _blisterPlaylist;
+        public Blister.Types.Playlist BlisterPlaylist
+        {
+            get
+            {
+                if(_blisterPlaylist == null)
+                {
+                    _blisterPlaylist = new Blister.Types.Playlist() { Maps = new List<Blister.Types.Beatmap>() };
+                }
+                return _blisterPlaylist;
+            }
+            set
+            {
+                _blisterPlaylist = value;
+            }
+        }
         public Playlist() { }
         public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor, string image)
         {

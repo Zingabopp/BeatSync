@@ -204,7 +204,7 @@
     <None Include="CreateJunctions.bat" />
     <None Include=".gitignore" />
     <None Include="ILRepack.targets" />
-    <None Include="UI\BSML\BeatSyncSettings.bsml" />
+    <EmbeddedResource Include="UI\BSML\BeatSyncSettings.bsml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ILRepack.Lib.MSBuild.Task">
