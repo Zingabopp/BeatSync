@@ -45,9 +45,8 @@ namespace BeatSync
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
-            IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.InfoUp;
             Logger.log = new BeatSyncIPALogger(logger);
-            Logger.log?.Debug("Logger initialied.");
+            Logger.log?.Debug("Logger initialized.");
             configProvider = cfgProvider;
             config = configProvider.MakeLink<PluginConfig>((p, v) =>
             {

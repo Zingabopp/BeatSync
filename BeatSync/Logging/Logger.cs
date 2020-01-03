@@ -2,8 +2,8 @@
 
 namespace BeatSync
 {
-    public static class Logger
+    internal static class Logger
     {
-        public static IBeatSyncLogger log { get; set; }
+        internal static IBeatSyncLogger log { get; set; }
     }
 }
