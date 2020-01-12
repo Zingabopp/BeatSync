@@ -79,10 +79,10 @@ namespace BeatSyncLib.Utilities
                 File.Delete(path);
             }
             Logger.log?.Debug($"Writing playlist {playlist.FileName} with {playlist.Count} songs.");
-            using (var memStream = Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist))
             using (var sw = File.CreateText(path))
             {
-                memStream.CopyTo(sw.BaseStream);
+                Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist, sw.BaseStream);
+                //memStream.CopyTo(sw.BaseStream);
             }
             File.Delete(path + ".bak");
             return path;
