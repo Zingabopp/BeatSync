@@ -853,7 +853,7 @@ namespace BeatSyncLib.Downloader
                 if (downloadPosted && postedJob != null)
                 {
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
-                    postedJob.OnJobFinished += PostedJob_OnJobFinished;
+                    postedJob.JobFinished += PostedJob_OnJobFinished;
                     new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
                 }
             }

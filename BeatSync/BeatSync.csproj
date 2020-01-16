@@ -56,6 +56,16 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Blister, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+      <HintPath>$(BeatSaberDir)\Libs\Blister.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Blister.Conversion, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <Private>False</Private>
+      <HintPath>$(BeatSaberDir)\Libs\Blister.Conversion.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="BSML">
       <HintPath>$(BeatSaberDir)\Plugins\BSML.dll</HintPath>
       <Private>False</Private>
@@ -80,11 +90,6 @@
     <Reference Include="SemVer.1.2.0.0, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(BeatSaberDir)\Libs\SemVer.1.2.0.0.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="SiaUtil, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BeatSaberDir)\Plugins\SiaUtil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
@@ -227,18 +232,6 @@
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
       <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
       <Name>WebUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Libs\Blister\Blister.Conversion\Blister.Conversion.csproj">
-      <Project>{be35dbc0-a6ac-41c2-875c-fd43e5335586}</Project>
-      <Name>Blister.Conversion</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj">
-      <Project>{1555b0d2-112f-4501-9e65-7692e9920322}</Project>
-      <Name>Blister</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Libs\PlaylistCore\PlaylistCore\PlaylistCore.csproj">
-      <Project>{30373419-0401-4b9b-8859-545241b94d3a}</Project>
-      <Name>PlaylistCore</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

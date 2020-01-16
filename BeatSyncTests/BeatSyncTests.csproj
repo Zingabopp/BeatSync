@@ -274,11 +274,11 @@
       <Name>WebUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\Libs\Blister\Blister.Conversion\Blister.Conversion.csproj">
-      <Project>{be35dbc0-a6ac-41c2-875c-fd43e5335586}</Project>
+      <Project>{a2680662-bafe-4a7d-99f4-96afa2b89f7d}</Project>
       <Name>Blister.Conversion</Name>
     </ProjectReference>
     <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj">
-      <Project>{1555b0d2-112f-4501-9e65-7692e9920322}</Project>
+      <Project>{07553862-5fc4-4491-a78c-1ca0470752bc}</Project>
       <Name>Blister</Name>
     </ProjectReference>
   </ItemGroup>

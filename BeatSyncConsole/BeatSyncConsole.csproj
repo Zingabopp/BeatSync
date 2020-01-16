@@ -8,8 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
-    <ProjectReference Include="..\Libs\Blister\Blister.Conversion\Blister.Conversion.csproj" />
-    <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj" />
   </ItemGroup>
 
 </Project>

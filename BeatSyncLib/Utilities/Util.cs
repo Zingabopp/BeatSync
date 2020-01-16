@@ -49,6 +49,9 @@ namespace BeatSyncLib.Utilities
             return hex.ToString();
         }
         #endregion
+
+        #region Number Conversion
+
         /// <summary>
         /// Outputs a TimeSpan in hours, minutes, and seconds.
         /// </summary>
@@ -80,6 +83,26 @@ namespace BeatSyncLib.Utilities
             return sb.ToString().Trim();
         }
 
+        public static long ConvertByteValue(long byteVal, ByteSize byteSize)
+        {
+            if (byteSize == ByteSize.Byte || byteVal == 0)
+                return byteVal;
+            uint byteSizeInt = (uint)byteSize;
+            long newVal = byteVal;
+            if (byteSizeInt > 0)
+                newVal /= 1024;
+            if (byteSizeInt > 1)
+                newVal /= 1024;
+            return newVal;
+        }
+
+        public enum ByteSize
+        {
+            Byte = 0,
+            Kilobyte = 1,
+            Megabyte = 2
+        }
+        #endregion
         /// <summary>
         /// Generates a hash for the song and assigns it to the SongHash field. Returns null if info.dat doesn't exist.
         /// Uses Kylemc1413's implementation from SongCore.

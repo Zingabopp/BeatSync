@@ -81,10 +81,10 @@ namespace BeatSyncLib.Downloader
             _cancellationSource = null;
         }
 
-        public async Task StopAsync()
+        public Task StopAsync()
         {
             Stop();
-            await Task.WhenAll(_tasks).ConfigureAwait(false);
+            return Task.WhenAll(_tasks);
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace BeatSyncLib.Downloader
             {
                 if (_existingJobs.TryAdd(job.SongHash, job) && _queuedJobs.TryAdd(job))
                 {
-                    job.OnJobFinished += Job_OnJobFinished;
+                    job.JobFinished += Job_OnJobFinished;
                     postedOrExistingJob = job;
                     return true;
                 }

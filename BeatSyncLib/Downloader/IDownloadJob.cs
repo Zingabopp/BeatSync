@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static BeatSyncLib.Utilities.Util;
 
 namespace BeatSyncLib.Downloader
 {
@@ -15,25 +16,34 @@ namespace BeatSyncLib.Downloader
         string SongKey { get; }
         string SongName { get; }
         string LevelAuthorName { get; }
+        bool CanPause { get; }
         DownloadJobStatus Status { get; }
-        DownloadManager DownloadManager { get; set; }
         Exception Exception { get; }
 
-        event EventHandler<DownloadJobFinishedEventArgs> OnJobFinished;
-        event EventHandler<DownloadJobStartedEventArgs> OnJobStarted;
+        event EventHandler<DownloadJobFinishedEventArgs> JobFinished;
+        event EventHandler<DownloadJobStartedEventArgs> JobStarted;
+        event EventHandler<DownloadJobProgressChangedEventArgs> JobProgressChanged;
+        event EventHandler<DownloadJobStatusChangedEventArgs> JobStatusChanged;
+
+        void AddDownloadFinishedCallback(DownloadFinishedCallback callback);
+        void Pause();
+        void Unpause();
 
         Task RunAsync();
         Task RunAsync(CancellationToken cancellationToken);
 
     }
 
+    public delegate Action<IDownloadJob> DownloadFinishedCallback(IDownloadJob job);
+
     public enum DownloadJobStatus
     {
         NotStarted = 0,
-        Downloading = 1,
-        Finished = 2,
-        Canceled = 3,
-        Faulted = 4
+        Paused = 1,
+        Downloading = 2,
+        Finished = 3,
+        Canceled = 4,
+        Faulted = 5
     }
 
     public class DownloadJobStartedEventArgs : EventArgs
@@ -53,10 +63,10 @@ namespace BeatSyncLib.Downloader
 
     public class DownloadJobFinishedEventArgs : EventArgs
     {
-        public string SongHash { get; private set; }
+        public string SongHash { get; protected set; }
         public bool JobSuccessful => DownloadResult == DownloadResultStatus.Success;
-        public DownloadResultStatus DownloadResult { get; private set; }
-        public string FileLocation { get; private set; }
+        public DownloadResultStatus DownloadResult { get; protected set; }
+        public string FileLocation { get; protected set; }
 
         public DownloadJobFinishedEventArgs(string songHash, DownloadResult jobResult)
         {
@@ -70,6 +80,72 @@ namespace BeatSyncLib.Downloader
             SongHash = songHash;
             DownloadResult = downloadResult;
             FileLocation = fileLocation;
+        }
+    }
+
+    public class DownloadJobProgressChangedEventArgs : EventArgs
+    {
+        public DownloadJobStatus DownloadJobStatus { get; protected set; }
+        public DownloadProgress? DownloadProgress { get; protected set; }
+        public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus)
+        {
+            DownloadJobStatus = downloadJobStatus;
+            DownloadProgress = null;
+        }
+        public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus, DownloadProgress downloadProgress)
+        {
+            DownloadJobStatus = downloadJobStatus;
+            DownloadProgress = downloadProgress; 
+        }
+        public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus, long totalBytesDownloaded, long? totalFileSize)
+        {
+            DownloadJobStatus = downloadJobStatus;
+            DownloadProgress = new DownloadProgress(totalBytesDownloaded, totalFileSize);
+        }
+    }
+
+    public class DownloadJobStatusChangedEventArgs : EventArgs
+    {
+        public DownloadJobStatus OldStatus { get; protected set; }
+        public DownloadJobStatus NewStatus { get; protected set; }
+
+        public DownloadJobStatusChangedEventArgs(DownloadJobStatus oldStatus, DownloadJobStatus newStatus)
+        {
+            OldStatus = oldStatus;
+            NewStatus = newStatus;
+        }
+    }
+
+    public struct DownloadProgress
+    {
+        public long? TotalFileSize;
+        public long TotalBytesDownloaded;
+        public double? ProgressPercentage => TotalFileSize != null && TotalFileSize != 0 ? TotalBytesDownloaded / TotalFileSize : null;
+        public DownloadProgress(long totalBytesDownloaded, long? totalFileSize)
+        {
+            TotalBytesDownloaded = totalBytesDownloaded;
+            TotalFileSize = totalFileSize;
+            _stringVal = null;
+        }
+        private ByteSize ByteSize => ByteSize.Megabyte;
+
+        private string _stringVal;
+        private string stringVal
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_stringVal))
+                    return _stringVal;
+                if (TotalFileSize == null)
+                    _stringVal = $"{ConvertByteValue(TotalBytesDownloaded, ByteSize).ToString("N2")} MB/?";
+                else
+                    _stringVal = $"({ProgressPercentage.Value.ToString("P2")}) {ConvertByteValue(TotalBytesDownloaded, ByteSize).ToString("N2")} MB/{ConvertByteValue(TotalFileSize.Value, ByteSize).ToString("N2")} MB";
+                return _stringVal;
+            }
+        }
+        public override string ToString()
+        {
+            return stringVal;
         }
     }
 }
