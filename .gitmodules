@@ -4,6 +4,3 @@
 [submodule "Libs/Blister"]
 	path = Libs/Blister
 	url = https://github.com/lolPants/Blister.git
-[submodule "Libs/PlaylistCore"]
-	path = Libs/PlaylistCore
-	url = https://github.com/AurosX/PlaylistCore.git
