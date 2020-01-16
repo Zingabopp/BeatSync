@@ -25,6 +25,15 @@ namespace BeatSyncLibTests.Utilities
         }
 
         [TestMethod]
+        public void ConvertByteValue_MegaBytesToMega()
+        {
+            double expectedValue = 3.54;
+            double startingVal = expectedValue;
+            double actualValue = ConvertByteValue(startingVal, ByteUnit.Megabyte, 2, ByteUnit.Megabyte);
+            Assert.AreEqual(expectedValue, actualValue);
+        }
+
+        [TestMethod]
         public void ConvertByteValue_ZeroToMega()
         {
             double expectedValue = 0;

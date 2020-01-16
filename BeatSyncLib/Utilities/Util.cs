@@ -99,6 +99,22 @@ namespace BeatSyncLib.Utilities
             return Math.Round(newVal, decimalPrecision);
         }
 
+        public static double ConvertByteValue(double byteVal, ByteUnit byteUnit, int decimalPrecision = 2, ByteUnit startingUnit = ByteUnit.Byte)
+        {
+            if (byteUnit == startingUnit || byteVal == 0)
+                return Math.Round(byteVal, decimalPrecision);
+
+            int byteUnitInt = (int)byteUnit;
+            int startingUnitInt = (int)startingUnit;
+            double newVal = byteVal;
+            while (startingUnitInt < byteUnitInt)
+            {
+                newVal /= 1024;
+                startingUnitInt++;
+            }
+            return Math.Round(newVal, decimalPrecision);
+        }
+
         public enum ByteUnit
         {
             Byte = 0,
