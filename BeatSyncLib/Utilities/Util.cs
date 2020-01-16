@@ -83,20 +83,23 @@ namespace BeatSyncLib.Utilities
             return sb.ToString().Trim();
         }
 
-        public static long ConvertByteValue(long byteVal, ByteSize byteSize)
+        public static double ConvertByteValue(long byteVal, ByteUnit byteUnit, int decimalPrecision = 2, ByteUnit startingUnit = ByteUnit.Byte)
         {
-            if (byteSize == ByteSize.Byte || byteVal == 0)
+            if (byteUnit == startingUnit || byteVal == 0)
                 return byteVal;
-            uint byteSizeInt = (uint)byteSize;
-            long newVal = byteVal;
-            if (byteSizeInt > 0)
+
+            int byteUnitInt = (int)byteUnit;
+            int startingUnitInt = (int)startingUnit;
+            double newVal = byteVal;
+            while(startingUnitInt < byteUnitInt)
+            {
                 newVal /= 1024;
-            if (byteSizeInt > 1)
-                newVal /= 1024;
-            return newVal;
+                startingUnitInt++;
+            }
+            return Math.Round(newVal, decimalPrecision);
         }
 
-        public enum ByteSize
+        public enum ByteUnit
         {
             Byte = 0,
             Kilobyte = 1,
