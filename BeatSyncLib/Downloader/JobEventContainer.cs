@@ -19,6 +19,7 @@ namespace BeatSyncLib.Downloader
         private bool finishedStatusUpdated = false;
         private bool startedStatusUpdated = false;
         private Func<bool> readerFinishedPosting;
+        [Obsolete("FinishedUpdateStatus call")]
         public JobEventContainer(IDownloadJob job, string readerName, IStatusManager statusManager, Func<bool> readerFinished)
         {
             readerFinishedPosting = readerFinished;
@@ -37,9 +38,9 @@ namespace BeatSyncLib.Downloader
             if (job.Status == DownloadJobStatus.Finished)
             {
                 //Logger.log?.Warn($"Job already finished: ({job.SongKey}) {job.SongName} by {job.LevelAuthorName}");
-                FinishedUpdateStatus(job.Result?.Successful ?? false,
-                    job.Result?.DownloadResult?.Status ?? DownloadResultStatus.Unknown,
-                    job.Result?.ZipResult?.ResultStatus ?? ZipExtractResultStatus.Unknown);
+                //FinishedUpdateStatus(job.Result?.Successful ?? false,
+                //    job.Result?.DownloadResult?.Status ?? DownloadResultStatus.Unknown,
+                //    job.Result?.ZipResult?.ResultStatus ?? ZipExtractResultStatus.Unknown);
             }
         }
 
@@ -48,9 +49,10 @@ namespace BeatSyncLib.Downloader
             StartedUpdateStatus();
         }
 
+        [Obsolete("Needs fixing")]
         private void Job_OnJobFinished(object sender, DownloadJobFinishedEventArgs e)
         {
-            FinishedUpdateStatus(e.JobSuccessful, e?.DownloadResult ?? DownloadResultStatus.Unknown, e?.ZipExtractResult ?? ZipExtractResultStatus.Unknown);
+            //FinishedUpdateStatus(e.JobSuccessful, e?.DownloadResult ?? DownloadResultStatus.Unknown, e?.ZipExtractResult ?? ZipExtractResultStatus.Unknown);
         }
 
         private void StartedUpdateStatus()

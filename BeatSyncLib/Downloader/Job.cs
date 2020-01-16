@@ -127,6 +127,7 @@ namespace BeatSyncLib.Downloader
         private string hashAfterDownload;
 
         // TODO: This is horrendous
+        [Obsolete("Needs to be redone/removed")]
         public async Task RunAsync(CancellationToken cancellationToken)
         {
             Status = DownloadJobStatus.Downloading;
@@ -181,7 +182,7 @@ namespace BeatSyncLib.Downloader
                             return;
                         }
                     }
-                    Status = DownloadJobStatus.Extracting;
+                    //Status = DownloadJobStatus.Extracting;
 
                     zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
                     // Try to delete zip file
@@ -245,6 +246,7 @@ namespace BeatSyncLib.Downloader
             //await Task.Delay(5000).ConfigureAwait(false);
         }
 
+        [Obsolete("OnJobFinished invoke")]
         private void FinishJob(bool canceled = false, Exception exception = null)
         {
             if (canceled || exception is OperationCanceledException)
@@ -265,12 +267,12 @@ namespace BeatSyncLib.Downloader
                 HashAfterDownload = hashAfterDownload,
                 Exception = exception
             };
-            OnJobFinished?.Invoke(this,
-                new JobFinishedEventArgs(SongHash,
-                Result.Successful,
-                downloadResult?.Status ?? DownloadResultStatus.Unknown,
-                zipResult?.ResultStatus ?? ZipExtractResultStatus.Unknown,
-                SongDirectory));
+            //OnJobFinished?.Invoke(this,
+            //    new JobFinishedEventArgs(SongHash,
+            //    Result.Successful,
+            //    downloadResult?.Status ?? DownloadResultStatus.Unknown,
+            //    zipResult?.ResultStatus ?? ZipExtractResultStatus.Unknown,
+            //    SongDirectory));
         }
 
         public Task RunAsync()

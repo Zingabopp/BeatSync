@@ -35,7 +35,7 @@ namespace BeatSyncLib.Downloader
         public string SongName { get; private set; }
         public string LevelAuthorName { get; private set; }
         public bool Paused { get; private set; }
-        public DownloadResult Result { get; private set; }
+        public DownloadResult DownloadResult { get; private set; }
         private DownloadJobStatus _status;
         public DownloadJobStatus Status 
         { get { return _status; }
@@ -196,8 +196,8 @@ namespace BeatSyncLib.Downloader
                 Exception = exception;
                 Status = DownloadJobStatus.Faulted;
             }
-            Result = _downloadResult;
-            FileLocation = Result?.FilePath;
+            DownloadResult = _downloadResult;
+            FileLocation = DownloadResult?.FilePath;
             foreach (var callback in downloadFinishedCallbacks)
             {
                 try

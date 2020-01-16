@@ -41,11 +41,12 @@ namespace BeatSyncLib.Downloader
             RecentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
         }
 
+        [Obsolete("Zip handling")]
         public void ProcessJob(IDownloadJob job)
         {
             var playlistSong = new PlaylistSong(job.SongHash, job.SongName, job.SongKey, job.LevelAuthorName);
             var historyEntry = HistoryManager.GetOrAdd(playlistSong.Hash, (s) => new HistoryEntry(playlistSong, HistoryFlag.None));
-            if (job.Result.Successful)
+            if (job.DownloadResult.Status == DownloadResultStatus.Success)
             {
                 //HistoryManager.TryUpdateFlag(job.SongHash, HistoryFlag.Downloaded);
                 historyEntry.Flag = HistoryFlag.Downloaded;
@@ -57,9 +58,9 @@ namespace BeatSyncLib.Downloader
                 if (!HistoryManager.TryRemove(job.SongHash, out var _) && historyEntry != null)
                     historyEntry.Flag = HistoryFlag.Error;
             }
-            else if (job.Result.DownloadResult.Status != DownloadResultStatus.Success)
+            else if (job.DownloadResult.Status != DownloadResultStatus.Success)
             {
-                var result = job.Result.DownloadResult;
+                var result = job.DownloadResult;
                 switch (result.Status)
                 {
                     case DownloadResultStatus.Unknown:
@@ -106,28 +107,28 @@ namespace BeatSyncLib.Downloader
                         break;
                 }
             }
-            else if (job.Result.ZipResult?.ResultStatus != ZipExtractResultStatus.Success)
-            {
-                var result = job.Result.ZipResult;
-                switch (result.ResultStatus)
-                {
-                    case ZipExtractResultStatus.Unknown:
-                        Logger.log?.Warn($"Unknown error extracting {job.ToString()}: {result.Exception?.Message}");
-                        break;
-                    case ZipExtractResultStatus.SourceFailed:
-                        Logger.log?.Warn($"Source error extracting {job.ToString()}: {result.Exception?.Message}");
-                        break;
-                    case ZipExtractResultStatus.DestinationFailed:
-                        Logger.log?.Warn($"Destination error extracting {job.ToString()}: {result.Exception?.Message}");
-                        break;
-                    default:
-                        break;
-                }
-                // Unzipping failed for some reason, remove from history so it tries again.
-                Logger.log?.Debug(result.Exception);
-                historyEntry.Flag = HistoryFlag.Error;
-                //HistoryManager.TryRemove(job.SongHash, out var _);
-            }
+            //else if (job.DownloadResult.ZipResult?.ResultStatus != ZipExtractResultStatus.Success)
+            //{
+            //    var result = job.DownloadResult.ZipResult;
+            //    switch (result.ResultStatus)
+            //    {
+            //        case ZipExtractResultStatus.Unknown:
+            //            Logger.log?.Warn($"Unknown error extracting {job.ToString()}: {result.Exception?.Message}");
+            //            break;
+            //        case ZipExtractResultStatus.SourceFailed:
+            //            Logger.log?.Warn($"Source error extracting {job.ToString()}: {result.Exception?.Message}");
+            //            break;
+            //        case ZipExtractResultStatus.DestinationFailed:
+            //            Logger.log?.Warn($"Destination error extracting {job.ToString()}: {result.Exception?.Message}");
+            //            break;
+            //        default:
+            //            break;
+            //    }
+            //    // Unzipping failed for some reason, remove from history so it tries again.
+            //    Logger.log?.Debug(result.Exception);
+            //    historyEntry.Flag = HistoryFlag.Error;
+            //    //HistoryManager.TryRemove(job.SongHash, out var _);
+            //}
         }
 
         /// <summary>
@@ -841,6 +842,7 @@ namespace BeatSyncLib.Downloader
         }
         #endregion
 
+        [Obsolete("JobEventContainer thing")]
         public bool PostJobToDownload(PlaylistSong playlistSong, string readerName, Func<bool> finishedPosting)
         {
             bool downloadPosted = false;
@@ -854,7 +856,7 @@ namespace BeatSyncLib.Downloader
                 {
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
                     postedJob.JobFinished += PostedJob_OnJobFinished;
-                    new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
+                    //new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
                 }
             }
             else if (existsOnDisk && historyEntry != null)

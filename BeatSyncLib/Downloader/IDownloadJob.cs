@@ -18,6 +18,7 @@ namespace BeatSyncLib.Downloader
         string LevelAuthorName { get; }
         bool CanPause { get; }
         DownloadJobStatus Status { get; }
+        DownloadResult DownloadResult { get; }
         Exception Exception { get; }
 
         event EventHandler<DownloadJobFinishedEventArgs> JobFinished;
@@ -127,7 +128,7 @@ namespace BeatSyncLib.Downloader
             TotalFileSize = totalFileSize;
             _stringVal = null;
         }
-        private ByteSize ByteSize => ByteSize.Megabyte;
+        private ByteUnit ByteSize => ByteUnit.Megabyte;
 
         private string _stringVal;
         private string stringVal
