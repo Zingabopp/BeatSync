@@ -11,11 +11,10 @@ namespace BeatSyncLib.Downloader
 {
     public class DownloadManager
     {
-        internal Func<bool> PauseFlag;
-        internal WeakReference<Func<bool>> WeakPauseFlag;
         private BlockingCollection<IDownloadJob> _queuedJobs = new BlockingCollection<IDownloadJob>();
 
         private ConcurrentDictionary<string, IDownloadJob> _existingJobs = new ConcurrentDictionary<string, IDownloadJob>();
+        private ConcurrentDictionary<string, IDownloadJob> _activeJobs = new ConcurrentDictionary<string, IDownloadJob>();
         private ConcurrentDictionary<string, IDownloadJob> _completedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
         private ConcurrentDictionary<string, IDownloadJob> _failedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
         private ConcurrentDictionary<string, IDownloadJob> _cancelledDownloads = new ConcurrentDictionary<string, IDownloadJob>();
@@ -23,6 +22,7 @@ namespace BeatSyncLib.Downloader
         {
             get { return _completedDownloads.Values.ToList(); }
         }
+        public bool Paused { get; protected set; }
         private bool _acceptingJobs = false;
         private bool _running = false;
         private int _concurrentDownloads = 1;
@@ -30,11 +30,22 @@ namespace BeatSyncLib.Downloader
         private CancellationTokenSource _cancellationSource;
         private Task[] _tasks;
 
-        public void SetPauseFlag(Func<bool> pauseFlag, bool keepTargetAlive = false)
+        public void Pause()
         {
-            WeakPauseFlag.SetTarget(pauseFlag);
-            if (!keepTargetAlive)
-                PauseFlag = pauseFlag;
+            Paused = true;
+            foreach (var job in _activeJobs.Values.Where(j => j.CanPause).ToArray())
+            {
+                job.Pause();
+            }
+        }
+
+        public void Unpause()
+        {
+            Paused = false;
+            foreach (var job in _activeJobs.Values.Where(j => j.CanPause).ToArray())
+            {
+                job.Unpause();
+            }
         }
 
         public int ConcurrentDownloads
@@ -135,16 +146,13 @@ namespace BeatSyncLib.Downloader
         /// <returns></returns>
         public bool TryPostJob(IDownloadJob job, out IDownloadJob postedOrExistingJob)
         {
-            if (_acceptingJobs)
+            if (_acceptingJobs && _existingJobs.TryAdd(job.SongHash, job) && _queuedJobs.TryAdd(job))
             {
-                if (_existingJobs.TryAdd(job.SongHash, job) && _queuedJobs.TryAdd(job))
-                {
                     job.JobFinished += Job_OnJobFinished;
                     postedOrExistingJob = job;
                     return true;
-                }
             }
-            if (_existingJobs.TryGetValue(job.SongHash, out var existingJob))
+            else if (_existingJobs.TryGetValue(job.SongHash, out var existingJob))
             {
                 postedOrExistingJob = existingJob;
                 return false;
@@ -158,6 +166,11 @@ namespace BeatSyncLib.Downloader
 
         private void Job_OnJobFinished(object sender, DownloadJobFinishedEventArgs e)
         {
+            IDownloadJob finishedJob = (IDownloadJob)sender;
+            if(!_activeJobs.TryRemove(e.SongHash, out _))
+            {
+                Logger.log?.Warn($"Couldn't remove {finishedJob.ToString()} from _activeJobs, this shouldn't happen.");
+            }
             switch (e.DownloadResult)
             {
                 case Utilities.DownloadResultStatus.Success:
@@ -178,6 +191,12 @@ namespace BeatSyncLib.Downloader
             {
                 foreach (var job in _queuedJobs.GetConsumingEnumerable(cancellationToken))
                 {
+                    if(!_activeJobs.TryAdd(job.SongHash, job))
+                    {
+                        Logger.log?.Warn($"Couldn't add {job.ToString()} to _activeJobs, this shouldn't happen.");
+                    }
+                    if (Paused && job.CanPause)
+                        job.Pause();
                     await job.RunAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
