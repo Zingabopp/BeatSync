@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SongFeedReaders;
 using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Data;
 using BeatSyncLib.Utilities;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.Playlists;
@@ -30,17 +31,7 @@ namespace BeatSyncLib.Downloader
         public string SongKey { get; private set; }
         public string SongName { get; private set; }
         public string LevelAuthorName { get; private set; }
-        public bool Paused
-        {
-            get
-            {
-                if (DownloadManager?.WeakPauseFlag == null)
-                    return false;
-                if (DownloadManager.WeakPauseFlag.TryGetTarget(out var reference))
-                    return reference?.Invoke() ?? false;
-                return false;
-            }
-        }
+        public bool Paused => DownloadManager.Paused;
         public string SongDirectory { get; private set; }
         private string _defaultSongDirectoryName;
         public JobResult Result { get; private set; }

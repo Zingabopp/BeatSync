@@ -6,6 +6,7 @@ using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Readers.BeastSaber;
 using SongFeedReaders.Readers.ScoreSaber;
+using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

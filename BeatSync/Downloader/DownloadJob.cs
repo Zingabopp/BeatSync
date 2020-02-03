@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SongFeedReaders;
 using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Data;
 
 namespace BeatSync.Downloader
 {

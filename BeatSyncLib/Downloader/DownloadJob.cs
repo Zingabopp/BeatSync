@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SongFeedReaders;
 using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Data;
 using BeatSyncLib.Utilities;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.Playlists;
@@ -49,6 +50,8 @@ namespace BeatSyncLib.Downloader
             }
         }
         public bool CanPause { get; private set; } = true;
+
+        public bool SupportsProgressUpdates => true;
 
         /// <summary>
         /// Private constructor to use with the others.
