@@ -182,10 +182,6 @@
     <Compile Include="Logging\IBeatSyncLogger.cs" />
     <Compile Include="Downloader\SongDownloader.cs" />
     <Compile Include="SongHasher.cs" />
-    <None Include="UI\BSML\BeatSyncFlowCoordinator.cs" />
-    <None Include="UI\BSML\BeatSyncSettings.cs" />
-    <None Include="UI\BSML\ConfigUiBase.cs" />
-    <None Include="UI\BSML\StatusUiSettings.cs" />
     <Compile Include="UI\IStatusManager.cs" />
     <Compile Include="UI\PostText.cs" />
     <Compile Include="UI\TextMeshList.cs" />
@@ -214,7 +210,6 @@
     <None Include="CreateJunctions.bat" />
     <None Include=".gitignore" />
     <None Include="ILRepack.targets" />
-    <EmbeddedResource Include="UI\BSML\BeatSyncSettings.bsml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ILRepack.Lib.MSBuild.Task">

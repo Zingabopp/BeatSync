@@ -17,6 +17,7 @@ namespace BeatSyncLib.Downloader
         string SongName { get; }
         string LevelAuthorName { get; }
         bool CanPause { get; }
+        bool SupportsProgressUpdates { get; }
         DownloadJobStatus Status { get; }
         DownloadResult DownloadResult { get; }
         Exception Exception { get; }
@@ -32,7 +33,6 @@ namespace BeatSyncLib.Downloader
 
         Task RunAsync();
         Task RunAsync(CancellationToken cancellationToken);
-
     }
 
     public delegate Action<IDownloadJob> DownloadFinishedCallback(IDownloadJob job);

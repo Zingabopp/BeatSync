@@ -452,33 +452,8 @@ namespace BeatSyncLib.Utilities
         }
     }
 
-    public class DownloadResult
-    {
-        public DownloadResult(string path, DownloadResultStatus status, int httpStatus, string reason = null, Exception exception = null)
-        {
-            FilePath = path;
-            Status = status;
-            HttpStatusCode = httpStatus;
-            Reason = reason;
-            Exception = exception;
-        }
-        public string FilePath { get; private set; }
-        public string Reason { get; private set; }
-        public DownloadResultStatus Status { get; private set; }
-        public int HttpStatusCode { get; private set; }
-        public Exception Exception { get; private set; }
-    }
 
-    public enum DownloadResultStatus
-    {
-        Unknown = 0,
-        Success = 1,
-        NetFailed = 2,
-        IOFailed = 3,
-        InvalidRequest = 4,
-        NetNotFound = 5,
-        Canceled = 6
-    }
+
 
     public class ZipExtractResult
     {
