@@ -2,13 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+	<ReferencePath>$(ProjectDir)..\Refs</ReferencePath>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
-    <ProjectReference Include="..\Libs\Blister\Blister.Conversion\Blister.Conversion.csproj" />
-    <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Blister">
+      <HintPath>..\Refs\Blister.dll</HintPath>
+    </Reference>
+    <Reference Include="Blister.Conversion">
+      <HintPath>..\Refs\Blister.Conversion.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
