@@ -15,6 +15,7 @@
     <PathMap>$(SolutionDir)=C:\</PathMap>
     <DebugType>portable</DebugType>
     <BeatSaberDir>$(ProjectDir)References</BeatSaberDir>
+	<ReferencePath>$(ProjectDir)..\Refs</ReferencePath>
     <FinalOutputAssembly>$(OutputPath)Merged\$(AssemblyName).dll</FinalOutputAssembly>
     <TargetFrameworkProfile />
   </PropertyGroup>
