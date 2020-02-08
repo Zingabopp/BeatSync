@@ -4,3 +4,6 @@
 [submodule "Libs/Blister"]
 	path = Libs/Blister
 	url = https://github.com/lolPants/Blister.git
+[submodule "BS-Plugin-BuildTools"]
+	path = BS-Plugin-BuildTools
+	url = https://github.com/beat-saber-modding-group/BS-Plugin-BuildTools.git
