@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSync", "BeatSync\BeatSync.csproj", "{E9536F87-B2DE-423A-95A5-C1E35B1B0DD5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F} = {5F33B310-DC8D-4C0D-877E-BAC3908DE10F}
+		{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A} = {E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebUtilities", "Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj", "{34E8F435-5C5A-4971-8D6C-173E027E17CA}"
 EndProject
@@ -16,6 +20,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncConsole", "BeatSyncConsole\BeatSyncConsole.csproj", "{AF36D218-6A12-455D-86CC-4E7921535E34}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncLib", "BeatSyncLib\BeatSyncLib.csproj", "{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F} = {5F33B310-DC8D-4C0D-877E-BAC3908DE10F}
+		{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A} = {E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncLibTests", "BeatSyncLibTests\BeatSyncLibTests.csproj", "{8BA75F87-831D-4420-915E-D7EC5F8953D3}"
 EndProject
