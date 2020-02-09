@@ -114,9 +114,7 @@
     <None Include="Data\Playlists\BeatSyncBSaberBookmarks.blist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Data\Playlists\BeatSyncFavoriteMappers.blist">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Data\Playlists\BeatSyncBSaberFollows.blist" />
     <None Include="Data\Playlists\BeatSyncScoreSaberLatestRanked.blist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -12,7 +12,7 @@ namespace BeatSyncTests.Playlist_Tests
         [TestMethod]
         public void LoadBlisterPlaylist()
         {
-            string playlistFile = Path.Combine(PlaylistsPath, "BeatSyncBSaberBookmarks.blist");
+            string playlistFile = Path.Combine(PlaylistsPath, "BeatSyncScoreSaberLatestRanked.blist");
             var playlist = BlisterHandler.Deserialize(File.OpenRead(playlistFile));
         }
     }
