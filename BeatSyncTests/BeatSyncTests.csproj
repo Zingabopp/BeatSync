@@ -38,12 +38,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MainAssembly">
-      <HintPath>H:\SteamApps\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\MainAssembly.dll</HintPath>
+    <Reference Include="Blister, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Refs\Blister.dll</HintPath>
+    </Reference>
+    <Reference Include="Blister.Conversion, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Refs\Blister.Conversion.dll</HintPath>
+    </Reference>
+    <Reference Include="MainAssembly, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Refs\MainAssembly.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="SongCore">
-      <HintPath>H:\SteamApps\SteamApps\common\Beat Saber\Plugins\SongCore.dll</HintPath>
+    <Reference Include="SongCore, Version=2.7.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Refs\SongCore.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -272,14 +282,6 @@
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
       <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
       <Name>WebUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Libs\Blister\Blister.Conversion\Blister.Conversion.csproj">
-      <Project>{a2680662-bafe-4a7d-99f4-96afa2b89f7d}</Project>
-      <Name>Blister.Conversion</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Libs\Blister\Blister\Blister.csproj">
-      <Project>{07553862-5fc4-4491-a78c-1ca0470752bc}</Project>
-      <Name>Blister</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

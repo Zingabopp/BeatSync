@@ -1,0 +1,87 @@
+{
+  "RegenerateConfig": false,
+  "DownloadTimeout": 10,
+  "MaxConcurrentDownloads": 3,
+  "RecentPlaylistDays": 3,
+  "AllBeatSyncSongsPlaylist": false,
+  "TimeBetweenSyncs": {
+    "Hours": 0,
+    "Minutes": 0
+  },
+  "BeastSaber": {
+    "Enabled": true,
+    "Username": "",
+    "MaxConcurrentPageChecks": 5,
+    "Bookmarks": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0
+    },
+    "Follows": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0
+    },
+    "CuratorRecommended": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0
+    }
+  },
+  "BeatSaver": {
+    "Enabled": true,
+    "MaxConcurrentPageChecks": 5,
+    "FavoriteMappers": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0,
+      "SeparateMapperPlaylists": true
+    },
+    "Hot": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0
+    },
+    "Downloads": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0
+    }
+  },
+  "ScoreSaber": {
+    "Enabled": true,
+    "TopRanked": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 1
+    },
+    "LatestRanked": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 1
+    },
+    "Trending": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0,
+      "RankedOnly": false
+    },
+    "TopPlayed": {
+      "Enabled": true,
+      "MaxSongs": 20,
+      "CreatePlaylist": true,
+      "PlaylistStyle": 0,
+      "RankedOnly": false
+    }
+  },
+  "LastRun": "5019-09-13T17:30:03.8069374-04:00"
+}
