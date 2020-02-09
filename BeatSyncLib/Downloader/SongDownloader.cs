@@ -14,6 +14,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using BeatSyncLib.Hashing;
 using System.Threading;
+using SongFeedReaders.Data;
+using BeatSyncLib.Playlists.Legacy;
 
 namespace BeatSyncLib.Downloader
 {
@@ -21,7 +23,7 @@ namespace BeatSyncLib.Downloader
     {
         private readonly string CustomLevelsPath;
         private PluginConfig Config;
-        private Playlist RecentPlaylist;
+        private IPlaylist RecentPlaylist;
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
         public FavoriteMappers FavoriteMappers { get; private set; }
@@ -44,7 +46,7 @@ namespace BeatSyncLib.Downloader
         [Obsolete("Zip handling")]
         public void ProcessJob(IDownloadJob job)
         {
-            var playlistSong = new PlaylistSong(job.SongHash, job.SongName, job.SongKey, job.LevelAuthorName);
+            var playlistSong = new LegacyPlaylistSong(job.SongHash, job.SongName, job.SongKey, job.LevelAuthorName);
             var historyEntry = HistoryManager.GetOrAdd(playlistSong.Hash, (s) => new HistoryEntry(playlistSong, HistoryFlag.None));
             if (job.DownloadResult.Status == DownloadResultStatus.Success)
             {
@@ -226,12 +228,12 @@ namespace BeatSyncLib.Downloader
             {
                 allPlaylist?.TryAdd(pair.Value.Hash, pair.Value.SongName, pair.Value.SongKey, pair.Value.MapperName);
             }
-            allPlaylist?.TryWriteFile();
+            allPlaylist?.TryStore();
 
         }
 
         #region Feed Read Functions
-        public async Task<FeedResult> ReadFeed(IFeedReader reader, IFeedSettings settings, int postId, Playlist feedPlaylist, PlaylistStyle playlistStyle, CancellationToken cancellationToken)
+        public async Task<FeedResult> ReadFeed(IFeedReader reader, IFeedSettings settings, int postId, IPlaylist feedPlaylist, PlaylistStyle playlistStyle, CancellationToken cancellationToken)
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
             var feedName = reader.GetFeedName(settings);
@@ -243,7 +245,7 @@ namespace BeatSyncLib.Downloader
             int skippedForHistory = 0;
             foreach (var scrapedSong in feedResult.Songs)
             {
-                PlaylistSong song;
+                IFeedSong song;
                 if (HistoryManager != null)
                 {
                     // Skip songs that were deleted or not found on Beat Saver.
@@ -254,21 +256,21 @@ namespace BeatSyncLib.Downloader
                         skippedForHistory++;
                         continue;
                     }
-                    song = scrapedSong.Value.ToPlaylistSong();
+                    song = scrapedSong.Value.ToFeedSong<LegacyPlaylistSong>();
                     if (!inHistory && HashSource.ExistingSongs.ContainsKey(scrapedSong.Value.Hash))
                     {
                         HistoryManager.TryAdd(song, HistoryFlag.PreExisting);
                     }
                 }
                 else
-                    song = scrapedSong.Value.ToPlaylistSong();
+                    song = scrapedSong.Value.ToFeedSong<LegacyPlaylistSong>();
                 song.DateAdded = addDate;
                 var source = $"{reader.Name}.{feedName}";
-                song.FeedSources.Add(source);
+                song.AddFeedSource(source);
                 feedPlaylist?.TryAdd(song);
                 addDate = addDate - decrement;
             }
-            feedPlaylist?.TryWriteFile();
+            feedPlaylist?.TryStore();
             var pages = feedResult.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             string historyPostFix = string.Empty;
             string appendText = string.Empty;
@@ -520,7 +522,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, $"Starting Feed: FavoriteMappers ({FavoriteMappers.Mappers.Count} mappers)...") ?? 0;
                     StatusManager?.PinPost(postId);
                     var feedSettings = config.FavoriteMappers.ToFeedSettings() as BeatSaverFeedSettings;
-                    Playlist feedPlaylist = null;
+                    IPlaylist feedPlaylist = null;
                     if (!config.FavoriteMappers.SeparateMapperPlaylists)
                     {
                         feedPlaylist = config.FavoriteMappers.CreatePlaylist
@@ -542,7 +544,7 @@ namespace BeatSyncLib.Downloader
                         if (config.FavoriteMappers.CreatePlaylist && config.FavoriteMappers.SeparateMapperPlaylists)
                         {
                             var playlistFileName = $"{author}.bplist";
-                            feedPlaylist = PlaylistManager.GetOrAdd(playlistFileName, () => new Playlist(playlistFileName, author, "BeatSync", PlaylistManager.PlaylistImageLoaders[BuiltInPlaylist.BeatSaverMapper]));
+                            feedPlaylist = PlaylistManager.GetOrAdd(playlistFileName, () => new LegacyPlaylist(playlistFileName, author, "BeatSync", PlaylistManager.PlaylistImageLoaders[BuiltInPlaylist.BeatSaverMapper].Value));
                         }
                         var authorSongs = await ReadFeed(reader, feedSettings, authorPosts[postIndex], feedPlaylist, playlistStyle, cancellationToken).ConfigureAwait(false);
                         postIndex++;
@@ -843,7 +845,7 @@ namespace BeatSyncLib.Downloader
         #endregion
 
         [Obsolete("JobEventContainer thing")]
-        public bool PostJobToDownload(PlaylistSong playlistSong, string readerName, Func<bool> finishedPosting)
+        public bool PostJobToDownload(IPlaylistSong playlistSong, string readerName, Func<bool> finishedPosting)
         {
             bool downloadPosted = false;
             var inHistory = HistoryManager.TryGetValue(playlistSong.Hash, out var historyEntry);
@@ -886,7 +888,7 @@ namespace BeatSyncLib.Downloader
 
         public bool PostJobToDownload(ScrapedSong song, string readerName, Func<bool> finishedPosting)
         {
-            return PostJobToDownload(song.ToPlaylistSong(), readerName, finishedPosting);
+            return PostJobToDownload(song.ToFeedSong<LegacyPlaylistSong>(), readerName, finishedPosting);
         }
 
         public void SetError(string reader)

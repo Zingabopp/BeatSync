@@ -67,20 +67,20 @@ namespace BeatSyncLib.Downloader
         public string SongHash { get; protected set; }
         public bool JobSuccessful => DownloadResult == DownloadResultStatus.Success;
         public DownloadResultStatus DownloadResult { get; protected set; }
-        public string FileLocation { get; protected set; }
+        public DownloadContainer DownloadContainer { get; protected set; }
 
         public DownloadJobFinishedEventArgs(string songHash, DownloadResult jobResult)
         {
             SongHash = songHash;
             DownloadResult = jobResult.Status;
-            FileLocation = jobResult.FilePath;
+            DownloadContainer = jobResult.DownloadContainer;
         }
 
-        public DownloadJobFinishedEventArgs(string songHash, DownloadResultStatus downloadResult, string fileLocation)
+        public DownloadJobFinishedEventArgs(string songHash, DownloadResultStatus downloadResult, DownloadContainer downloadContainer)
         {
             SongHash = songHash;
             DownloadResult = downloadResult;
-            FileLocation = fileLocation;
+            DownloadContainer = downloadContainer;
         }
     }
 

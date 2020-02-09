@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using BeatSyncLib.Playlists.Legacy;
 
 namespace BeatSyncLib.Playlists
 {
@@ -16,12 +17,12 @@ namespace BeatSyncLib.Playlists
         public static readonly string DisabledPlaylistsPath = Path.Combine(PlaylistPath, "DisabledPlaylists");
         public static readonly string[] PlaylistExtensions = new string[] { ".blist", ".bplist", ".json" };
 
-        private static Dictionary<BuiltInPlaylist, Playlist> AvailablePlaylists = new Dictionary<BuiltInPlaylist, Playlist>(); // Doesn't need to be concurrent, basically readonly
+        private static Dictionary<BuiltInPlaylist, IPlaylist> AvailablePlaylists = new Dictionary<BuiltInPlaylist, IPlaylist>(); // Doesn't need to be concurrent, basically readonly
 
         /// <summary>
         /// Key is the file name in lowercase.
         /// </summary>
-        private static ConcurrentDictionary<string, Playlist> CustomPlaylists = new ConcurrentDictionary<string, Playlist>();
+        private static ConcurrentDictionary<string, IPlaylist> CustomPlaylists = new ConcurrentDictionary<string, IPlaylist>();
 
 
         public static Lazy<string> GetImageLoader(string resourcePath)
@@ -48,22 +49,22 @@ namespace BeatSyncLib.Playlists
             {BuiltInPlaylist.BeatSaverMapper, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverMapper.png") }
         });
 
-        public static readonly ReadOnlyDictionary<BuiltInPlaylist, Playlist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, Playlist>(new Dictionary<BuiltInPlaylist, Playlist>()
+        public static readonly ReadOnlyDictionary<BuiltInPlaylist, IPlaylist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, IPlaylist>(new Dictionary<BuiltInPlaylist, IPlaylist>()
         {
-            {BuiltInPlaylist.BeatSyncAll, new Playlist("BeatSyncPlaylist.blist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
-            {BuiltInPlaylist.BeastSaberBookmarks, new Playlist("BeatSyncBSaberBookmarks.blist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
-            {BuiltInPlaylist.BeastSaberFollows, new Playlist("BeatSyncBSaberFollows.blist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
-            {BuiltInPlaylist.BeastSaberCurator, new Playlist("BeatSyncBSaberCuratorRecommended.blist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
-            {BuiltInPlaylist.ScoreSaberTopRanked, new Playlist("BeatSyncScoreSaberTopRanked.blist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
-            {BuiltInPlaylist.ScoreSaberLatestRanked, new Playlist("BeatSyncScoreSaberLatestRanked.blist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
-            {BuiltInPlaylist.ScoreSaberTopPlayed, new Playlist("BeatSyncScoreSaberTopPlayed.blist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
-            {BuiltInPlaylist.ScoreSaberTrending, new Playlist("BeatSyncScoreSaberTrending.blist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
-            {BuiltInPlaylist.BeatSaverFavoriteMappers, new Playlist("BeatSyncFavoriteMappers.blist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
-            {BuiltInPlaylist.BeatSaverLatest, new Playlist("BeatSyncBeatSaverLatest.blist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
-            {BuiltInPlaylist.BeatSaverHot, new Playlist("BeatSyncBeatSaverHot.blist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
-            {BuiltInPlaylist.BeatSaverPlays, new Playlist("BeatSyncBeatSaverPlays.blist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
-            {BuiltInPlaylist.BeatSaverDownloads, new Playlist("BeatSyncBeatSaverDownloads.blist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
-            {BuiltInPlaylist.BeatSyncRecent, new Playlist("BeatSyncRecent.blist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
+            {BuiltInPlaylist.BeatSyncAll, new LegacyPlaylist("BeatSyncPlaylist.blist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
+            {BuiltInPlaylist.BeastSaberBookmarks, new LegacyPlaylist("BeatSyncBSaberBookmarks.blist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
+            {BuiltInPlaylist.BeastSaberFollows, new LegacyPlaylist("BeatSyncBSaberFollows.blist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
+            {BuiltInPlaylist.BeastSaberCurator, new LegacyPlaylist("BeatSyncBSaberCuratorRecommended.blist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
+            {BuiltInPlaylist.ScoreSaberTopRanked, new LegacyPlaylist("BeatSyncScoreSaberTopRanked.blist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, new LegacyPlaylist("BeatSyncScoreSaberLatestRanked.blist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, new LegacyPlaylist("BeatSyncScoreSaberTopPlayed.blist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
+            {BuiltInPlaylist.ScoreSaberTrending, new LegacyPlaylist("BeatSyncScoreSaberTrending.blist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, new LegacyPlaylist("BeatSyncFavoriteMappers.blist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
+            {BuiltInPlaylist.BeatSaverLatest, new LegacyPlaylist("BeatSyncBeatSaverLatest.blist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
+            {BuiltInPlaylist.BeatSaverHot, new LegacyPlaylist("BeatSyncBeatSaverHot.blist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
+            {BuiltInPlaylist.BeatSaverPlays, new LegacyPlaylist("BeatSyncBeatSaverPlays.blist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
+            {BuiltInPlaylist.BeatSaverDownloads, new LegacyPlaylist("BeatSyncBeatSaverDownloads.blist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
+            {BuiltInPlaylist.BeatSyncRecent, new LegacyPlaylist("BeatSyncRecent.blist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
         });
 
 
@@ -100,7 +101,7 @@ namespace BeatSyncLib.Playlists
         /// Attempts to remove the song from all loaded playlists.
         /// </summary>
         /// <param name="song"></param>
-        public static void RemoveSongFromAll(PlaylistSong song)
+        public static void RemoveSongFromAll(IPlaylistSong song)
         {
             RemoveSongFromAll(song.Hash);
         }
@@ -113,8 +114,8 @@ namespace BeatSyncLib.Playlists
                     continue;
                 if (playlist.IsDirty)
                 {
-                    Logger.log?.Debug($"Writing {playlist.FileName} to file.");
-                    playlist.TryWriteFile();
+                    Logger.log?.Debug($"Writing {playlist.FilePath} to file.");
+                    playlist.TryStore();
                 }
             }
             var customPlaylistKeys = CustomPlaylists.Keys;
@@ -122,8 +123,8 @@ namespace BeatSyncLib.Playlists
             {
                 if (CustomPlaylists[key].IsDirty)
                 {
-                    Logger.log?.Debug($"Writing {CustomPlaylists[key].FileName} to file.");
-                    CustomPlaylists[key].TryWriteFile();
+                    Logger.log?.Debug($"Writing {CustomPlaylists[key].FilePath} to file.");
+                    CustomPlaylists[key].TryStore();
                 }
             }
         }
@@ -133,14 +134,14 @@ namespace BeatSyncLib.Playlists
         /// </summary>
         /// <param name="builtInPlaylist"></param>
         /// <returns></returns>
-        public static Playlist GetPlaylist(BuiltInPlaylist builtInPlaylist)
+        public static IPlaylist GetPlaylist(BuiltInPlaylist builtInPlaylist)
         {
-            Playlist playlist = null;
+            IPlaylist playlist = null;
             bool playlistExists = AvailablePlaylists.TryGetValue(builtInPlaylist, out playlist);
             if (!playlistExists || playlist == null)
             {
                 var defPlaylist = DefaultPlaylists[builtInPlaylist];
-                var path = FileIO.GetPlaylistFilePath(defPlaylist.FileName);
+                var path = FileIO.GetPlaylistFilePath(defPlaylist.FilePath);
                 if (string.IsNullOrEmpty(path)) // If GetPlaylistFilePath returned null, the file doesn't exist
                 {
                     //if (AvailablePlaylists[builtInPlaylist] == null)
@@ -149,17 +150,17 @@ namespace BeatSyncLib.Playlists
                 }
                 else
                 {
-                    playlist = FileIO.ReadPlaylist(path);
-                    playlist.FileName = path;
+                    playlist = FileIO.ReadPlaylist<LegacyPlaylist>(path);
+                    playlist.FilePath = path;
                     //if (playlist.Cover == new byte[] { (byte)'1' })
                     //{
                     //    playlist.ImageLoader = PlaylistImageLoaders[builtInPlaylist];
                     //}
-                    Logger.log?.Debug($"Playlist loaded from file: {playlist.FileName} with {playlist.Count} songs.");
+                    Logger.log?.Debug($"Playlist loaded from file: {playlist.FilePath} with {playlist.Count} songs.");
                 }
                 AvailablePlaylists.Add(builtInPlaylist, playlist);
             }
-            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()} with {playlist?.Count} songs.");
+            Logger.log?.Debug($"Returning {playlist?.FilePath}: {playlist?.Title} for {builtInPlaylist.ToString()} with {playlist?.Count} songs.");
             return playlist;
         }
 
@@ -168,13 +169,13 @@ namespace BeatSyncLib.Playlists
         /// </summary>
         /// <param name="builtInPlaylist"></param>
         /// <returns></returns>
-        public static Playlist GetPlaylist(string playlistFileName)
+        public static IPlaylist GetPlaylist(string playlistFileName)
         {
-            Playlist playlist = null;
+            IPlaylist playlist = null;
             // Check if the playlist is one of the built in ones.
             foreach (var defaultPlaylist in DefaultPlaylists)
             {
-                if (defaultPlaylist.Value.FileName == playlistFileName)
+                if (defaultPlaylist.Value.FilePath == playlistFileName)
                 {
                     playlist = GetPlaylist(defaultPlaylist.Key);
                 }
@@ -193,22 +194,22 @@ namespace BeatSyncLib.Playlists
                 var existingFile = FileIO.GetPlaylistFilePath(playlistFileName);
                 if (!string.IsNullOrEmpty(existingFile))
                 {
-                    playlist = FileIO.ReadPlaylist(existingFile);
-                    playlist.FileName = playlistFileName;
+                    playlist = FileIO.ReadPlaylist<LegacyPlaylist>(existingFile);
+                    playlist.FilePath = playlistFileName;
                     CustomPlaylists.TryAdd(playlistFileName, playlist);
-                    Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
+                    Logger.log?.Debug($"Playlist FileName is {playlist.FilePath}");
                 }
             }
-            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} with {playlist?.Count} songs.");
+            Logger.log?.Debug($"Returning {playlist?.FilePath}: {playlist?.Title} with {playlist?.Count} songs.");
             return playlist;
         }
 
-        public static bool TryAdd(Playlist playlist)
+        public static bool TryAdd(IPlaylist playlist)
         {
-            return CustomPlaylists.TryAdd(playlist.FileName.ToLower(), playlist);
+            return CustomPlaylists.TryAdd(playlist.FilePath.ToLower(), playlist);
         }
 
-        public static Playlist GetOrAdd(string playlistFileName, Func<Playlist> newPlaylist)
+        public static IPlaylist GetOrAdd(string playlistFileName, Func<IPlaylist> newPlaylist)
         {
             var playlist = GetPlaylist(playlistFileName);
             if (playlist == null)
@@ -216,8 +217,8 @@ namespace BeatSyncLib.Playlists
                 playlist = newPlaylist();
                 if (playlist != null)
                 {
-                    if (!string.IsNullOrEmpty(playlist.FileName))
-                        CustomPlaylists.TryAdd(playlist.FileName?.ToLower() ?? "", playlist);
+                    if (!string.IsNullOrEmpty(playlist.FilePath))
+                        CustomPlaylists.TryAdd(playlist.FilePath?.ToLower() ?? "", playlist);
                     else
                         Logger.log?.Warn($"Invalid playlist file name in playlist function given to PlaylistManager.GetOrAdd()");
                 }

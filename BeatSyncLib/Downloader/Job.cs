@@ -58,7 +58,7 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
         /// <param name="customLevelsPath"></param>
-        public Job(PlaylistSong song, string customLevelsPath, Action<Job> jobFinishedCallback = null)
+        public Job(IPlaylistSong song, string customLevelsPath, Action<Job> jobFinishedCallback = null)
             : this(customLevelsPath, jobFinishedCallback)
         {
             if (song == null)
@@ -175,15 +175,18 @@ namespace BeatSyncLib.Downloader
                     }
                     //Status = DownloadJobStatus.Extracting;
 
-                    zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.FilePath, songDirPath, overwrite)).ConfigureAwait(false);
+                    zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.DownloadContainer.GetResultStream(), songDirPath, overwrite)).ConfigureAwait(false);
                     // Try to delete zip file
-                    try
+                    if (downloadResult.DownloadContainer is DownloadFileContainer fileContainer)
                     {
-                        var deleteSuccessful = await FileIO.TryDeleteAsync(downloadResult.FilePath).ConfigureAwait(false);
-                    }
-                    catch (IOException ex)
-                    {
-                        Logger.log?.Warn($"Unable to delete zip file after extraction: {downloadResult.FilePath}.\n{ex.Message}");
+                        try
+                        {
+                            var deleteSuccessful = await FileIO.TryDeleteAsync(fileContainer.FilePath).ConfigureAwait(false);
+                        }
+                        catch (IOException ex)
+                        {
+                            Logger.log?.Warn($"Unable to delete zip file after extraction: {fileContainer.FilePath}.\n{ex.Message}");
+                        }
                     }
                     extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
                     if (!overwrite && !songDirPath.Equals(extractDirectory))

@@ -4,15 +4,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace BeatSyncLib.Playlists
+namespace BeatSyncLib.Playlists.Legacy
 {
-    public class PlaylistSong : IEquatable<PlaylistSong>
+    public class LegacyPlaylistSong : IFeedSong, IEquatable<IPlaylistSong>
     {
-        public PlaylistSong()
+        public LegacyPlaylistSong()
         {
-            _associatedPlaylists = new List<Playlist>();
+            _associatedPlaylists = new List<IPlaylist>();
+            _feedSources = new HashSet<string>();
         }
-        public PlaylistSong(string hash, string songName, string songKey, string mapper)
+
+        public LegacyPlaylistSong(IPlaylistSong song)
+            : this()
+        {
+            this.Populate(song);
+        }
+        public LegacyPlaylistSong(string hash, string songName, string songKey, string mapper)
             : this()
         {
             if (string.IsNullOrEmpty(hash))
@@ -45,23 +52,8 @@ namespace BeatSyncLib.Playlists
 
         [JsonProperty("dateAdded", Order = -7)]
         public DateTime? DateAdded { get; set; }
-
-        [JsonIgnore]
-        private List<string> _feedSources;
-        [JsonProperty("feedSources", Order = -6)]
-        public List<string> FeedSources
-        {
-            get
-            {
-                if (_feedSources == null)
-                    _feedSources = new List<string>();
-                return _feedSources;
-            }
-            set
-            {
-                _feedSources = value;
-            }
-        }
+                [JsonProperty("feedSources", Order = -6)]
+        protected HashSet<string> _feedSources { get; set; }
         [JsonIgnore]
         private object _feedSourceLock = new object();
 
@@ -69,9 +61,9 @@ namespace BeatSyncLib.Playlists
         {
             lock (_feedSourceLock)
             {
-                if (!FeedSources.Contains(sourceName))
+                if (!_feedSources.Contains(sourceName))
                 {
-                    FeedSources.Add(sourceName);
+                    _feedSources.Add(sourceName);
                     return true;
                 }
             }
@@ -95,23 +87,25 @@ namespace BeatSyncLib.Playlists
         }
 
         [JsonIgnore]
-        public IReadOnlyList<Playlist> AssociatedPlaylists { get { return _associatedPlaylists.AsReadOnly(); } }
+        public IReadOnlyList<IPlaylist> AssociatedPlaylists { get { return _associatedPlaylists.AsReadOnly(); } }
 
         [JsonIgnore]
-        public List<Playlist> _associatedPlaylists { get; }
+        public List<IPlaylist> _associatedPlaylists { get; }
+
+        public HashSet<string> FeedSources => new HashSet<string>(_feedSources);
 
         /// <summary>
         /// Adds a playlist to this song's AssociatedPlaylists list.
         /// </summary>
         /// <param name="playlist"></param>
         /// <exception cref="ArgumentNullException">Thrown if the provided playlist is null.</exception>
-        public void AddPlaylist(Playlist playlist)
+        public void AddPlaylist(IPlaylist playlist)
         {
             if (playlist == null)
                 throw new ArgumentNullException(nameof(playlist), "playlist cannot be null for PlaylistSong.AddPlaylist");
-            if (string.IsNullOrEmpty(playlist.FileName))
+            if (string.IsNullOrEmpty(playlist.FilePath))
                 throw new ArgumentException("playlist FileName cannot be null or empty for PlaylistSong.AddPlaylist");
-            if (!_associatedPlaylists.Any(p => p.FileName == playlist.FileName))
+            if (!_associatedPlaylists.Any(p => p.FilePath == playlist.FilePath))
                 _associatedPlaylists.Add(playlist);
         }
 
@@ -124,11 +118,17 @@ namespace BeatSyncLib.Playlists
             return $"{keyPart}{Name} by {LevelAuthorName}";
         }
 
-        public bool Equals(PlaylistSong other)
+        public bool Equals(IPlaylistSong other)
         {
             if (other == null)
                 return false;
             return Hash == other?.Hash;
+        }
+
+        public void AddFeedSource(string sourceName)
+        {
+            if (!_feedSources.Contains(sourceName))
+                _feedSources.Add(sourceName);
         }
     }
 }

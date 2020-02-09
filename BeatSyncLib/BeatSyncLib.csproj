@@ -6,17 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
+    <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Blister">
-      <HintPath>..\Refs\Blister.dll</HintPath>
-    </Reference>
-    <Reference Include="Blister.Conversion">
-      <HintPath>..\Refs\Blister.Conversion.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
   </ItemGroup>
 
 </Project>

@@ -171,7 +171,7 @@ namespace BeatSyncLib
         /// <param name="song"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryAdd(PlaylistSong song, HistoryFlag flag)
+        public bool TryAdd(IPlaylistSong song, HistoryFlag flag)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
@@ -210,7 +210,7 @@ namespace BeatSyncLib
         /// <param name="song"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public bool TryUpdateFlag(PlaylistSong song, HistoryFlag flag)
+        public bool TryUpdateFlag(IPlaylistSong song, HistoryFlag flag)
         {
             if (song == null)
                 return false;
@@ -274,7 +274,7 @@ namespace BeatSyncLib
                 return false;
         }
 
-        public bool TryUpdateDate(PlaylistSong song, DateTime newDate)
+        public bool TryUpdateDate(IPlaylistSong song, DateTime newDate)
         {
             if (song == null)
                 return false;
@@ -294,7 +294,7 @@ namespace BeatSyncLib
             Date = DateTime.Now;
         }
 
-        public HistoryEntry(PlaylistSong song, HistoryFlag flag = 0)
+        public HistoryEntry(IPlaylistSong song, HistoryFlag flag = 0)
         {
             SongInfo = song.ToString();
             Flag = flag;

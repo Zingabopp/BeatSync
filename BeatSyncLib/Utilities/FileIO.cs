@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSyncLib.Downloader;
 using WebUtilities;
 
 namespace BeatSyncLib.Utilities
@@ -67,23 +68,23 @@ namespace BeatSyncLib.Utilities
         /// <param name="playlist"></param>
         /// <returns></returns>
         /// <exception cref="IOException">Thrown when there's a problem writing to the file.</exception>
-        public static string WritePlaylist(Playlist playlist)
+        public static string WritePlaylist(IPlaylist playlist)
         {
             var path = Path.Combine(PlaylistManager.PlaylistPath,
-                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".blist")
-                || playlist.FileName.ToLower().EndsWith(".json") ? "" : ".blist"));
+                playlist.FilePath + (playlist.FilePath.ToLower().EndsWith(".blist")
+                || playlist.FilePath.ToLower().EndsWith(".json") ? "" : ".blist"));
 
             if (File.Exists(path))
             {
                 File.Copy(path, path + ".bak", true);
                 File.Delete(path);
             }
-            Logger.log?.Debug($"Writing playlist {playlist.FileName} with {playlist.Count} songs.");
-            using (var sw = File.CreateText(path))
-            {
-                Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist, sw.BaseStream);
-                //memStream.CopyTo(sw.BaseStream);
-            }
+            Logger.log?.Debug($"Writing playlist {playlist.FilePath} with {playlist.Count} songs.");
+            //using (var sw = File.CreateText(path))
+            //{
+            //    Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist, sw.BaseStream);
+            //    //memStream.CopyTo(sw.BaseStream);
+            //}
             File.Delete(path + ".bak");
             return path;
         }
@@ -94,11 +95,11 @@ namespace BeatSyncLib.Utilities
         /// <param name="playlist"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if the provided playlist is null.</exception>
-        public static Playlist ReadPlaylist(Playlist playlist)
+        public static T ReadPlaylist<T>(T playlist) where T : IPlaylist
         {
             if (playlist == null)
                 throw new ArgumentNullException(nameof(playlist), "playlist cannot be null for FileIO.ReadPlaylist().");
-            var path = GetPlaylistFilePath(playlist.FileName);
+            var path = GetPlaylistFilePath(playlist.FilePath);
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return playlist;
             JsonConvert.PopulateObject(LoadStringFromFile(path), playlist);
@@ -111,23 +112,23 @@ namespace BeatSyncLib.Utilities
         /// <param name="fileName"></param>
         /// <returns></returns>
         /// <exception cref="IOException">Thrown if there's a problem copying/deleting an associated .bak file </exception>
-        public static Playlist ReadPlaylist(string fileName)
+        public static T ReadPlaylist<T>(string fileName) where T : IPlaylist, new()
         {
             var path = GetPlaylistFilePath(fileName);
-            Playlist playlist = null;
-            var bakFile = new FileInfo(path + ".bak");
-            if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
-            {
-                Logger.log?.Debug($"Found backup playlist file {bakFile}, using this instead.");
-                bakFile.CopyTo(path, true);
-                bakFile.Delete();
-            }
-            using (var sr = File.OpenRead(path))
-            {
-                playlist = new Playlist() { BlisterPlaylist = Blister.PlaylistLib.Deserialize(sr) };
-            }
-            playlist.FileName = fileName;
-            Logger.log?.Debug($"ReadPlaylist(): Found Playlist {playlist.Title}");
+            T playlist = default;
+            //var bakFile = new FileInfo(path + ".bak");
+            //if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
+            //{
+            //    Logger.log?.Debug($"Found backup playlist file {bakFile}, using this instead.");
+            //    bakFile.CopyTo(path, true);
+            //    bakFile.Delete();
+            //}
+            //using (var sr = File.OpenRead(path))
+            //{
+            //    playlist = new T() { BlisterPlaylist = Blister.PlaylistLib.Deserialize(sr) };
+            //}
+            //playlist.FilePath = fileName;
+            //Logger.log?.Debug($"ReadPlaylist(): Found Playlist {playlist.Title}");
 
             return playlist;
         }
@@ -168,8 +169,8 @@ namespace BeatSyncLib.Utilities
         /// <returns></returns> 
         public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, string target, CancellationToken cancellationToken, bool overwriteExisting = true)
         {
-            string actualPath = target;
             int statusCode = 0;
+            DownloadFileContainer downloadContainer = new DownloadFileContainer(target, overwriteExisting);
             if (downloadUri == null)
                 return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0);
             if (!overwriteExisting && File.Exists(target))
@@ -183,7 +184,8 @@ namespace BeatSyncLib.Utilities
                     try
                     {
                         Directory.GetParent(target).Create();
-                        actualPath = await response.Content.ReadAsFileAsync(target, overwriteExisting, cancellationToken).ConfigureAwait(false);
+                        await downloadContainer.ReceiveDataAsync(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
+                        //actualPath = await response.Content.ReadAsFileAsync(target, overwriteExisting, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException ex)
                     {
@@ -221,7 +223,7 @@ namespace BeatSyncLib.Utilities
             {
                 return new DownloadResult(null, DownloadResultStatus.NetFailed, 0, ex?.Message, ex);
             }
-            return new DownloadResult(actualPath, DownloadResultStatus.Success, statusCode);
+            return new DownloadResult(downloadContainer, DownloadResultStatus.Success, statusCode);
         }
 
         /// <summary>
@@ -256,6 +258,19 @@ namespace BeatSyncLib.Utilities
             return extractDirectory;
         }
 
+        public static ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)
+        {
+            if (string.IsNullOrEmpty(zipPath))
+                throw new ArgumentNullException(nameof(zipPath));
+            FileInfo zipFile = new FileInfo(zipPath);
+            if (!zipFile.Exists)
+                throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
+            using (FileStream fs = zipFile.OpenRead())
+            {
+                return ExtractZip(fs, extractDirectory, overwriteTarget);
+            }
+        }
+
         /// <summary>
         /// Extracts a zip file to the specified directory. If an exception is thrown during extraction, it is stored in ZipExtractResult.
         /// </summary>
@@ -264,19 +279,16 @@ namespace BeatSyncLib.Utilities
         /// <param name="deleteZip">If true, deletes zip file after extraction</param>
         /// <param name="overwriteTarget">If true, overwrites existing files with the zip's contents</param>
         /// <returns></returns>
-        public static ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)
+        public static ZipExtractResult ExtractZip(Stream zipStream, string extractDirectory, bool overwriteTarget = true, string sourcePath = null)
         {
-            if (string.IsNullOrEmpty(zipPath))
-                throw new ArgumentNullException(nameof(zipPath));
+            if (zipStream == null)
+                throw new ArgumentNullException(nameof(zipStream));
             if (string.IsNullOrEmpty(extractDirectory))
                 throw new ArgumentNullException(nameof(extractDirectory));
-            FileInfo zipFile = new FileInfo(zipPath);
-            if (!zipFile.Exists)
-                throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
 
             ZipExtractResult result = new ZipExtractResult
             {
-                SourceZip = zipPath,
+                SourceZip = sourcePath ?? "Stream",
                 ResultStatus = ZipExtractResultStatus.Unknown
             };
 
@@ -285,8 +297,7 @@ namespace BeatSyncLib.Utilities
             try
             {
                 //Logger.log?.Info($"ExtractDirectory is {extractDirectory}");
-                using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
-                using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
+                using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read))
                 {
                     //Logger.log?.Info("Zip opened");
                     //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
@@ -383,7 +394,7 @@ namespace BeatSyncLib.Utilities
             catch (Exception ex) // If exception is thrown here, it probably happened when the FileStream was opened.
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                Logger.log?.Error($"Error opening FileStream for {zipPath}");
+                Logger.log?.Error($"Error extracting zip from {sourcePath ?? "Stream"}");
                 Logger.log?.Error(ex);
                 try
                 {

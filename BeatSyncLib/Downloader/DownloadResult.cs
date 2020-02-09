@@ -108,7 +108,22 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ObjectDisposedException"></exception>
         /// <exception cref="IOException"></exception>
         public abstract Task<long> ReceiveDataAsync(Stream inputStream, bool disposeInput, CancellationToken cancellationToken);
-        public abstract bool TryGetResultStream(out Stream stream, out Exception exception);
+        public abstract Stream GetResultStream();
+        public virtual bool TryGetResultStream(out Stream stream, out Exception exception)
+        {
+            stream = null;
+            try
+            {
+                stream = GetResultStream();
+                exception = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                return false;
+            }
+        }
         public void Dispose()
         {
             Dispose(true);
@@ -204,20 +219,9 @@ namespace BeatSyncLib.Downloader
             }
         }
 
-        public override bool TryGetResultStream(out Stream stream, out Exception exception)
+        public override Stream GetResultStream()
         {
-            stream = null;
-            try
-            {
-                stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
-                exception = null;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                return false;
-            }
+            return new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
         }
 
         ~DownloadFileContainer()
@@ -319,6 +323,7 @@ namespace BeatSyncLib.Downloader
                 if (inputStream is MemoryStream ms)
                 {
                     _data = ms.ToArray();
+                    return _data.Length;
                 }
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
@@ -343,20 +348,9 @@ namespace BeatSyncLib.Downloader
             }
         }
 
-        public override bool TryGetResultStream(out Stream stream, out Exception exception)
+        public override Stream GetResultStream()
         {
-            stream = null;
-            try
-            {
-                stream = new MemoryStream(_data);
-                exception = null;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-                return false;
-            }
+            return new MemoryStream(_data);
         }
 
         bool disposed;

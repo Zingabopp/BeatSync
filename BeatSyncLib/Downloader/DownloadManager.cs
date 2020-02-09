@@ -173,10 +173,10 @@ namespace BeatSyncLib.Downloader
             }
             switch (e.DownloadResult)
             {
-                case Utilities.DownloadResultStatus.Success:
+                case DownloadResultStatus.Success:
                     _completedDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
                     break;
-                case Utilities.DownloadResultStatus.Canceled:
+                case DownloadResultStatus.Canceled:
                     _cancelledDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
                     break;
                 default:

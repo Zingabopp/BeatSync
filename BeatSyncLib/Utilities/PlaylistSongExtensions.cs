@@ -9,12 +9,13 @@ using BeatSyncLib.Playlists;
 using SongFeedReaders;
 using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Readers;
+using SongFeedReaders.Data;
 
 namespace BeatSyncLib.Utilities
 {
     public static class PlaylistSongExtensions
     {
-        public static async Task<bool> UpdateSongKeyAsync(this PlaylistSong song, bool overwrite = false)
+        public static async Task<bool> UpdateSongKeyAsync(this IPlaylistSong song, bool overwrite = false)
         {
             if (string.IsNullOrEmpty(song?.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
                 return false;
@@ -27,11 +28,20 @@ namespace BeatSyncLib.Utilities
             return true;
         }
 
-        public static PlaylistSong ToPlaylistSong(this ScrapedSong song)
+        public static IPlaylistSong ToPlaylistSong<T>(this ScrapedSong song) where T : IPlaylistSong, new()
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "ScrapedSong cannot be null for ToPlaylistSong()");
-            return new PlaylistSong(song.Hash, song.SongName, song.SongKey, song.MapperName);
+
+            return new T() { Hash = song.Hash, Name = song.SongName, Key = song.SongKey, LevelAuthorName = song.MapperName };
+        }
+
+        public static IFeedSong ToFeedSong<T>(this ScrapedSong song) where T : IFeedSong, new()
+        {
+            if (song == null)
+                throw new ArgumentNullException(nameof(song), "ScrapedSong cannot be null for ToPlaylistSong()");
+
+            return new T() { Hash = song.Hash, Name = song.SongName, Key = song.SongKey, LevelAuthorName = song.MapperName };
         }
     }
 }

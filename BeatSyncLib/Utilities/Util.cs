@@ -43,6 +43,10 @@ namespace BeatSyncLib.Utilities
         /// <returns>the hex form of the array</returns>
         public static string ByteArrayToString(byte[] ba)
         {
+            if (ba == null)
+                return null;
+            else if (ba.Length == 0)
+                return string.Empty;
             StringBuilder hex = new StringBuilder(ba.Length * 2);
             foreach (byte b in ba)
                 hex.AppendFormat("{0:x2}", b);
@@ -229,6 +233,11 @@ namespace BeatSyncLib.Utilities
         internal static Regex oldKeyRX = new Regex(@"^\d+-(\d+)$", RegexOptions.Compiled);
         internal static Regex newKeyRX = new Regex(@"^[0-9a-f]+$", RegexOptions.Compiled);
 
+        /// <summary>
+        /// Converts an old-style key to the current style. Key is returned in lowercase form.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         internal static string ParseKey(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -242,7 +251,7 @@ namespace BeatSyncLib.Utilities
             {
                 string oldKey = isOld.Groups[1].Value;
                 int oldKeyInt = int.Parse(oldKey);
-                return oldKeyInt.ToString("x");
+                return oldKeyInt.ToString("x").ToLower();
             }
             else
                 return null;

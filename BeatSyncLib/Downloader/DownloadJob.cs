@@ -74,7 +74,7 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
         /// <param name="customLevelsPath"></param>
-        public DownloadJob(PlaylistSong song, string customLevelsPath, DownloadFinishedCallback jobFinishedCallback = null)
+        public DownloadJob(IPlaylistSong song, string customLevelsPath, DownloadFinishedCallback jobFinishedCallback = null)
             : this(customLevelsPath, jobFinishedCallback)
         {
             if (song == null)
@@ -200,7 +200,8 @@ namespace BeatSyncLib.Downloader
                 Status = DownloadJobStatus.Faulted;
             }
             DownloadResult = _downloadResult;
-            FileLocation = DownloadResult?.FilePath;
+            if(DownloadResult.DownloadContainer is DownloadFileContainer fileContainer)
+                FileLocation = fileContainer.FilePath;
             foreach (var callback in downloadFinishedCallbacks)
             {
                 try
@@ -216,7 +217,7 @@ namespace BeatSyncLib.Downloader
             JobFinished?.Invoke(this,
                     new DownloadJobFinishedEventArgs(SongHash,
                     _downloadResult?.Status ?? DownloadResultStatus.Unknown,
-                    FileLocation));
+                    DownloadResult.DownloadContainer));
         }
 
         public Task RunAsync()
