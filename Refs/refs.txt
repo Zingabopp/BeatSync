@@ -10,6 +10,9 @@
 """"".dll
 """""ElementsModule.dll
 """""Module.dll
+"""HMLib.dll?virt
+"""HMUI.dll?virt
+"""MainAssembly.dll?virt
 """IPA.
 """"Loader.dll
 "Libs/
@@ -18,15 +21,6 @@
 ""Blister.Conversion.dll
 ""SemVer.1.2.0.0.dll
 "Plugins/
-""BSML.dll
 ""BS_Utils.dll
+""BSML.dll
 ""SongCore.dll
-
-::startopt
-::from ./bsinstalldir.txt
-"Beat Saber_Data/
-""Managed/
-"""MainAssembly.dll?virt
-"""HMUI.dll?virt
-"""HMLib.dll?virt
-::endopt
