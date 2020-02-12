@@ -14,6 +14,7 @@ namespace BeatSyncLib.Utilities
 {
     public static class Util
     {
+        public static readonly string Base64Prefix = "base64,";
         public static bool Paused { get; set; }
         public static async Task WaitForPause(CancellationToken cancellationToken)
         {
@@ -26,9 +27,12 @@ namespace BeatSyncLib.Utilities
         /// Converts a hex string to a byte array.
         /// </summary>
         /// <param name="hex">the hex stream</param>
+        /// <param name="throwOnBadFormat">Throw FormatException if the hex string is invalid.</param>
         /// <returns>the corresponding byte array</returns>
-        public static byte[] StringToByteArray(string hex)
+        public static byte[] StringToByteArray(string hex, bool throwOnBadFormat = false)
         {
+            if (hex.Length % 2 == 1)
+                return throwOnBadFormat ? throw new FormatException("Hex string cannot have an odd number of characters.") : Array.Empty<byte>();
             int numberChars = hex.Length;
             byte[] bytes = new byte[numberChars / 2];
             for (int i = 0; i < numberChars; i += 2)
@@ -126,6 +130,8 @@ namespace BeatSyncLib.Utilities
             Megabyte = 2
         }
         #endregion
+
+        #region Hashing
         /// <summary>
         /// Generates a hash for the song and assigns it to the SongHash field. Returns null if info.dat doesn't exist.
         /// Uses Kylemc1413's implementation from SongCore.
@@ -208,6 +214,7 @@ namespace BeatSyncLib.Utilities
             }
             return dirHash;
         }
+        #endregion
 
         public static string GetSongDirectoryName(string songKey, string songName, string levelAuthorName)
         {
@@ -257,6 +264,52 @@ namespace BeatSyncLib.Utilities
                 return null;
         }
 
+        /// <summary>
+        /// Converts a Base64 string to a byte array.
+        /// </summary>
+        /// <param name="base64Str"></param>
+        /// <returns></returns>
+        /// <exception cref="FormatException">Thrown when the provided string isn't a valid Base64 string.</exception>
+        public static byte[] Base64ToByteArray(ref string base64Str)
+        {
+            if (string.IsNullOrEmpty(base64Str))
+            {
+                return null;
+            }
+            int tagIndex = base64Str.IndexOf(Base64Prefix);
+            if (tagIndex >= 0)
+            {
+                int firstNonWhitespace = 0;
+                int startIndex = 0;
+                for (int i = 0; i <= tagIndex; i++)
+                {
+                    firstNonWhitespace = i;
+                    if (!char.IsWhiteSpace(base64Str[i]))
+                        break;
+                }
+                if (firstNonWhitespace == tagIndex)
+                {
+                    startIndex = tagIndex + Base64Prefix.Length;
+                    for (int i = startIndex; i < base64Str.Length; i++)
+                    {
+                        startIndex = i;
+                        if (!char.IsWhiteSpace(base64Str[i]))
+                            break;
+                    }
+                    return Convert.FromBase64String(base64Str.Substring(startIndex));
+                }
+            }
+
+            return Convert.FromBase64String(base64Str);
+        }
+
+        public static string ByteArrayToBase64(byte[] byteArray)
+        {
+            if (byteArray == null || byteArray.Length == 0)
+                return string.Empty;
+            return Base64Prefix + Convert.ToBase64String(byteArray);
+        }
+
         #region Image converting
 
         public static string ImageToBase64(string imagePath)
@@ -267,7 +320,7 @@ namespace BeatSyncLib.Utilities
                 if(resource.Length == 0)
                 {
                     Logger.log?.Warn($"Unable to load image from path: {imagePath}");
-                    return "1";
+                    return string.Empty;
                 }
                 return Convert.ToBase64String(resource);
             }

@@ -21,24 +21,16 @@ namespace BeatSyncLib.Playlists.Blister
         protected byte[] Cover { get; set; }
 
         [JsonProperty("maps")]
-        protected List<BlisterPlaylistSong> maps { get; set; }
-        public BlisterPlaylistSong[] GetBeatmaps() => maps.ToArray();
+        protected List<BlisterPlaylistSong> Beatmaps { get; set; }
+        public BlisterPlaylistSong[] GetBeatmaps() => Beatmaps.ToArray();
         public string FilePath { get; set; }
 
-        public int Count => maps?.Count ?? 0;
+        public int Count => Beatmaps?.Count ?? 0;
 
         public bool IsDirty { get; protected set; }
 
-        public bool AllowDuplicates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool AllowDuplicates { get; set; }
 
-        public void Clear()
-        {
-            if (Count > 0)
-            {
-                maps?.Clear();
-                MarkDirty();
-            }
-        }
 
         public Stream GetCoverStream()
         {
@@ -49,7 +41,7 @@ namespace BeatSyncLib.Playlists.Blister
 
         public IPlaylistSong[] GetPlaylistSongs()
         {
-            return maps.ToArray<IPlaylistSong>();
+            return Beatmaps.ToArray<IPlaylistSong>();
         }
 
         public void MarkDirty()
@@ -57,20 +49,9 @@ namespace BeatSyncLib.Playlists.Blister
             IsDirty = true;
         }
 
-        public int RemoveAll(Func<BlisterPlaylistSong, bool> match)
+        public void SetCover(string base64Str)
         {
-            int songsRemoved = maps.RemoveAll(m => match(m));
-            if (songsRemoved > 0)
-                MarkDirty();
-            return songsRemoved;
-        }
-
-        public void RemoveDuplicates()
-        {
-            int previousCount = maps.Count;
-            maps = maps.Distinct().ToList();
-            if (maps.Count != previousCount)
-                MarkDirty();
+            Cover = Utilities.Util.StringToByteArray(base64Str);
         }
 
         public void SetCover(byte[] coverImage)
@@ -79,6 +60,35 @@ namespace BeatSyncLib.Playlists.Blister
                 return;
             Cover = coverImage;
             MarkDirty();
+        }
+
+        /// <summary>
+        /// Sets the cover image using a Stream. May throw exceptions when reading the provided Stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <exception cref="NotSupportedException"></exception>
+        /// <exception cref="ObjectDisposedException"></exception>
+        /// <exception cref="IOException"></exception>
+        public void SetCover(Stream stream)
+        {
+            if (stream == null)
+                return;
+            long streamLength = 0;
+            try
+            {
+                streamLength = stream.Length;
+            }
+            catch { }
+            MemoryStream ms;
+            if (streamLength > 0)
+            {
+                ms = new MemoryStream((int)streamLength);
+            }
+            else
+                ms = new MemoryStream();
+            stream.CopyTo(ms);
+            Cover = ms.ToArray();
+            ms.Dispose();
         }
 
         public bool TryAdd(IPlaylistSong song)
@@ -91,18 +101,18 @@ namespace BeatSyncLib.Playlists.Blister
 
         public bool TryAdd(BlisterPlaylistSong song)
         {
-            if (!AllowDuplicates && maps.FirstOrDefault(m => m.Equals(song)) != null)
+            if (!AllowDuplicates && Beatmaps.FirstOrDefault(m => m.Equals(song)) != null)
                 return false;
-            maps.Add(song);
+            Beatmaps.Add(song);
             return true;
         }
 
         public bool TryAdd(string songHash, string songName, string songKey, string mapper)
         {
-            BlisterPlaylistSong existing = maps.FirstOrDefault(m => m.Hash == songHash || m.Key == songKey);
+            BlisterPlaylistSong existing = Beatmaps.FirstOrDefault(m => m.Hash == songHash || m.Key == songKey);
             if (existing != null)
                 return false;
-            maps.Add(new BlisterPlaylistSong()
+            Beatmaps.Add(new BlisterPlaylistSong()
             {
                 Hash = songHash,
                 Key = songKey,
@@ -117,7 +127,7 @@ namespace BeatSyncLib.Playlists.Blister
         {
             if (string.IsNullOrEmpty(songHashOrKey))
                 return false;
-            int numRemoved = maps.RemoveAll(m => songHashOrKey.Equals(m.Hash, StringComparison.OrdinalIgnoreCase) || songHashOrKey.Equals(m.Key, StringComparison.OrdinalIgnoreCase));
+            int numRemoved = Beatmaps.RemoveAll(m => songHashOrKey.Equals(m.Hash, StringComparison.OrdinalIgnoreCase) || songHashOrKey.Equals(m.Key, StringComparison.OrdinalIgnoreCase));
             return numRemoved > 0;
         }
 
@@ -128,6 +138,30 @@ namespace BeatSyncLib.Playlists.Blister
             bool songRemoved = TryRemove(song.Hash);
             songRemoved = TryRemove(song.Key) || songRemoved;
             return songRemoved;
+        }
+
+        public int RemoveAll(Func<BlisterPlaylistSong, bool> match)
+        {
+            int songsRemoved = Beatmaps.RemoveAll(m => match(m));
+            if (songsRemoved > 0)
+                MarkDirty();
+            return songsRemoved;
+        }
+
+        public void RemoveDuplicates()
+        {
+            int previousCount = Beatmaps.Count;
+            Beatmaps = Beatmaps.Distinct().ToList();
+            if (Beatmaps.Count != previousCount)
+                MarkDirty();
+        }
+        public void Clear()
+        {
+            if (Count > 0)
+            {
+                Beatmaps?.Clear();
+                MarkDirty();
+            }
         }
 
         public bool TryStore()

@@ -22,20 +22,22 @@ namespace BeatSyncTests.Playlist_Tests
 
         [TestMethod]
         public void TestMethod1()
+        { 
+            LegacyPlaylistSong song1 = new LegacyPlaylistSong("63F2998EDBCE2D1AD31917E4F4D4F8D66348105D", "Sun Pluck", "3a9b", "ruckus");
+            IPlaylist bookmarks = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
+            bookmarks.TryAdd(song1);
+            string imageStr = BeatSyncLib.Utilities.Util.ByteArrayToString(((MemoryStream)bookmarks.GetCoverStream()).ToArray());
+        }
+
+        [TestMethod]
+        public void SetCover_String()
         {
-            var playlists = PlaylistManager.DefaultPlaylists;
-            var song1 = new LegacyPlaylistSong("63F2998EDBCE2D1AD31917E4F4D4F8D66348105D", "Sun Pluck", "3a9b", "ruckus");
-            var thing = playlists.TryGetValue(BuiltInPlaylist.BeastSaberBookmarks, out var okay);
-            var callingAssembly = Assembly.GetCallingAssembly();
-            var thingything = BeatSyncLib.Utilities.Util.GetResource(callingAssembly, "BeatSyncLib.Icons.BeatSyncLogoSmall.png");
-            var thingyLength = thingything.Length;
-            
-            var imageStr = BeatSyncLib.Utilities.Util.ByteArrayToString(((MemoryStream)okay.GetCoverStream()).ToArray());
-            //StackTest();
-            foreach (var playlist in playlists.Values)
-            {
-                
-            }
+            string coverStr = "base64,ABCD";
+            LegacyPlaylist playlist = new LegacyPlaylist("SetCover_String.bplist", "SetCover_String_Test", "PlaylistTests", coverStr);
+            Assert.IsTrue(playlist.TryStore());
+            string path = Path.GetFullPath(playlist.FilePath);
+            string imageStr = BeatSyncLib.Utilities.Util.ByteArrayToBase64(((MemoryStream)playlist.GetCoverStream()).ToArray());
+            Assert.AreEqual(coverStr, imageStr);
         }
 
         [TestMethod]

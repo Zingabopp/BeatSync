@@ -15,12 +15,14 @@ namespace BeatSyncLib.Playlists
         int Count { get; }
         IPlaylistSong[] GetPlaylistSongs();
         void SetCover(byte[] coverImage);
+        void SetCover(string coverImageStr);
+        void SetCover(Stream stream);
         bool IsDirty { get; }
         void MarkDirty();
         bool AllowDuplicates { get; set; }
         bool TryAdd(IPlaylistSong song);
         bool TryAdd(string songHash, string songName, string songKey, string mapper);
-        bool TryRemove(string songHash);
+        bool TryRemove(string songHashOrKey);
         bool TryRemove(IPlaylistSong song);
         void RemoveDuplicates();
         void Clear();

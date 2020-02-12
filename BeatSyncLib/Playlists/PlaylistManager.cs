@@ -32,39 +32,39 @@ namespace BeatSyncLib.Playlists
 
         public static readonly ReadOnlyDictionary<BuiltInPlaylist, Lazy<string>> PlaylistImageLoaders = new ReadOnlyDictionary<BuiltInPlaylist, Lazy<string>>(new Dictionary<BuiltInPlaylist, Lazy<string>>()
         {
-            {BuiltInPlaylist.BeatSyncAll, GetImageLoader("BeatSync.Icons.Playlists.BeatSync.BeatSyncAll.png") },
-            {BuiltInPlaylist.BeatSyncRecent, GetImageLoader("BeatSync.Icons.Playlists.BeatSync.BeatSyncRecent.png") },
-            {BuiltInPlaylist.BeastSaberBookmarks, GetImageLoader("BeatSync.Icons.Playlists.BeastSaber.BSaberBookmarks.png") },
-            {BuiltInPlaylist.BeastSaberFollows, GetImageLoader("BeatSync.Icons.Playlists.BeastSaber.BSaberFollows.png") },
-            {BuiltInPlaylist.BeastSaberCurator, GetImageLoader("BeatSync.Icons.Playlists.BeastSaber.BSaberCurator.png") },
-            {BuiltInPlaylist.ScoreSaberTopRanked, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberTopRanked.png") },
-            {BuiltInPlaylist.ScoreSaberLatestRanked, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberLatestRanked.png") },
-            {BuiltInPlaylist.ScoreSaberTopPlayed, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberTopPlayed.png") },
-            {BuiltInPlaylist.ScoreSaberTrending, GetImageLoader("BeatSync.Icons.Playlists.ScoreSaber.ScoreSaberTrending.png") },
-            {BuiltInPlaylist.BeatSaverFavoriteMappers, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverFavoriteMappers.png") },
-            {BuiltInPlaylist.BeatSaverLatest, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverLatest.png") },
-            {BuiltInPlaylist.BeatSaverHot, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverHot.png") },
-            {BuiltInPlaylist.BeatSaverPlays, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverPlays.png") },
-            {BuiltInPlaylist.BeatSaverDownloads, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverDownloads.png") },
-            {BuiltInPlaylist.BeatSaverMapper, GetImageLoader("BeatSync.Icons.Playlists.BeatSaver.BeatSaverMapper.png") }
+            {BuiltInPlaylist.BeatSyncAll, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSync.BeatSyncAll.png") },
+            {BuiltInPlaylist.BeatSyncRecent, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSync.BeatSyncRecent.png") },
+            {BuiltInPlaylist.BeastSaberBookmarks, GetImageLoader("BeatSyncLib.Icons.Playlists.BeastSaber.BSaberBookmarks.png") },
+            {BuiltInPlaylist.BeastSaberFollows, GetImageLoader("BeatSyncLib.Icons.Playlists.BeastSaber.BSaberFollows.png") },
+            {BuiltInPlaylist.BeastSaberCurator, GetImageLoader("BeatSyncLib.Icons.Playlists.BeastSaber.BSaberCurator.png") },
+            {BuiltInPlaylist.ScoreSaberTopRanked, GetImageLoader("BeatSyncLib.Icons.Playlists.ScoreSaber.ScoreSaberTopRanked.png") },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, GetImageLoader("BeatSyncLib.Icons.Playlists.ScoreSaber.ScoreSaberLatestRanked.png") },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, GetImageLoader("BeatSyncLib.Icons.Playlists.ScoreSaber.ScoreSaberTopPlayed.png") },
+            {BuiltInPlaylist.ScoreSaberTrending, GetImageLoader("BeatSyncLib.Icons.Playlists.ScoreSaber.ScoreSaberTrending.png") },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSaver.BeatSaverFavoriteMappers.png") },
+            {BuiltInPlaylist.BeatSaverLatest, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSaver.BeatSaverLatest.png") },
+            {BuiltInPlaylist.BeatSaverHot, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSaver.BeatSaverHot.png") },
+            {BuiltInPlaylist.BeatSaverPlays, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSaver.BeatSaverPlays.png") },
+            {BuiltInPlaylist.BeatSaverDownloads, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSaver.BeatSaverDownloads.png") },
+            {BuiltInPlaylist.BeatSaverMapper, GetImageLoader("BeatSyncLib.Icons.Playlists.BeatSaver.BeatSaverMapper.png") }
         });
 
         public static readonly ReadOnlyDictionary<BuiltInPlaylist, IPlaylist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, IPlaylist>(new Dictionary<BuiltInPlaylist, IPlaylist>()
         {
-            {BuiltInPlaylist.BeatSyncAll, new LegacyPlaylist("BeatSyncPlaylist.blist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
-            {BuiltInPlaylist.BeastSaberBookmarks, new LegacyPlaylist("BeatSyncBSaberBookmarks.blist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
-            {BuiltInPlaylist.BeastSaberFollows, new LegacyPlaylist("BeatSyncBSaberFollows.blist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
-            {BuiltInPlaylist.BeastSaberCurator, new LegacyPlaylist("BeatSyncBSaberCuratorRecommended.blist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
-            {BuiltInPlaylist.ScoreSaberTopRanked, new LegacyPlaylist("BeatSyncScoreSaberTopRanked.blist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
-            {BuiltInPlaylist.ScoreSaberLatestRanked, new LegacyPlaylist("BeatSyncScoreSaberLatestRanked.blist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
-            {BuiltInPlaylist.ScoreSaberTopPlayed, new LegacyPlaylist("BeatSyncScoreSaberTopPlayed.blist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
-            {BuiltInPlaylist.ScoreSaberTrending, new LegacyPlaylist("BeatSyncScoreSaberTrending.blist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
-            {BuiltInPlaylist.BeatSaverFavoriteMappers, new LegacyPlaylist("BeatSyncFavoriteMappers.blist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
-            {BuiltInPlaylist.BeatSaverLatest, new LegacyPlaylist("BeatSyncBeatSaverLatest.blist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
-            {BuiltInPlaylist.BeatSaverHot, new LegacyPlaylist("BeatSyncBeatSaverHot.blist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
-            {BuiltInPlaylist.BeatSaverPlays, new LegacyPlaylist("BeatSyncBeatSaverPlays.blist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
-            {BuiltInPlaylist.BeatSaverDownloads, new LegacyPlaylist("BeatSyncBeatSaverDownloads.blist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
-            {BuiltInPlaylist.BeatSyncRecent, new LegacyPlaylist("BeatSyncRecent.blist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
+            {BuiltInPlaylist.BeatSyncAll, CreatePlaylist("BeatSyncPlaylist.blist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
+            {BuiltInPlaylist.BeastSaberBookmarks, CreatePlaylist("BeatSyncBSaberBookmarks.blist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
+            {BuiltInPlaylist.BeastSaberFollows, CreatePlaylist("BeatSyncBSaberFollows.blist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
+            {BuiltInPlaylist.BeastSaberCurator, CreatePlaylist("BeatSyncBSaberCuratorRecommended.blist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
+            {BuiltInPlaylist.ScoreSaberTopRanked, CreatePlaylist("BeatSyncScoreSaberTopRanked.blist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, CreatePlaylist("BeatSyncScoreSaberLatestRanked.blist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, CreatePlaylist("BeatSyncScoreSaberTopPlayed.blist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
+            {BuiltInPlaylist.ScoreSaberTrending, CreatePlaylist("BeatSyncScoreSaberTrending.blist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, CreatePlaylist("BeatSyncFavoriteMappers.blist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
+            {BuiltInPlaylist.BeatSaverLatest, CreatePlaylist("BeatSyncBeatSaverLatest.blist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
+            {BuiltInPlaylist.BeatSaverHot, CreatePlaylist("BeatSyncBeatSaverHot.blist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
+            {BuiltInPlaylist.BeatSaverPlays, CreatePlaylist("BeatSyncBeatSaverPlays.blist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
+            {BuiltInPlaylist.BeatSaverDownloads, CreatePlaylist("BeatSyncBeatSaverDownloads.blist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
+            {BuiltInPlaylist.BeatSyncRecent, CreatePlaylist("BeatSyncRecent.blist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
         });
 
 
@@ -76,6 +76,16 @@ namespace BeatSyncLib.Playlists
         //    { 3, new Playlist("SyncSaberCuratorRecommendedPlaylist.json", "BeastSaber Curator Recommended", "brian91292", "1") },
         //    { 4, new Playlist("ScoreSaberTopRanked.json", "ScoreSaber Top Ranked", "SyncSaber", "1") }
         //};
+
+        public static IPlaylist CreatePlaylist(string fileName, string title, string author, Lazy<string> imageLoader)
+        {
+            return new LegacyPlaylist(fileName, title, author, imageLoader);
+        }
+
+        public static IPlaylist CreatePlaylist(string fileName, string title, string author, string coverImage)
+        {
+            return new LegacyPlaylist(fileName, title, author, coverImage);
+        }
 
         /// <summary>
         /// Attempts to remove the song with the matching hash from all loaded playlists.
