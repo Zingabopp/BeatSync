@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
 
 namespace BeatSyncLib.Playlists.Blister
@@ -195,6 +196,26 @@ namespace BeatSyncLib.Playlists.Blister
                 return false;
             }
 #pragma warning restore CA1031 // Do not catch general exception types
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="updateFilePath"></param>
+        public void PopulateFromFile(string path, bool updateFilePath = true)
+        {
+            if (string.IsNullOrEmpty(path))
+                path = FilePath;
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path), "A path must be provided for playlists that don't have one.");
+            if (!File.Exists(path))
+                throw new ArgumentException($"The file '{path}' does not exist.");
+            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                BlisterHandler.Populate(fs, this);
+            if (updateFilePath && FilePath != path)
+                FilePath = path;
+            //JsonConvert.PopulateObject(FileIO.LoadStringFromFile(path), this);
         }
     }
 }

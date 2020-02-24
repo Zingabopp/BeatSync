@@ -63,34 +63,7 @@ namespace BeatSyncLib.Utilities
         }
 
         /// <summary>
-        /// Writes a playlist to a file.
-        /// </summary>
-        /// <param name="playlist"></param>
-        /// <returns></returns>
-        /// <exception cref="IOException">Thrown when there's a problem writing to the file.</exception>
-        public static string WritePlaylist(IPlaylist playlist)
-        {
-            var path = Path.Combine(PlaylistManager.PlaylistPath,
-                playlist.FilePath + (playlist.FilePath.ToLower().EndsWith(".blist")
-                || playlist.FilePath.ToLower().EndsWith(".json") ? "" : ".blist"));
-
-            if (File.Exists(path))
-            {
-                File.Copy(path, path + ".bak", true);
-                File.Delete(path);
-            }
-            Logger.log?.Debug($"Writing playlist {playlist.FilePath} with {playlist.Count} songs.");
-            //using (var sw = File.CreateText(path))
-            //{
-            //    Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist, sw.BaseStream);
-            //    //memStream.CopyTo(sw.BaseStream);
-            //}
-            File.Delete(path + ".bak");
-            return path;
-        }
-
-        /// <summary>
-        /// Updates an existing playlist from a file.
+        /// Updates an existing playlist from its file.
         /// </summary>
         /// <param name="playlist"></param>
         /// <returns></returns>

@@ -80,7 +80,7 @@ namespace BeatSyncLib.Playlists.Blister
         }
 
         /// <summary>
-        /// Deserialize a BSON byte stream to a Playlist struct
+        /// Deserialize a BSON byte stream to a <see cref="BlisterPlaylist"/>.
         /// </summary>
         /// <param name="stream">Byte Stream</param>
         /// <returns></returns>
@@ -92,6 +92,22 @@ namespace BeatSyncLib.Playlists.Blister
             using (BsonDataReader reader = new BsonDataReader(gzip))
             {
                 return serializer.Deserialize<BlisterPlaylist>(reader);
+            }
+        }
+
+        /// <summary>
+        /// Deserialize a BSON byte stream and populates the target <see cref="BlisterPlaylist"/> with the data.
+        /// </summary>
+        /// <param name="stream">Byte Stream</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidMagicNumberException"></exception>
+        public static void Populate(Stream stream, BlisterPlaylist target)
+        {
+            using (Stream magic = ReadMagicNumber(stream))
+            using (GZipStream gzip = new GZipStream(magic, CompressionMode.Decompress))
+            using (BsonDataReader reader = new BsonDataReader(gzip))
+            {
+                serializer.Populate(reader, target);
             }
         }
 
@@ -130,7 +146,7 @@ namespace BeatSyncLib.Playlists.Blister
     /// <summary>
     /// Raised when the file being deserialized does not contain a correct magic number
     /// </summary>
-    public class InvalidMagicNumberException : Exception
+    public class InvalidMagicNumberException : InvalidOperationException
     {
         public InvalidMagicNumberException()
         {

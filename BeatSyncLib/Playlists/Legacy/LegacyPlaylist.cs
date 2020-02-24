@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BeatSyncLib.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -94,7 +95,7 @@ namespace BeatSyncLib.Playlists.Legacy
         protected string CoverStr
         {
             get => Utilities.Util.ByteArrayToBase64(Cover);
-            
+
         }
         [JsonIgnore]
         protected byte[] Cover
@@ -308,6 +309,17 @@ namespace BeatSyncLib.Playlists.Legacy
             }
             catch { }
             return true;
+        }
+
+        public void PopulateFromFile(string path, bool updateFilePath = true)
+        {
+            if (string.IsNullOrEmpty(path))
+                path = FilePath;
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path), "A path must be provided for playlists that don't have one.");
+            if (!File.Exists(path))
+                throw new InvalidOperationException($"The file '{path}' does not exist.");
+            JsonConvert.PopulateObject(FileIO.LoadStringFromFile(path), this);
         }
 
         public LegacyPlaylistSong[] GetBeatmaps() => Beatmaps?.ToArray() ?? Array.Empty<LegacyPlaylistSong>();

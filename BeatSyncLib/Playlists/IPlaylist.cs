@@ -28,6 +28,15 @@ namespace BeatSyncLib.Playlists
         void Clear();
         bool TryStore();
         bool TryStore(out Exception exception);
+        /// <summary>
+        /// Populates the playlist with information from the provided file path.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="updatePath"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="IOException"></exception>
+        void PopulateFromFile(string filePath, bool updatePath = true);
 
     }
 
