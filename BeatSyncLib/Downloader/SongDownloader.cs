@@ -237,7 +237,7 @@ namespace BeatSyncLib.Downloader
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
             var feedName = reader.GetFeedName(settings);
-            FeedResult feedResult = await reader.GetSongsFromFeedAsync(settings, cancellationToken).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, null, FeedResultError.Error);
+            FeedResult feedResult = await reader.GetSongsFromFeedAsync(settings, null, cancellationToken).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, null, FeedResultError.Error);
             if (feedResult.Count > 0 && playlistStyle == PlaylistStyle.Replace)
                 feedPlaylist.Clear();
             var addDate = DateTime.Now;

@@ -15,7 +15,7 @@
     <PathMap>$(SolutionDir)=C:\</PathMap>
     <DebugType>portable</DebugType>
     <BeatSaberDir>$(ProjectDir)References</BeatSaberDir>
-	<ReferencePath>$(SolutionDir)Refs</ReferencePath>
+    <ReferencePath>$(SolutionDir)Refs</ReferencePath>
     <FinalOutputAssembly>$(OutputPath)Merged\$(AssemblyName).dll</FinalOutputAssembly>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -27,7 +27,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

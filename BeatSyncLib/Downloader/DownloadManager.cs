@@ -13,11 +13,11 @@ namespace BeatSyncLib.Downloader
     {
         private BlockingCollection<IDownloadJob> _queuedJobs = new BlockingCollection<IDownloadJob>();
 
-        private ConcurrentDictionary<string, IDownloadJob> _existingJobs = new ConcurrentDictionary<string, IDownloadJob>();
-        private ConcurrentDictionary<string, IDownloadJob> _activeJobs = new ConcurrentDictionary<string, IDownloadJob>();
-        private ConcurrentDictionary<string, IDownloadJob> _completedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
-        private ConcurrentDictionary<string, IDownloadJob> _failedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
-        private ConcurrentDictionary<string, IDownloadJob> _cancelledDownloads = new ConcurrentDictionary<string, IDownloadJob>();
+        private readonly ConcurrentDictionary<string, IDownloadJob> _existingJobs = new ConcurrentDictionary<string, IDownloadJob>();
+        private readonly ConcurrentDictionary<string, IDownloadJob> _activeJobs = new ConcurrentDictionary<string, IDownloadJob>();
+        private readonly ConcurrentDictionary<string, IDownloadJob> _completedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
+        private readonly ConcurrentDictionary<string, IDownloadJob> _failedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
+        private readonly ConcurrentDictionary<string, IDownloadJob> _cancelledDownloads = new ConcurrentDictionary<string, IDownloadJob>();
         public IReadOnlyList<IDownloadJob> CompletedJobs
         {
             get { return _completedDownloads.Values.ToList(); }
@@ -48,17 +48,29 @@ namespace BeatSyncLib.Downloader
             }
         }
 
+        /// <summary>
+        /// Number of simultaneous downloads.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown for values less than 1.</exception>
         public int ConcurrentDownloads
         {
             get { return _concurrentDownloads; }
             private set
             {
-                if (value < 1)
-                    value = 1;
                 if (value == _concurrentDownloads)
                     return;
+                if (value < 1)
+                    throw new ArgumentOutOfRangeException(nameof(ConcurrentDownloads), "ConcurrentDownloads cannot be less than 1.");
                 _concurrentDownloads = value;
             }
+        }
+
+        public void ClearHistory()
+        {
+            _existingJobs.Clear();
+            _failedDownloads.Clear();
+            _cancelledDownloads.Clear();
+            _completedDownloads.Clear();
         }
 
         public DownloadManager(int concurrentDownloads)

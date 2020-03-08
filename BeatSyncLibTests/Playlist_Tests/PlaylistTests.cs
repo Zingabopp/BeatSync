@@ -1,14 +1,8 @@
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Playlists.Legacy;
-using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using BeatSyncLib.Logging;
-using BeatSyncLib;
-using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Threading;
 
 namespace BeatSyncTests.Playlist_Tests
 {
@@ -22,7 +16,7 @@ namespace BeatSyncTests.Playlist_Tests
 
         [TestMethod]
         public void TestMethod1()
-        { 
+        {
             LegacyPlaylistSong song1 = new LegacyPlaylistSong("63F2998EDBCE2D1AD31917E4F4D4F8D66348105D", "Sun Pluck", "3a9b", "ruckus");
             IPlaylist bookmarks = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
             bookmarks.TryAdd(song1);
@@ -44,11 +38,11 @@ namespace BeatSyncTests.Playlist_Tests
         public void CTSDispose()
         {
             CancellationTokenSource cts = new CancellationTokenSource();
-            var token = cts.Token;
+            CancellationToken token = cts.Token;
             cts.Cancel();
             //cts.Dispose();
             Assert.IsTrue(token.IsCancellationRequested);
-            var newCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            CancellationTokenSource newCts = CancellationTokenSource.CreateLinkedTokenSource(token);
             Assert.IsTrue(newCts.IsCancellationRequested);
 
 
