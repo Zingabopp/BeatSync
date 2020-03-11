@@ -35,7 +35,7 @@ namespace BeatSyncLib.Downloader
         Task RunAsync(CancellationToken cancellationToken);
     }
 
-    public delegate Action<IDownloadJob> DownloadFinishedCallback(IDownloadJob job);
+    public delegate void DownloadFinishedCallback(IDownloadJob job);
 
     public enum DownloadJobStatus
     {

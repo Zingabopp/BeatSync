@@ -25,7 +25,7 @@ namespace BeatSyncLib.Downloader
         public event EventHandler<DownloadJobProgressChangedEventArgs> JobProgressChanged;
         public event EventHandler<DownloadJobStatusChangedEventArgs> JobStatusChanged;
 
-        private List<DownloadFinishedCallback> downloadFinishedCallbacks = new List<DownloadFinishedCallback>();
+        private readonly List<DownloadFinishedCallback> downloadFinishedCallbacks = new List<DownloadFinishedCallback>();
         private string _targetFile;
         private DownloadResult _downloadResult;
 

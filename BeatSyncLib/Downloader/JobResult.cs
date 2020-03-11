@@ -1,6 +1,8 @@
-﻿using BeatSyncLib.Playlists;
+﻿using BeatSyncLib.Downloader.Targets;
+using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
 using System;
+using System.Linq;
 
 namespace BeatSyncLib.Downloader
 {
@@ -10,11 +12,11 @@ namespace BeatSyncLib.Downloader
         {
             get
             {
-                if (DownloadResult == null || ZipResult == null)
+                if (DownloadResult == null || TargetResults == null)
                     return false;
                 if (DownloadResult.Status != DownloadResultStatus.Success)
                     return false;
-                if (ZipResult.ResultStatus != ZipExtractResultStatus.Success)
+                if (TargetResults.Any(r => !r.Success))
                     return false;
                 return true;
             }
@@ -25,14 +27,13 @@ namespace BeatSyncLib.Downloader
         public string SongKey { get; set; }
         public string HashAfterDownload { get; set; }
         public DownloadResult DownloadResult { get; set; }
-        public ZipExtractResult ZipResult { get; set; }
+        public TargetResult[] TargetResults { get; set; }
         public Exception Exception { get; set; }
-
-        
 
         public override string ToString()
         {
-            return $"{SongKey}, Download Status: {DownloadResult?.Status}, Zip Result: {ZipResult?.ResultStatus}";
+            string[] targetResults = TargetResults.Select(r => r.Success ? $"{r.TargetName} successful" : $"{r.TargetName} failed").ToArray();
+            return $"{SongKey}, Download Status: {DownloadResult?.Status}, Target Results: {(string.Join(" | ", targetResults))}";
         }
     }
 

@@ -219,7 +219,7 @@ namespace BeatSyncLib.Utilities
         public static string GetSongDirectoryName(string songKey, string songName, string levelAuthorName)
         {
             // BeatSaverDownloader's method of naming the directory.
-            string basePath = songKey + " (" + songName + " - " + levelAuthorName + ")";
+            string basePath = songKey + " (" + string.Join(" - ", songName, levelAuthorName) + ")";
             basePath = string.Join("", basePath.Trim().Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
             return basePath;
         }

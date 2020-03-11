@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 
-namespace BeatSyncLib
+namespace BeatSyncLib.History
 {
     public class HistoryManager
     {
@@ -77,13 +77,17 @@ namespace BeatSyncLib
                     var token = JToken.Parse(histStr);
                     foreach (JObject entry in token.Children())
                     {
-                        var historyEntry = new HistoryEntry();
-                        var hash = entry["Key"].Value<string>();
-                        historyEntry.SongInfo = entry["Value"]["SongInfo"].Value<string>();
-                        historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
-                        historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
-
-                        SongHistory.TryAdd(hash, historyEntry);
+                        HistoryEntry historyEntry = entry.ToObject<HistoryEntry>();
+                        //var historyEntry = new HistoryEntry();
+                        string keyHash = entry["Key"].Value<string>();
+                        //historyEntry.Hash = entry["Value"]["Hash"].Value<string>();
+                        //historyEntry.SongName = entry["Value"]["SongName"].Value<string>();
+                        //historyEntry.Mapper = entry["Value"]["Mapper"].Value<string>();
+                        //historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
+                        //historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
+                        if (keyHash != historyEntry.Hash)
+                            Logger.log?.Warn($"History key doesn't match the entry's hash: '{keyHash}' != {historyEntry.Hash}");
+                        SongHistory.TryAdd(keyHash, historyEntry);
                     }
                 }
                 else
@@ -156,13 +160,13 @@ namespace BeatSyncLib
         /// <param name="songInfo"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryAdd(string songHash, string songInfo, HistoryFlag flag)
+        public bool TryAdd(string songHash, string songName, string mapper, HistoryFlag flag)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (string.IsNullOrEmpty(songHash))
                 return false;
-            return SongHistory.TryAdd(songHash.ToUpper(), new HistoryEntry(songInfo, flag));
+            return SongHistory.TryAdd(songHash.ToUpper(), new HistoryEntry(songHash, songName, mapper, flag));
         }
 
         /// <summary>
@@ -177,7 +181,7 @@ namespace BeatSyncLib
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (song == null)
                 return false;
-            return TryAdd(song.Hash, song.ToString(), flag);
+            return SongHistory.TryAdd(song.Hash.ToUpper(), new HistoryEntry(song, flag));
         }
 
         public HistoryEntry GetOrAdd(string songHash, Func<string, HistoryEntry> AddValueFactory)
@@ -284,58 +288,5 @@ namespace BeatSyncLib
 
     }
 
-    public class HistoryEntry
-    {
-        public HistoryEntry() { }
-        public HistoryEntry(string songInfo, HistoryFlag flag = 0)
-        {
-            SongInfo = songInfo;
-            Flag = flag;
-            Date = DateTime.Now;
-        }
 
-        public HistoryEntry(IPlaylistSong song, HistoryFlag flag = 0)
-        {
-            SongInfo = song.ToString();
-            Flag = flag;
-            Date = DateTime.Now;
-        }
-
-        public string SongInfo { get; set; }
-        public HistoryFlag Flag { get; set; }
-        public DateTime Date { get; set; }
-    }
-
-    public enum HistoryFlag
-    {
-        /// <summary>
-        /// Not set, should mean the song is in the download queue or is in progress.
-        /// </summary>
-        None = 0,
-        /// <summary>
-        /// Downloaded by BeatSync.
-        /// </summary>
-        Downloaded = 1,
-        /// <summary>
-        /// Confirmed deleted.
-        /// </summary>
-        Deleted = 2,
-        /// <summary>
-        /// Used to exist, now it doesn't
-        /// </summary>
-        Missing = 3,
-        /// <summary>
-        /// Downloaded without BeatSync
-        /// </summary>
-        PreExisting = 4,
-        /// <summary>
-        /// Error during download/extractions.
-        /// </summary>
-        Error = 5,
-        /// <summary>
-        /// Not found on Beat Saver.
-        /// </summary>
-        BeatSaverNotFound = 404
-
-    }
 }

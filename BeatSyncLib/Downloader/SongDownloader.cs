@@ -16,6 +16,7 @@ using BeatSyncLib.Hashing;
 using System.Threading;
 using SongFeedReaders.Data;
 using BeatSyncLib.Playlists.Legacy;
+using BeatSyncLib.History;
 
 namespace BeatSyncLib.Downloader
 {

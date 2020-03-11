@@ -1,17 +1,16 @@
-﻿using static SongFeedReaders.Utilities;
+﻿using BeatSyncLib.Hashing;
+using BeatSyncLib.Playlists;
+using BeatSyncLib.Utilities;
+using BeatSyncLib.Downloader.Targets;
+using SongFeedReaders.Data;
+using SongFeedReaders.Readers.BeatSaver;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SongFeedReaders;
-using SongFeedReaders.Readers.BeatSaver;
-using SongFeedReaders.Data;
-using BeatSyncLib.Utilities;
-using BeatSyncLib.Hashing;
-using BeatSyncLib.Playlists;
+using static SongFeedReaders.Utilities;
 
 namespace BeatSyncLib.Downloader
 {
@@ -38,16 +37,18 @@ namespace BeatSyncLib.Downloader
 
         public DownloadJobStatus Status { get; private set; }
 
+        protected ISongTarget[] Targets;
+
         /// <summary>
         /// Private constructor to use with the others.
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
         /// <param name="customLevelsPath"></param>
-        private Job(string customLevelsPath, Action<Job> jobFinishedCallback = null)
+        private Job(ICollection<ISongTarget> targets, Action<Job> jobFinishedCallback = null)
         {
-            if (string.IsNullOrEmpty(customLevelsPath))
-                throw new ArgumentNullException(nameof(customLevelsPath), "customLevelsPath cannot be null when creating a DownloadJob.");
-            CustomLevelsPath = customLevelsPath;
+            if (targets == null || targets.Count == 0)
+                throw new ArgumentNullException(nameof(targets), $"A {nameof(Job)} must have at least one ISongTarget.");
+            Targets = targets.ToArray();
             JobFinishedCallback = jobFinishedCallback;
         }
 
@@ -58,15 +59,13 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
         /// <param name="customLevelsPath"></param>
-        public Job(IPlaylistSong song, string customLevelsPath, Action<Job> jobFinishedCallback = null)
-            : this(customLevelsPath, jobFinishedCallback)
+        public Job(IPlaylistSong song, ICollection<ISongTarget> targets, Action<Job> jobFinishedCallback = null)
+            : this(targets, jobFinishedCallback)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "song cannot be null.");
             if (string.IsNullOrEmpty(song.Hash))
                 throw new ArgumentException("PlaylistSong's hash cannot be null.", nameof(song));
-            if (string.IsNullOrEmpty(customLevelsPath))
-                throw new ArgumentNullException(nameof(customLevelsPath), "customLevelsPath cannot be null.");
             //Song = song;
             SongHash = song.Hash;
             SongKey = song.Key;
@@ -84,8 +83,8 @@ namespace BeatSyncLib.Downloader
         /// <param name="songKey"></param>
         /// <param name="mapperName"></param>
         /// <param name="customLevelsPath"></param>
-        public Job(string songHash, string songName, string songKey, string mapperName, string customLevelsPath, Action<Job> jobFinishedCallback = null)
-            : this(customLevelsPath, jobFinishedCallback)
+        public Job(string songHash, string songName, string songKey, string mapperName, ICollection<ISongTarget> targets, Action<Job> jobFinishedCallback = null)
+            : this(targets, jobFinishedCallback)
         {
             if (string.IsNullOrEmpty(songHash))
                 throw new ArgumentNullException();
@@ -103,8 +102,8 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
         /// <param name="customLevelsPath"></param>
-        public Job(ScrapedSong song, string customLevelsPath, Action<Job> jobFinishedCallback = null)
-            : this(customLevelsPath, jobFinishedCallback)
+        public Job(ScrapedSong song, ICollection<ISongTarget> targets, Action<Job> jobFinishedCallback = null)
+            : this(targets, jobFinishedCallback)
         {
             SongHash = song.Hash;
             SongKey = song.SongKey;
@@ -114,7 +113,7 @@ namespace BeatSyncLib.Downloader
         }
 
         private DownloadResult downloadResult;
-        private ZipExtractResult zipResult;
+        private TargetResult[] targetResults;
         private string hashAfterDownload;
 
         // TODO: This is horrendous
@@ -129,12 +128,12 @@ namespace BeatSyncLib.Downloader
             {
                 if (string.IsNullOrEmpty(SongKey))
                 {
-                    var result = await BeatSaverReader.GetSongByHashAsync(SongHash, cancellationToken).ConfigureAwait(false);
+                    SongFeedReaders.Readers.PageReadResult result = await BeatSaverReader.GetSongByHashAsync(SongHash, cancellationToken).ConfigureAwait(false);
                     SongKey = result?.Songs?.FirstOrDefault()?.SongKey;
                     _defaultSongDirectoryName = Util.GetSongDirectoryName(SongKey, SongName, LevelAuthorName);
                 }
                 OnJobStarted?.Invoke(this, new DownloadJobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
-                var songDirPath = Path.GetFullPath(Path.Combine(CustomLevelsPath, _defaultSongDirectoryName));
+                string songDirPath = Path.GetFullPath(Path.Combine(CustomLevelsPath, _defaultSongDirectoryName));
                 bool directoryCreated = !Directory.Exists(songDirPath);
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -149,9 +148,10 @@ namespace BeatSyncLib.Downloader
                         return;
                     }
                 }
-                
+
                 // Download Zip
                 downloadResult = await DownloadSongAsync(SongTempPath, cancellationToken).ConfigureAwait(false);
+                List<TargetResult> targetResults;
                 if (downloadResult.Status == DownloadResultStatus.Canceled)
                 {
                     FinishJob(true);
@@ -159,71 +159,96 @@ namespace BeatSyncLib.Downloader
                 }
                 else if ((downloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.Success)
                 {
-                    // Extract Zip
-                    if (cancellationToken.IsCancellationRequested)
+                    Stream resultStream = null;
+                    targetResults = new List<TargetResult>(Targets.Length);
+                    try
                     {
-                        FinishJob(true);
-                        return;
-                    }
-                    if (Paused)
-                    {
-                        if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
+                        foreach (ISongTarget target in Targets)
                         {
-                            FinishJob(true); // Cancellation requested while waiting for Unpause
-                            return;
-                        }
-                    }
-                    //Status = DownloadJobStatus.Extracting;
-
-                    zipResult = await Task.Run(() => FileIO.ExtractZip(downloadResult.DownloadContainer.GetResultStream(), songDirPath, overwrite)).ConfigureAwait(false);
-                    // Try to delete zip file
-                    if (downloadResult.DownloadContainer is DownloadFileContainer fileContainer)
-                    {
-                        try
-                        {
-                            var deleteSuccessful = await FileIO.TryDeleteAsync(fileContainer.FilePath).ConfigureAwait(false);
-                        }
-                        catch (IOException ex)
-                        {
-                            Logger.log?.Warn($"Unable to delete zip file after extraction: {fileContainer.FilePath}.\n{ex.Message}");
-                        }
-                    }
-                    extractDirectory = Path.GetFullPath(zipResult.OutputDirectory);
-                    if (!overwrite && !songDirPath.Equals(extractDirectory))
-                    {
-                        directoryCreated = true;
-                    }
-                    if (zipResult.ResultStatus == ZipExtractResultStatus.Success)
-                    {
-                        try
-                        {
-                            if (Paused)
-                            {
-                                if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
-                                {
-                                    FinishJob(true); // Cancellation requested while waiting for Unpause
-                                    return;
-                                }
-                            }
-                            int parentPathLength = CustomLevelsPath.Length + 1;
-                            hashAfterDownload = (await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false)).songHash;
-                            if (!SongHash.Equals(hashAfterDownload))
-                                Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for '{extractDirectory.Substring(parentPathLength)}'");
+                            if (resultStream == null)
+                                resultStream = downloadResult.DownloadContainer.GetResultStream();
+                            TargetResult result = await target.TransferAsync(resultStream).ConfigureAwait(false);
+                            targetResults.Add(result);
+                            if (resultStream.CanSeek)
+                                resultStream.Seek(0, SeekOrigin.Begin);
                             else
-                                Logger.log?.Debug($"Extracted hash matches Beat Saver hash for '{extractDirectory.Substring(parentPathLength)}'");
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.log?.Debug($"Error checking hash of {extractDirectory}\n {ex.Message}\n {ex.StackTrace}");
+                            {
+                                resultStream.Dispose();
+                                resultStream = null;
+                            }
                         }
                     }
-                    else
-                        Exception = zipResult.Exception;
+                    finally
+                    {
+                        resultStream?.Dispose();
+                    }
+                    #region Zip Extraction (obsolete)
+                    //// Extract Zip
+                    //if (cancellationToken.IsCancellationRequested)
+                    //{
+                    //    FinishJob(true);
+                    //    return;
+                    //}
+                    //if (Paused)
+                    //{
+                    //    if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
+                    //    {
+                    //        FinishJob(true); // Cancellation requested while waiting for Unpause
+                    //        return;
+                    //    }
+                    //}
+                    ////Status = DownloadJobStatus.Extracting;
+
+                    //this.targetResults = await Task.Run(() => FileIO.ExtractZip(downloadResult.DownloadContainer.GetResultStream(), songDirPath, overwrite)).ConfigureAwait(false);
+                    //// Try to delete zip file
+                    //if (downloadResult.DownloadContainer is DownloadFileContainer fileContainer)
+                    //{
+                    //    try
+                    //    {
+                    //        bool deleteSuccessful = await FileIO.TryDeleteAsync(fileContainer.FilePath).ConfigureAwait(false);
+                    //    }
+                    //    catch (IOException ex)
+                    //    {
+                    //        Logger.log?.Warn($"Unable to delete zip file after extraction: {fileContainer.FilePath}.\n{ex.Message}");
+                    //    }
+                    //}
+                    //extractDirectory = Path.GetFullPath(this.targetResults.OutputDirectory);
+                    //if (!overwrite && !songDirPath.Equals(extractDirectory))
+                    //{
+                    //    directoryCreated = true;
+                    //}
+                    //if (this.targetResults.ResultStatus == ZipExtractResultStatus.Success)
+                    //{
+                    //    try
+                    //    {
+                    //        if (Paused)
+                    //        {
+                    //            if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
+                    //            {
+                    //                FinishJob(true); // Cancellation requested while waiting for Unpause
+                    //                return;
+                    //            }
+                    //        }
+                    //        int parentPathLength = CustomLevelsPath.Length + 1;
+                    //        hashAfterDownload = (await SongHasher.GetSongHashDataAsync(extractDirectory).ConfigureAwait(false)).songHash;
+                    //        if (!SongHash.Equals(hashAfterDownload))
+                    //            Logger.log?.Warn($"Extracted hash doesn't match Beat Saver hash for '{extractDirectory.Substring(parentPathLength)}'");
+                    //        else
+                    //            Logger.log?.Debug($"Extracted hash matches Beat Saver hash for '{extractDirectory.Substring(parentPathLength)}'");
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        Logger.log?.Debug($"Error checking hash of {extractDirectory}\n {ex.Message}\n {ex.StackTrace}");
+                    //    }
+                    //}
+                    //else
+                    //    Exception = this.targetResults.Exception;
+                    #endregion
                 }
                 else
                     Exception = downloadResult.Exception;
             }
-            catch(OperationCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 FinishJob(true, ex);
                 return;
@@ -256,7 +281,7 @@ namespace BeatSyncLib.Downloader
                 SongHash = SongHash,
                 SongKey = SongKey,
                 DownloadResult = downloadResult,
-                ZipResult = zipResult,
+                TargetResults = targetResults,
                 SongDirectory = SongDirectory,
                 HashAfterDownload = hashAfterDownload,
                 Exception = exception
@@ -285,11 +310,11 @@ namespace BeatSyncLib.Downloader
             DownloadResult result = null;
             try
             {
-                var downloadUri = new Uri(BeatSaverDownloadUrlBase + SongHash.ToLower());
-                var downloadTarget = Path.Combine(target, SongKey ?? SongHash);
+                Uri downloadUri = new Uri(BeatSaverDownloadUrlBase + SongHash.ToLower());
+                string downloadTarget = Path.Combine(target, SongKey ?? SongHash);
                 result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, cancellationToken, true).ConfigureAwait(false);
             }
-            catch(OperationCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 result = new DownloadResult(null, DownloadResultStatus.Canceled, 0, ex.Message, ex);
             }
