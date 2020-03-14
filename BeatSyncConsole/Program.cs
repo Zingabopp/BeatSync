@@ -18,22 +18,17 @@ namespace BeatSyncConsole
             DownloadManager manager = new DownloadManager(3);
             var cts = new CancellationTokenSource();
             manager.Start(cts.Token);
-            DownloadJob job = new DownloadJob(song, "Temp");
+            IDownloadJob job = new DownloadJob(song, "Temp");
             ISongTargetFactorySettings targetFactorySettings = new DirectoryTargetFactorySettings() { OverwriteTarget = true };
             ISongTargetFactory targetFactory = new DirectoryTargetFactory("Songs", targetFactorySettings);
             ISongTarget target = targetFactory.CreateTarget(song);
-            job.AddDownloadFinishedCallback(c =>
+            job.AddDownloadFinishedCallback(async c =>
             {
-                if(c.DownloadResult.Status != DownloadResultStatus.Success)
+                HistoryEntry entry;
+                if (c.DownloadResult.Status == DownloadResultStatus.Success)
                 {
-                    HistoryEntry entry = c.ToFailedHistoryEntry();
-                    // Add entry to history.
-                    return;
-                }
-                target.TransferAsync(c.DownloadResult.DownloadContainer.GetResultStream()).ContinueWith(async t =>
-                {
-                    TargetResult targetResult = await t.ConfigureAwait(false);
-                    HistoryEntry entry;
+                    TargetResult targetResult = await target.TransferAsync(c.DownloadResult.DownloadContainer.GetResultStream());
+
                     if (targetResult.Success)
                     {
                         entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Downloaded);
@@ -41,11 +36,14 @@ namespace BeatSyncConsole
                     }
                     else
                         entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Error);
-                    // Add entry to history.
-                });
+                }
+                else
+                    entry = c.ToFailedHistoryEntry();
+                // Add entry to history.
             });
+
             manager.TryPostJob(job, out _);
-            
+
 
         }
     }
