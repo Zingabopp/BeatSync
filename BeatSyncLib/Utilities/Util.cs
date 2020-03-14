@@ -22,6 +22,7 @@ namespace BeatSyncLib.Utilities
                 return;
             await SongFeedReaders.Utilities.WaitUntil(() => !Paused, 500, cancellationToken).ConfigureAwait(false);
         }
+
         #region IPA Utilities
         /// <summary>
         /// Converts a hex string to a byte array.

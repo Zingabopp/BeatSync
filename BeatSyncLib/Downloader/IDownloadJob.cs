@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WebUtilities;
 using static BeatSyncLib.Utilities.Util;
 
 namespace BeatSyncLib.Downloader
@@ -35,7 +36,7 @@ namespace BeatSyncLib.Downloader
         Task RunAsync(CancellationToken cancellationToken);
     }
 
-    public delegate void DownloadFinishedCallback(IDownloadJob job);
+    public delegate Task DownloadFinishedCallback(IDownloadJob job);
 
     public enum DownloadJobStatus
     {

@@ -312,7 +312,7 @@ namespace BeatSyncLib.Downloader
             {
                 Uri downloadUri = new Uri(BeatSaverDownloadUrlBase + SongHash.ToLower());
                 string downloadTarget = Path.Combine(target, SongKey ?? SongHash);
-                result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, cancellationToken, true).ConfigureAwait(false);
+                //result = await FileIO.DownloadFileAsync(downloadUri, downloadTarget, cancellationToken, true).ConfigureAwait(false);
             }
             catch (OperationCanceledException ex)
             {

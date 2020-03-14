@@ -140,14 +140,13 @@ namespace BeatSyncLib.Utilities
         /// <param name="target"></param>
         /// <exception cref="OperationCanceledException"></exception>
         /// <returns></returns> 
-        public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, string target, CancellationToken cancellationToken, bool overwriteExisting = true)
+        public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken, bool overwriteExisting = true)
         {
             int statusCode = 0;
-            DownloadFileContainer downloadContainer = new DownloadFileContainer(target, overwriteExisting);
             if (downloadUri == null)
                 return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0);
-            if (!overwriteExisting && File.Exists(target))
-                return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
+            //if (!overwriteExisting && File.Exists(target))
+            //    return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
             {
                 using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(downloadUri, cancellationToken, 30, 2).ConfigureAwait(false))
@@ -156,8 +155,7 @@ namespace BeatSyncLib.Utilities
 
                     try
                     {
-                        Directory.GetParent(target).Create();
-                        await downloadContainer.ReceiveDataAsync(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
+                        await downloadContainer.ReceiveDataAsync(response.Content).ConfigureAwait(false);
                         //actualPath = await response.Content.ReadAsFileAsync(target, overwriteExisting, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException ex)
@@ -281,7 +279,7 @@ namespace BeatSyncLib.Utilities
                         extractDirectory = GetValidPath(extractDirectory, longestEntryName, 3);
                         if (!overwriteTarget && Directory.Exists(extractDirectory))
                         {
-                            int pathNum = 1;
+                            int pathNum = 2;
                             string finalPath;
                             do
                             {

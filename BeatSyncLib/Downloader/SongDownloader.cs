@@ -854,7 +854,8 @@ namespace BeatSyncLib.Downloader
             if (!existsOnDisk && (!inHistory || historyEntry.Flag == HistoryFlag.Error))
             {
                 //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
-                downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, CustomLevelsPath), out var postedJob);
+                // TODO: fix?
+                downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, null), out var postedJob);
                 if (downloadPosted && postedJob != null)
                 {
                     //Logger.log?.Info($"{readerName} posted job {playlistSong}");
