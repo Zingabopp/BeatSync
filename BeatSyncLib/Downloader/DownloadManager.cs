@@ -30,6 +30,8 @@ namespace BeatSyncLib.Downloader
         private CancellationTokenSource _cancellationSource;
         private Task[] _tasks;
 
+        public int ActiveJobs => _activeJobs.Count;
+
         public void Pause()
         {
             Paused = true;
@@ -91,7 +93,7 @@ namespace BeatSyncLib.Downloader
             for (int i = 0; i < ConcurrentDownloads; i++)
             {
                 int taskId = i; // Apparently using 'i' directly for HandlerStartAsync doesn't work well...
-                _tasks[i] = Task.Run(() => HandlerStartAsync(_cancellationSource.Token, taskId));
+                _tasks[i] = Task.Run(() => HandlerStartAsync(taskId, _cancellationSource.Token));
             }
         }
 
@@ -195,9 +197,11 @@ namespace BeatSyncLib.Downloader
                     _failedDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
                     break;
             }
+            if (_activeJobs.Count == 0)
+                _running = false;
         }
 
-        private async Task HandlerStartAsync(CancellationToken cancellationToken, int taskId)
+        private async Task HandlerStartAsync(int taskId, CancellationToken cancellationToken)
         {
             try
             {

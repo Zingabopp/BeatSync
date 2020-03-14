@@ -19,7 +19,9 @@ namespace BeatSyncConsole
             var cts = new CancellationTokenSource();
             manager.Start(cts.Token);
             DownloadJob job = new DownloadJob(song, "Temp");
-            ISongTarget target = new DirectoryTarget("Songs", song, true);
+            ISongTargetFactorySettings targetFactorySettings = new DirectoryTargetFactorySettings() { OverwriteTarget = true };
+            ISongTargetFactory targetFactory = new DirectoryTargetFactory("Songs", targetFactorySettings);
+            ISongTarget target = targetFactory.CreateTarget(song);
             job.AddDownloadFinishedCallback(c =>
             {
                 if(c.DownloadResult.Status != DownloadResultStatus.Success)
@@ -35,6 +37,7 @@ namespace BeatSyncConsole
                     if (targetResult.Success)
                     {
                         entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Downloaded);
+                        // Add to playlist
                     }
                     else
                         entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Error);
