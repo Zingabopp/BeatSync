@@ -16,7 +16,7 @@ The following sources and feeds are currently supported:
 # Usage
 **First Run:**
 * Run Beat Saber after installing the mod and configure the settings in-game (Settings > BeatSync) or in UserData\BeatSync.json.
-* Beat Saber must be restarted for it use the modified settings to download songs.
+* Beat Saber must be restarted (or disabled and reenabled via BSIPA ModList) for it to use the modified settings to download songs.
 
 # Configuration
 Configuration can be done in-game in Settings > BeatSync or by (carefully) editing the BeatSync.json file in your UserData folder.
