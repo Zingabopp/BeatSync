@@ -14,7 +14,7 @@ namespace BeatSyncConsole
     {
         static async Task Main(string[] args)
         {
-            SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
+            SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
             ScrapedSong song = new ScrapedSong("19f2879d11a91b51a5c090d63471c3e8d9b7aee3", "Believer", "Rustic", "b");
             DownloadManager manager = new DownloadManager(3);
             string tempDirectory = "Temp";
@@ -43,6 +43,15 @@ namespace BeatSyncConsole
                     {
                         using (Stream data = c.DownloadResult.DownloadContainer.GetResultStream())
                             targetResult = await target.TransferAsync(data).ConfigureAwait(false);
+                        c.DownloadResult.Dispose();
+                        if(target is DirectoryTarget dTarget)
+                        {
+                            string hash = (await BeatSyncLib.Hashing.SongHasher.GetSongHashDataAsync(Path.Combine(dTarget.ParentDirectory, dTarget.DirectoryName)).ConfigureAwait(false)).songHash;
+                            if (hash != song.Hash)
+                                Console.WriteLine("Hash Mismatch");
+                            else
+                                Console.WriteLine("Hashes match");
+                        }
                     }
                     catch (Exception ex)
                     {
