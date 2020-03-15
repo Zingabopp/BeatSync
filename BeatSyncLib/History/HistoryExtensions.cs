@@ -9,19 +9,19 @@ namespace BeatSyncLib.History
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="job"></param>
+        /// <param name="jobResult"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static HistoryEntry CreateHistoryEntry(this Job job)
+        public static HistoryEntry CreateHistoryEntry(this JobResult jobResult)
         {
-            if (job == null)
-                throw new ArgumentNullException(nameof(job), $"{nameof(job)} cannot be null for {nameof(CreateHistoryEntry)}");
-            HistoryEntry entry = new HistoryEntry(job.SongHash, job.SongName, job.LevelAuthorName);
-            if (job.Result.Successful)
+            if (jobResult == null)
+                throw new ArgumentNullException(nameof(jobResult), $"{nameof(jobResult)} cannot be null for {nameof(CreateHistoryEntry)}");
+            HistoryEntry entry = new HistoryEntry(jobResult.Song.Hash, jobResult.Song.SongName, jobResult.Song.MapperName);
+            if (jobResult.Successful)
                 entry.Flag = HistoryFlag.Downloaded;
             else
             {
-                if (job.Result.DownloadResult.Status == DownloadResultStatus.NetNotFound)
+                if (jobResult.DownloadResult.Status == DownloadResultStatus.NetNotFound)
                     entry.Flag = HistoryFlag.BeatSaverNotFound;
                 else
                     entry.Flag = HistoryFlag.Error;

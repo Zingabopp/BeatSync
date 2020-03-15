@@ -13,7 +13,7 @@ namespace BeatSyncLib.Downloader
         IJobBuilder AddTargetFactory(ISongTargetFactory songTargetFactory);
         IJobBuilder SetDefaultJobFinishedCallback(JobFinishedCallback jobFinishedCallback);
 
-        Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress, JobFinishedCallback finishedCallback = null);
+        Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedCallback finishedCallback = null);
     }
 
     public interface IJob
@@ -29,8 +29,13 @@ namespace BeatSyncLib.Downloader
         public JobStage JobStage;
         public ProgressValue StageProgress;
         public ProgressValue TotalProgress;
-        public IDownloadJob CurrentDownloadJob;
-        public ISongTarget CurrentTarget;
+        public DownloadResult DownloadResult;
+        public TargetResult TargetResult;
+
+        public override string ToString()
+        {
+            return $"{JobProgressType}: {TotalProgress.TotalProgress}/{TotalProgress.ExpectedMax} | {JobStage}: {StageProgress}";
+        }
     }
 
     public enum JobStage
@@ -57,9 +62,10 @@ namespace BeatSyncLib.Downloader
         None = 0,
         Progress = 1,
         StageCompletion = 2,
-        Error = 3,
-        Cancellation = 4,
-        Paused = 5
+        Finished = 3,
+        Error = 4,
+        Cancellation = 5,
+        Paused = 6
     }
     public delegate Task JobFinishedCallback(JobResult jobResult);
 }

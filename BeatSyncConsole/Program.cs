@@ -12,70 +12,54 @@ namespace BeatSyncConsole
 {
     class Program
     {
+        public static IJobBuilder CreateJobBuilder()
+        {
+            string tempDirectory = "Temp";
+            string songsDirectory = "Songs";
+            Directory.CreateDirectory(tempDirectory);
+            Directory.CreateDirectory(songsDirectory);
+            IDownloadJobFactory downloadJobFactory = new DownloadJobFactory(song =>
+            {
+                // return new DownloadMemoryContainer();
+                return new DownloadFileContainer(Path.Combine(tempDirectory, (song.SongKey ?? song.Hash) + ".zip"));
+            });
+            ISongTargetFactorySettings targetFactorySettings = new DirectoryTargetFactorySettings() { OverwriteTarget = false };
+            ISongTargetFactory targetFactory = new DirectoryTargetFactory(songsDirectory, targetFactorySettings);
+            JobFinishedCallback jobFinishedCallback = new JobFinishedCallback(async c =>
+            {
+                HistoryEntry entry = c.CreateHistoryEntry();
+                // Add entry to history.
+                if (c.Successful)
+                {
+                    // Add song to playlist.
+                    Console.WriteLine($"Job completed successfully: {c.Song}");
+                }
+                else
+                { 
+                    Console.WriteLine($"Job failed: {c.Song}");
+                }
+            });
+            return new JobBuilder()
+                .SetDownloadJobFactory(downloadJobFactory)
+                .AddTargetFactory(targetFactory)
+                .SetDefaultJobFinishedCallback(jobFinishedCallback);
+
+        }
+
         static async Task Main(string[] args)
         {
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
             ScrapedSong song = new ScrapedSong("19f2879d11a91b51a5c090d63471c3e8d9b7aee3", "Believer", "Rustic", "b");
             DownloadManager manager = new DownloadManager(3);
-            string tempDirectory = "Temp";
-            string songsDirectory = "Songs";
-            Directory.CreateDirectory(tempDirectory);
-            Directory.CreateDirectory(songsDirectory);
             CancellationTokenSource cts = new CancellationTokenSource();
             manager.Start(cts.Token);
-            //DownloadContainer downloadContainer = new DownloadMemoryContainer();
-            DownloadContainer downloadContainer = new DownloadFileContainer(Path.Combine(tempDirectory, (song.SongKey ?? song.Hash) + ".zip"));
-            downloadContainer.ProgressChanged += (sender, progress) =>
+            IJobBuilder jobBuilder = CreateJobBuilder();
+            Job job = jobBuilder.CreateJob(song);
+            job.ProgressChanged += (s, p) =>
             {
-                Console.WriteLine(progress);
+                Job j = (Job)s;
+                Console.WriteLine($"Progress on {j}: {p}");
             };
-            IDownloadJob job = new DownloadJob(song, downloadContainer);
-            ISongTargetFactorySettings targetFactorySettings = new DirectoryTargetFactorySettings() { OverwriteTarget = false };
-            ISongTargetFactory targetFactory = new DirectoryTargetFactory(songsDirectory, targetFactorySettings);
-            ISongTarget target = targetFactory.CreateTarget(song);
-            job.AddDownloadFinishedCallback(async c =>
-            {
-                HistoryEntry entry;
-                if (c.DownloadResult.Status == DownloadResultStatus.Success)
-                {
-                    TargetResult targetResult = null;
-                    try
-                    {
-                        long actualBytes = c.DownloadResult.DownloadContainer.ActualBytesReceived;
-                        long expectedBytes = c.DownloadResult.DownloadContainer.ExpectedInputLength ?? 0;
-                        if (actualBytes != expectedBytes)
-                            Console.WriteLine($"WARNING: ActualBytesReceived != ExpectedInputLength ({actualBytes} != {expectedBytes})");
-                        using (Stream data = c.DownloadResult.DownloadContainer.GetResultStream())
-                            targetResult = await target.TransferAsync(data).ConfigureAwait(false);
-                        c.DownloadResult.Dispose();
-                        if(target is DirectoryTarget dTarget)
-                        {
-                            string hash = (await BeatSyncLib.Hashing.SongHasher.GetSongHashDataAsync(Path.Combine(dTarget.ParentDirectory, dTarget.DirectoryName)).ConfigureAwait(false)).songHash;
-                            if (hash != song.Hash)
-                                Console.WriteLine("Hash Mismatch");
-                            else
-                                Console.WriteLine("Hashes match");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                        entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Error);
-                    }
-
-                    if (targetResult?.Success ?? false)
-                    {
-                        entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Downloaded);
-                        // Add to playlist
-                    }
-                    else
-                        entry = new HistoryEntry(c.SongHash, c.SongName, c.LevelAuthorName, HistoryFlag.Error);
-                }
-                else
-                    entry = c.ToFailedHistoryEntry();
-                // Add entry to history.
-            });
-
             manager.TryPostJob(job, out _);
             try
             {

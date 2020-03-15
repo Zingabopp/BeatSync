@@ -139,12 +139,12 @@ namespace BeatSyncLib.Downloader
         /// </summary>
         /// <exception cref="TaskCanceledException"></exception>
         /// <returns></returns>
-        public async Task<List<IDownloadJob>> WaitDownloadCompletionAsync(CancellationToken cancellationToken)
+        public async Task<List<Job>> WaitDownloadCompletionAsync(CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
-                return new List<IDownloadJob>();
-            List<IDownloadJob> jobs = null;
-            List<IDownloadJob> processedJobs = new List<IDownloadJob>();
+                return new List<Job>();
+            List<Job> jobs = null;
+            List<Job> processedJobs = new List<Job>();
             try
             {
                 Logger.log?.Debug($"Waiting for Completion.");
@@ -849,25 +849,25 @@ namespace BeatSyncLib.Downloader
         public bool PostJobToDownload(IPlaylistSong playlistSong, string readerName, Func<bool> finishedPosting)
         {
             bool downloadPosted = false;
-            var inHistory = HistoryManager.TryGetValue(playlistSong.Hash, out var historyEntry);
-            var existsOnDisk = HashSource.ExistingSongs.TryGetValue(playlistSong.Hash, out var _);
-            if (!existsOnDisk && (!inHistory || historyEntry.Flag == HistoryFlag.Error))
-            {
-                //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
-                // TODO: fix?
-                downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, null), out var postedJob);
-                if (downloadPosted && postedJob != null)
-                {
-                    //Logger.log?.Info($"{readerName} posted job {playlistSong}");
-                    postedJob.JobFinished += PostedJob_OnJobFinished;
-                    //new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
-                }
-            }
-            else if (existsOnDisk && historyEntry != null)
-            {
-                if (historyEntry.Flag == HistoryFlag.None)
-                    HistoryManager.TryUpdateFlag(playlistSong.Hash, HistoryFlag.PreExisting);
-            }
+            //var inHistory = HistoryManager.TryGetValue(playlistSong.Hash, out var historyEntry);
+            //var existsOnDisk = HashSource.ExistingSongs.TryGetValue(playlistSong.Hash, out var _);
+            //if (!existsOnDisk && (!inHistory || historyEntry.Flag == HistoryFlag.Error))
+            //{
+            //    //Logger.log?.Info($"Queuing {pair.Value.SongKey} - {pair.Value.SongName} by {pair.Value.MapperName} for download.");
+            //    // TODO: fix?
+            //    downloadPosted = DownloadManager.TryPostJob(new DownloadJob(playlistSong, null), out var postedJob);
+            //    if (downloadPosted && postedJob != null)
+            //    {
+            //        //Logger.log?.Info($"{readerName} posted job {playlistSong}");
+            //        postedJob.JobFinished += PostedJob_OnJobFinished;
+            //        //new JobEventContainer(postedJob, readerName, StatusManager, finishedPosting);
+            //    }
+            //}
+            //else if (existsOnDisk && historyEntry != null)
+            //{
+            //    if (historyEntry.Flag == HistoryFlag.None)
+            //        HistoryManager.TryUpdateFlag(playlistSong.Hash, HistoryFlag.PreExisting);
+            //}
 
             return downloadPosted;
         }

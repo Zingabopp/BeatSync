@@ -11,14 +11,14 @@ namespace BeatSyncLib.Downloader
 {
     public class DownloadManager
     {
-        private BlockingCollection<IDownloadJob> _queuedJobs = new BlockingCollection<IDownloadJob>();
+        private BlockingCollection<Job> _queuedJobs = new BlockingCollection<Job>();
 
-        private readonly ConcurrentDictionary<string, IDownloadJob> _existingJobs = new ConcurrentDictionary<string, IDownloadJob>();
-        private readonly ConcurrentDictionary<string, IDownloadJob> _activeJobs = new ConcurrentDictionary<string, IDownloadJob>();
-        private readonly ConcurrentDictionary<string, IDownloadJob> _completedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
-        private readonly ConcurrentDictionary<string, IDownloadJob> _failedDownloads = new ConcurrentDictionary<string, IDownloadJob>();
-        private readonly ConcurrentDictionary<string, IDownloadJob> _cancelledDownloads = new ConcurrentDictionary<string, IDownloadJob>();
-        public IReadOnlyList<IDownloadJob> CompletedJobs
+        private readonly ConcurrentDictionary<string, Job> _existingJobs = new ConcurrentDictionary<string, Job>();
+        private readonly ConcurrentDictionary<string, Job> _activeJobs = new ConcurrentDictionary<string, Job>();
+        private readonly ConcurrentDictionary<string, Job> _completedDownloads = new ConcurrentDictionary<string, Job>();
+        private readonly ConcurrentDictionary<string, Job> _failedDownloads = new ConcurrentDictionary<string, Job>();
+        private readonly ConcurrentDictionary<string, Job> _cancelledDownloads = new ConcurrentDictionary<string, Job>();
+        public IReadOnlyList<Job> CompletedJobs
         {
             get { return _completedDownloads.Values.ToList(); }
         }
@@ -158,15 +158,15 @@ namespace BeatSyncLib.Downloader
         /// </summary>
         /// <param name="job"></param>
         /// <returns></returns>
-        public bool TryPostJob(IDownloadJob job, out IDownloadJob postedOrExistingJob)
+        public bool TryPostJob(Job job, out Job postedOrExistingJob)
         {
-            if (_acceptingJobs && _existingJobs.TryAdd(job.SongHash, job) && _queuedJobs.TryAdd(job))
+            if (_acceptingJobs && _existingJobs.TryAdd(job.Song.Hash, job) && _queuedJobs.TryAdd(job))
             {
                     job.JobFinished += Job_OnJobFinished;
                     postedOrExistingJob = job;
                     return true;
             }
-            else if (_existingJobs.TryGetValue(job.SongHash, out var existingJob))
+            else if (_existingJobs.TryGetValue(job.Song.Hash, out var existingJob))
             {
                 postedOrExistingJob = existingJob;
                 return false;
@@ -178,23 +178,23 @@ namespace BeatSyncLib.Downloader
             }
         }
 
-        private void Job_OnJobFinished(object sender, DownloadJobFinishedEventArgs e)
+        private void Job_OnJobFinished(object sender, JobResult e)
         {
-            IDownloadJob finishedJob = (IDownloadJob)sender;
-            if(!_activeJobs.TryRemove(e.SongHash, out _))
+            Job finishedJob = (Job)sender;
+            if(!_activeJobs.TryRemove(e.Song.Hash, out _))
             {
                 Logger.log?.Warn($"Couldn't remove {finishedJob.ToString()} from _activeJobs, this shouldn't happen.");
             }
-            switch (e.DownloadResult)
+            switch (e.JobState)
             {
-                case DownloadResultStatus.Success:
-                    _completedDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
+                case JobState.Finished:
+                    _completedDownloads.TryAdd(e.Song.Hash, (Job)sender);
                     break;
-                case DownloadResultStatus.Canceled:
-                    _cancelledDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
+                case JobState.Cancelled:
+                    _cancelledDownloads.TryAdd(e.Song.Hash, (Job)sender);
                     break;
                 default:
-                    _failedDownloads.TryAdd(e.SongHash, (IDownloadJob)sender);
+                    _failedDownloads.TryAdd(e.Song.Hash, (Job)sender);
                     break;
             }
             if (_activeJobs.Count == 0)
@@ -207,7 +207,7 @@ namespace BeatSyncLib.Downloader
             {
                 foreach (var job in _queuedJobs.GetConsumingEnumerable(cancellationToken))
                 {
-                    if(!_activeJobs.TryAdd(job.SongHash, job))
+                    if(!_activeJobs.TryAdd(job.Song.Hash, job))
                     {
                         Logger.log?.Warn($"Couldn't add {job.ToString()} to _activeJobs, this shouldn't happen.");
                     }
@@ -227,7 +227,7 @@ namespace BeatSyncLib.Downloader
             }
         }
 
-        public bool TryGetJob(string songHash, out IDownloadJob job)
+        public bool TryGetJob(string songHash, out Job job)
         {
             return _existingJobs.TryGetValue(songHash, out job);
         }
