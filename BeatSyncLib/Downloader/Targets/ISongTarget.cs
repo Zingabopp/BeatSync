@@ -12,6 +12,7 @@ namespace BeatSyncLib.Downloader.Targets
     {
         string TargetName { get; }
         bool TransferComplete { get; }
+        TargetResult TargetResult { get; }
         /// <summary>
         /// 
         /// </summary>

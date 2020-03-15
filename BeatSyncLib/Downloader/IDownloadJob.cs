@@ -32,8 +32,8 @@ namespace BeatSyncLib.Downloader
         void Pause();
         void Unpause();
 
-        Task RunAsync();
-        Task RunAsync(CancellationToken cancellationToken);
+        Task<DownloadResult> RunAsync();
+        Task<DownloadResult> RunAsync(CancellationToken cancellationToken);
     }
 
     public delegate Task DownloadFinishedCallback(IDownloadJob job);
@@ -88,13 +88,13 @@ namespace BeatSyncLib.Downloader
     public class DownloadJobProgressChangedEventArgs : EventArgs
     {
         public DownloadJobStatus DownloadJobStatus { get; protected set; }
-        public DownloadProgress? DownloadProgress { get; protected set; }
+        public ProgressValue? DownloadProgress { get; protected set; }
         public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus)
         {
             DownloadJobStatus = downloadJobStatus;
             DownloadProgress = null;
         }
-        public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus, DownloadProgress downloadProgress)
+        public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus, ProgressValue downloadProgress)
         {
             DownloadJobStatus = downloadJobStatus;
             DownloadProgress = downloadProgress; 
@@ -102,7 +102,7 @@ namespace BeatSyncLib.Downloader
         public DownloadJobProgressChangedEventArgs(DownloadJobStatus downloadJobStatus, long totalBytesDownloaded, long? totalFileSize)
         {
             DownloadJobStatus = downloadJobStatus;
-            DownloadProgress = new DownloadProgress(totalBytesDownloaded, totalFileSize);
+            DownloadProgress = new ProgressValue(totalBytesDownloaded, totalFileSize);
         }
     }
 
@@ -118,12 +118,12 @@ namespace BeatSyncLib.Downloader
         }
     }
 
-    public struct DownloadProgress
+    public struct DownloadProgresss
     {
         public long? TotalFileSize;
         public long TotalBytesDownloaded;
         public double? ProgressPercentage => TotalFileSize != null && TotalFileSize != 0 ? TotalBytesDownloaded / TotalFileSize : null;
-        public DownloadProgress(long totalBytesDownloaded, long? totalFileSize)
+        public DownloadProgresss(long totalBytesDownloaded, long? totalFileSize)
         {
             TotalBytesDownloaded = totalBytesDownloaded;
             TotalFileSize = totalFileSize;

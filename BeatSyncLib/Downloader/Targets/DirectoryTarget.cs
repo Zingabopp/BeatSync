@@ -20,6 +20,8 @@ namespace BeatSyncLib.Downloader.Targets
         public string DirectoryName { get; private set; }
         public bool OverwriteTarget { get; private set; }
 
+        public TargetResult TargetResult { get; private set; }
+
         protected DirectoryTarget(string parentDirectory, string songHash, bool overwriteTarget)
         {
             ParentDirectory = Path.GetFullPath(parentDirectory);
@@ -75,12 +77,14 @@ namespace BeatSyncLib.Downloader.Targets
                     if (hashAfterDownload != SongHash)
                         throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {SongHash} != {hashAfterDownload}");
                 }
-                return new DirectoryTargetResult(TargetName, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
+                TargetResult = new DirectoryTargetResult(TargetName, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
+                return TargetResult;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                return new DirectoryTargetResult(TargetName, false, zipResult, ex);
+                TargetResult = new DirectoryTargetResult(TargetName, false, zipResult, ex);
+                return TargetResult;
             }
 #pragma warning restore CA1031 // Do not catch general exception types
             finally

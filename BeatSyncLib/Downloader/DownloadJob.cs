@@ -124,7 +124,7 @@ namespace BeatSyncLib.Downloader
         }
 
 
-        public async Task RunAsync(CancellationToken cancellationToken)
+        public async Task<DownloadResult> RunAsync(CancellationToken cancellationToken)
         {
             _runCancellationToken = cancellationToken;
             if (Paused)
@@ -132,8 +132,7 @@ namespace BeatSyncLib.Downloader
                 Status = DownloadJobStatus.Paused;
                 if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
                 {
-                    await FinishJob(true).ConfigureAwait(false); // Cancellation requested while waiting for Unpause
-                    return;
+                    return await FinishJob(true).ConfigureAwait(false); // Cancellation requested while waiting for Unpause
                 }
             }
             Status = DownloadJobStatus.Downloading;
@@ -143,16 +142,14 @@ namespace BeatSyncLib.Downloader
                 JobStarted?.Invoke(this, new DownloadJobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    await FinishJob(true).ConfigureAwait(false);
-                    return;
+                    return await FinishJob(true).ConfigureAwait(false);
                 }
                 if (Paused)
                 {
                     Status = DownloadJobStatus.Paused;
                     if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
                     {
-                        await FinishJob(true).ConfigureAwait(false); // Cancellation requested while waiting for Unpause
-                        return;
+                        return await FinishJob(true).ConfigureAwait(false); // Cancellation requested while waiting for Unpause
                     }
 
                     Status = DownloadJobStatus.Downloading;
@@ -162,8 +159,7 @@ namespace BeatSyncLib.Downloader
                 _downloadResult = await DownloadSongAsync(_downloadContainer, cancellationToken).ConfigureAwait(false);
                 if (_downloadResult.Status == DownloadResultStatus.Canceled)
                 {
-                    await FinishJob(true).ConfigureAwait(false);
-                    return;
+                    return await FinishJob(true).ConfigureAwait(false);
                 }
                 else
                     Exception = _downloadResult.Exception;
@@ -174,14 +170,13 @@ namespace BeatSyncLib.Downloader
                 Logger.log?.Warn(message);
                 Logger.log?.Debug(ex.StackTrace);
                 _downloadResult = new DownloadResult(null, DownloadResultStatus.Unknown, 0, message, ex);
-                await FinishJob(false, ex).ConfigureAwait(false);
-                return;
+                return await FinishJob(false, ex).ConfigureAwait(false);
             }
             // Finish
-            await FinishJob().ConfigureAwait(false);
+            return await FinishJob().ConfigureAwait(false);
         }
 
-        private async Task FinishJob(bool canceled = false, Exception exception = null)
+        private async Task<DownloadResult> FinishJob(bool canceled = false, Exception exception = null)
         {
             CanPause = false;
             if (canceled || exception is OperationCanceledException)
@@ -217,9 +212,10 @@ namespace BeatSyncLib.Downloader
                     new DownloadJobFinishedEventArgs(SongHash,
                     _downloadResult?.Status ?? DownloadResultStatus.Unknown,
                     DownloadResult.DownloadContainer));
+            return DownloadResult;
         }
 
-        public Task RunAsync()
+        public Task<DownloadResult> RunAsync()
         {
             return RunAsync(CancellationToken.None);
         }

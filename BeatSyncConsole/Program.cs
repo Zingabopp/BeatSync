@@ -41,6 +41,10 @@ namespace BeatSyncConsole
                     TargetResult targetResult = null;
                     try
                     {
+                        long actualBytes = c.DownloadResult.DownloadContainer.ActualBytesReceived;
+                        long expectedBytes = c.DownloadResult.DownloadContainer.ExpectedInputLength ?? 0;
+                        if (actualBytes != expectedBytes)
+                            Console.WriteLine($"WARNING: ActualBytesReceived != ExpectedInputLength ({actualBytes} != {expectedBytes})");
                         using (Stream data = c.DownloadResult.DownloadContainer.GetResultStream())
                             targetResult = await target.TransferAsync(data).ConfigureAwait(false);
                         c.DownloadResult.Dispose();
@@ -83,6 +87,29 @@ namespace BeatSyncConsole
             }
             Console.WriteLine("Press any key to continue...");
             Console.Read();
+        }
+
+        public async Task Thing()
+        {
+            IJobBuilder jobBuilder = null;
+            int c;
+            JobFinishedCallback jobFinishedCallback = new JobFinishedCallback(async c =>
+            {
+                await Task.Delay(500);
+            });
+            Func<int, Task> callback = async (c) =>
+            {
+
+                await Task.Delay(500);
+                return;
+            };
+
+            jobBuilder.SetDefaultJobFinishedCallback(async c =>
+            {
+                await Task.Delay(500);
+            });
+
+
         }
     }
 }
