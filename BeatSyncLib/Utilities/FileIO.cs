@@ -133,14 +133,14 @@ namespace BeatSyncLib.Utilities
 
 
         /// <summary>
-        /// Downloads a file from the specified URI to the specified path (path includes file name).
-        /// Creates the target directory if it doesn't exist. All exceptions are stored in the DownloadResult.
+        /// Downloads a file from the specified URI to the specified <see cref="DownloadContainer"/>.
+        /// All exceptions are stored in the DownloadResult.
         /// </summary>
         /// <param name="downloadUri"></param>
-        /// <param name="target"></param>
-        /// <exception cref="OperationCanceledException"></exception>
+        /// <param name="downloadContainer"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns> 
-        public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken, bool overwriteExisting = true)
+        public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
             int statusCode = 0;
             if (downloadUri == null)

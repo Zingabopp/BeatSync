@@ -10,7 +10,7 @@ namespace BeatSyncLib.Downloader
     {
         private List<ISongTargetFactory> _songTargetFactories = new List<ISongTargetFactory>();
         private IDownloadJobFactory _downloadJobFactory;
-        private JobFinishedCallback _finishedCallback;
+        private JobFinishedAsyncCallback _finishedCallback;
 
         public void EnsureValidState()
         {
@@ -20,7 +20,8 @@ namespace BeatSyncLib.Downloader
                 throw new InvalidOperationException($"Invalid JobBuilder state: an IDownloadJobFactory has not been set.");
         }
 
-        public Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedCallback finishedCallback = null)
+
+        public Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), $"{nameof(song)} cannot be null for {nameof(CreateJob)}");
@@ -54,7 +55,7 @@ namespace BeatSyncLib.Downloader
             return this;
         }
 
-        public IJobBuilder SetDefaultJobFinishedCallback(JobFinishedCallback jobFinishedCallback)
+        public IJobBuilder SetDefaultJobFinishedCallback(JobFinishedAsyncCallback jobFinishedCallback)
         {
             _finishedCallback = jobFinishedCallback;
             return this;

@@ -139,12 +139,12 @@ namespace BeatSyncLib.Downloader
         /// </summary>
         /// <exception cref="TaskCanceledException"></exception>
         /// <returns></returns>
-        public async Task<List<Job>> WaitDownloadCompletionAsync(CancellationToken cancellationToken)
+        public async Task<List<IJob>> WaitDownloadCompletionAsync(CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
-                return new List<Job>();
-            List<Job> jobs = null;
-            List<Job> processedJobs = new List<Job>();
+                return new List<IJob>();
+            List<IJob> jobs = null;
+            List<IJob> processedJobs = new List<IJob>();
             try
             {
                 Logger.log?.Debug($"Waiting for Completion.");

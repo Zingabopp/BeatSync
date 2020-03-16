@@ -9,7 +9,7 @@ using WebUtilities;
 
 namespace BeatSyncLib.Downloader
 {
-    public class Job
+    public class Job : IJob
     {
         public bool CanPause { get; private set; }
         public void Pause() { }
@@ -18,7 +18,7 @@ namespace BeatSyncLib.Downloader
         public ScrapedSong Song { get; private set; }
         public event EventHandler JobStarted;
         public event EventHandler<JobResult> JobFinished;
-        public event EventHandler<JobProgress> ProgressChanged;
+        public event EventHandler<JobProgress> JobProgressChanged;
 
         public JobResult Result { get; private set; }
 
@@ -28,11 +28,12 @@ namespace BeatSyncLib.Downloader
         private readonly IDownloadJob _downloadJob;
         private readonly ISongTarget[] _targets;
         private TargetResult[] _targetResults;
-        private readonly JobFinishedCallback JobFinishedCallback;
+        private JobFinishedAsyncCallback JobFinishedAsyncCallback;
+        private JobFinishedCallback JobFinishedCallback;
         private readonly IProgress<JobProgress> _progress;
         public DownloadResult DownloadResult { get; private set; }
         public TargetResult[] TargetResults { get; private set; }
-        public CancellationToken CancellationToken { get; private set; } = CancellationToken.None;
+        private CancellationToken CancellationToken= CancellationToken.None;
         public void RegisterCancellationToken(CancellationToken cancellationToken)
         {
             if (!(JobState == JobState.Ready || JobState == JobState.NotReady))
@@ -41,23 +42,45 @@ namespace BeatSyncLib.Downloader
         }
         private int _totalStages;
         private int _stageIndex;
-        public Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
+
+        public void SetJobFinishedCallback(JobFinishedAsyncCallback jobFinishedAsyncCallback)
+        {
+            JobFinishedAsyncCallback = jobFinishedAsyncCallback;
+            JobFinishedCallback = null;
+        }
+        public void SetJobFinishedCallback(JobFinishedCallback jobFinishedCallback)
+        {
+            JobFinishedCallback = jobFinishedCallback;
+            JobFinishedAsyncCallback = null;
+        }
+
+        private Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, IProgress<JobProgress> progress)
         {
             Song = song;
             _downloadJob = downloadJob;
             _targets = targets.ToArray();
-            JobFinishedCallback = jobFinishedCallback;
             _progress = progress;
             JobStage = JobStage.NotStarted;
             JobState = JobState.Ready;
             _totalStages = 1 + _targets.Length + 1;
             _stageIndex = 0;
         }
+        public Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
+            : this(song, downloadJob, targets, progress)
+        {
+            JobFinishedAsyncCallback = jobFinishedAsyncCallback;
+        }
+
+        public Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
+            : this(song, downloadJob, targets, progress)
+        {
+            JobFinishedCallback = jobFinishedCallback;
+        }
 
         private ProgressValue CurrentProgress => new ProgressValue(_stageIndex, _totalStages);
         private void ReportProgress(JobProgress progress)
         {
-            EventHandler<JobProgress> handler = ProgressChanged;
+            EventHandler<JobProgress> handler = JobProgressChanged;
             handler?.Invoke(this, progress);
             _progress?.Report(progress);
         }
@@ -132,6 +155,9 @@ namespace BeatSyncLib.Downloader
             }
 
             FinishJob(canceled, exception);
+            JobFinishedAsyncCallback asyncCallback = JobFinishedAsyncCallback;
+            if (asyncCallback != null)
+                await asyncCallback(Result).ConfigureAwait(false);
         }
 
         private void _downloadJob_JobProgressChanged(object sender, DownloadJobProgressChangedEventArgs e)
@@ -166,7 +192,8 @@ namespace BeatSyncLib.Downloader
             EventHandler<JobResult> handler = JobFinished;
             handler?.Invoke(this, Result);
             ReportProgress(JobProgress.CreateJobFinished(CurrentProgress));
-            JobFinishedCallback?.Invoke(Result);
+            JobFinishedCallback callback = JobFinishedCallback;
+            callback?.Invoke(Result);
         }
 
         public Task RunAsync()

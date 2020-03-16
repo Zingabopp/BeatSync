@@ -3,6 +3,7 @@ using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BeatSyncLib.Downloader
@@ -11,9 +12,9 @@ namespace BeatSyncLib.Downloader
     {
         IJobBuilder SetDownloadJobFactory(IDownloadJobFactory downloadJobFactory);
         IJobBuilder AddTargetFactory(ISongTargetFactory songTargetFactory);
-        IJobBuilder SetDefaultJobFinishedCallback(JobFinishedCallback jobFinishedCallback);
+        IJobBuilder SetDefaultJobFinishedCallback(JobFinishedAsyncCallback jobFinishedCallback);
 
-        Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedCallback finishedCallback = null);
+        Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null);
     }
 
     public interface IJob
@@ -21,6 +22,20 @@ namespace BeatSyncLib.Downloader
         event EventHandler JobStarted;
         event EventHandler<JobProgress> JobProgressChanged;
         event EventHandler<JobResult> JobFinished;
+        bool CanPause { get; }
+        void Pause();
+        void Unpause();
+        Exception Exception { get; }
+        ScrapedSong Song { get; }
+        JobResult Result { get; }
+        JobStage JobStage { get; }
+        JobState JobState { get; }
+        DownloadResult DownloadResult { get; }
+        TargetResult[] TargetResults { get; }
+        void SetJobFinishedCallback(JobFinishedAsyncCallback jobFinishedAsyncCallback);
+        void SetJobFinishedCallback(JobFinishedCallback jobFinishedCallback);
+        Task RunAsync(CancellationToken cancellationToken);
+        Task RunAsync();
     }
 
     public class JobProgress
@@ -110,5 +125,6 @@ namespace BeatSyncLib.Downloader
         Cancellation = 5,
         Paused = 6
     }
-    public delegate Task JobFinishedCallback(JobResult jobResult);
+    public delegate Task JobFinishedAsyncCallback(JobResult jobResult);
+    public delegate void JobFinishedCallback(JobResult jobResult);
 }

@@ -138,69 +138,57 @@ namespace BeatSyncLib.Downloader
         public async Task<DownloadResult> RunAsync(CancellationToken cancellationToken)
         {
             _runCancellationToken = cancellationToken;
-            if (Paused)
-            {
-                Status = DownloadJobStatus.Paused;
-                if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
-                {
-                    return await FinishJob(true).ConfigureAwait(false); // Cancellation requested while waiting for Unpause
-                }
-            }
             Status = DownloadJobStatus.Downloading;
 
             try
             {
-                JobStarted?.Invoke(this, new DownloadJobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return await FinishJob(true).ConfigureAwait(false);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
                 if (Paused)
                 {
                     Status = DownloadJobStatus.Paused;
-                    if (!(await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false)))
-                    {
-                        return await FinishJob(true).ConfigureAwait(false); // Cancellation requested while waiting for Unpause
-                    }
-
+                    await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
                     Status = DownloadJobStatus.Downloading;
                 }
+                EventHandler<DownloadJobStartedEventArgs> jobStartedHandler = JobStarted;
+                jobStartedHandler?.Invoke(this, new DownloadJobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
 
-                // Download Zip
                 _downloadResult = await DownloadSongAsync(_downloadContainer, cancellationToken).ConfigureAwait(false);
-                if (_downloadResult.Status == DownloadResultStatus.Canceled)
-                {
-                    return await FinishJob(true).ConfigureAwait(false);
-                }
-                else
-                    Exception = _downloadResult.Exception;
+                if (_downloadResult.Exception != null)
+                    throw _downloadResult.Exception;
+            }
+            catch (OperationCanceledException ex)
+            {
+                return await FinishJob(ex).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 string message = $"Error in DownloadJob.RunAsync: {ex.Message}";
                 Logger.log?.Warn(message);
                 Logger.log?.Debug(ex.StackTrace);
-                _downloadResult = new DownloadResult(null, DownloadResultStatus.Unknown, 0, message, ex);
-                return await FinishJob(false, ex).ConfigureAwait(false);
+                if (_downloadResult == null)
+                    _downloadResult = new DownloadResult(null, DownloadResultStatus.Unknown, 0, message, ex);
+                return await FinishJob(ex).ConfigureAwait(false);
             }
             // Finish
             return await FinishJob().ConfigureAwait(false);
         }
 
-        private async Task<DownloadResult> FinishJob(bool canceled = false, Exception exception = null)
+        private async Task<DownloadResult> FinishJob(Exception exception = null)
         {
             CanPause = false;
-            if (canceled || exception is OperationCanceledException)
+            if (exception is OperationCanceledException)
                 Status = DownloadJobStatus.Canceled;
-            else
-            {
-                Status = DownloadJobStatus.Finished;
-            }
-            if (exception != null)
+            else if (exception != null)
             {
                 Exception = exception;
                 Status = DownloadJobStatus.Faulted;
             }
+            else
+            {
+                Status = DownloadJobStatus.Finished;
+            }
+
             DownloadResult = _downloadResult;
             List<Task> invokedCallbacks = new List<Task>();
             foreach (DownloadFinishedCallback callback in downloadFinishedCallbacks)
@@ -234,27 +222,29 @@ namespace BeatSyncLib.Downloader
         /// <summary>
         /// Attempts to download a song to the specified target path.
         /// </summary>
-        /// <param name="target">Full path to the downloaded file.</param>
+        /// <param name="downloadContainer">Full path to the downloaded file.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<DownloadResult> DownloadSongAsync(DownloadContainer downloadContainer, CancellationToken cancellationToken, bool overwriteExisting = true)
+        public async Task<DownloadResult> DownloadSongAsync(DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
             DownloadResult result = null;
+            string stringForUri = null;
+            Uri downloadUri;
             try
             {
-                Uri downloadUri;
                 if (!string.IsNullOrEmpty(SongHash))
-                    downloadUri = new Uri(BeatSaverHashDownloadUrlBase + SongHash.ToLower());
+                    stringForUri = BeatSaverHashDownloadUrlBase + SongHash.ToLower();
                 else if (!string.IsNullOrEmpty(SongKey))
-                    downloadUri = new Uri(BeatSaverDownloadUrlKeyBase + SongKey.ToLower());
+                    stringForUri = BeatSaverDownloadUrlKeyBase + SongKey.ToLower();
                 else
                     return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "No SongHash or SongKey provided to the DownloadJob.");
-                result = await FileIO.DownloadFileAsync(downloadUri, downloadContainer, cancellationToken, overwriteExisting).ConfigureAwait(false);
+                downloadUri = new Uri(stringForUri);
             }
-            catch (OperationCanceledException ex)
+            catch (Exception ex)
             {
-                result = new DownloadResult(null, DownloadResultStatus.Canceled, 0, ex.Message, ex);
+                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, $"Could not create a valid Uri from '{stringForUri}'.", ex);
             }
+            result = await FileIO.DownloadFileAsync(downloadUri, downloadContainer, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
