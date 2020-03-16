@@ -55,9 +55,14 @@ namespace BeatSyncConsole
             manager.Start(cts.Token);
             IJobBuilder jobBuilder = CreateJobBuilder();
             Job job = jobBuilder.CreateJob(song);
+            int stageUpdates = 0;
             job.ProgressChanged += (s, p) =>
             {
                 Job j = (Job)s;
+                if (p.JobProgressType == JobProgressType.StageProgress)
+                    stageUpdates++;
+                if (stageUpdates > 4)
+                    cts.Cancel();
                 Console.WriteLine($"Progress on {j}: {p}");
             };
             manager.TryPostJob(job, out _);

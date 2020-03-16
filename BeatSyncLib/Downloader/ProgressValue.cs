@@ -10,7 +10,7 @@ namespace BeatSyncLib.Downloader
     {
         public long? ExpectedMax;
         public long TotalProgress;
-        public double? ProgressPercentage => ExpectedMax != null && ExpectedMax != 0 ? TotalProgress / ExpectedMax : null;
+        public double? ProgressPercentage => ExpectedMax != null && ExpectedMax != 0 ? (double)TotalProgress / ExpectedMax : null;
         public ProgressValue(long totalProgress, long? expectedMax)
         {
             TotalProgress = totalProgress;
@@ -29,7 +29,10 @@ namespace BeatSyncLib.Downloader
                 if (ExpectedMax == null)
                     _stringVal = $"{ConvertByteValue(TotalProgress, ByteSize).ToString("N2")} MB/?";
                 else
+                {
+                    var value = ProgressPercentage.Value;
                     _stringVal = $"({ProgressPercentage.Value.ToString("P2")}) {ConvertByteValue(TotalProgress, ByteSize).ToString("N2")} MB/{ConvertByteValue(ExpectedMax.Value, ByteSize).ToString("N2")} MB";
+                }
                 return _stringVal;
             }
         }

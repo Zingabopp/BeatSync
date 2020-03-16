@@ -155,7 +155,7 @@ namespace BeatSyncLib.Utilities
 
                     try
                     {
-                        await downloadContainer.ReceiveDataAsync(response.Content).ConfigureAwait(false);
+                        await downloadContainer.ReceiveDataAsync(response.Content, cancellationToken).ConfigureAwait(false);
                         //actualPath = await response.Content.ReadAsFileAsync(target, overwriteExisting, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException ex)

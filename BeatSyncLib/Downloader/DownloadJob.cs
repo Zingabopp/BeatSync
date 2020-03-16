@@ -62,8 +62,19 @@ namespace BeatSyncLib.Downloader
             if (container == null)
                 throw new ArgumentNullException(nameof(container), "DownloadJob must have a download container.");
             _downloadContainer = container;
-
+            _downloadContainer.ProgressChanged += _downloadContainer_ProgressChanged;
             AddDownloadFinishedCallback(jobFinishedCallback);
+        }
+
+        private void _downloadContainer_ProgressChanged(object sender, DownloadProgress e)
+        {
+            EventHandler<DownloadJobProgressChangedEventArgs> handler = JobProgressChanged;
+            if (handler != null)
+            {
+                DownloadJobStatus status = Status;
+                ProgressValue progress = new ProgressValue(e.TotalBytesDownloaded, e.TotalDownloadSize);
+                handler(this, new DownloadJobProgressChangedEventArgs(status, progress));
+            }
         }
 
         /// <summary>

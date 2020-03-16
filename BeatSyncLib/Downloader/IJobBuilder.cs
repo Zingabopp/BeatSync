@@ -23,18 +23,61 @@ namespace BeatSyncLib.Downloader
         event EventHandler<JobResult> JobFinished;
     }
 
-    public struct JobProgress
+    public class JobProgress
     {
-        public JobProgressType JobProgressType;
-        public JobStage JobStage;
-        public ProgressValue StageProgress;
-        public ProgressValue TotalProgress;
-        public DownloadResult DownloadResult;
-        public TargetResult TargetResult;
+        public static JobProgress CreateDownloadCompletion(ProgressValue totalProgress, DownloadResult result)
+        {
+            return new JobProgress(JobProgressType.StageCompletion, JobStage.Downloading, totalProgress, downloadResult: result);
+        }
+        public static JobProgress CreateDownloadingProgress(ProgressValue totalProgress, ProgressValue downloadProgress)
+        {
+            return new JobProgress(JobProgressType.StageProgress, JobStage.Downloading, totalProgress, downloadProgress);
+        }
+        public static JobProgress CreateTargetCompletion(ProgressValue totalProgress, TargetResult result)
+        {
+            return new JobProgress(JobProgressType.StageCompletion, JobStage.TransferringToTarget, totalProgress, targetResult: result);
+        }
+        public static JobProgress CreateTargetProgress(ProgressValue totalProgress, ProgressValue targetProgress)
+        {
+            return new JobProgress(JobProgressType.StageProgress, JobStage.TransferringToTarget, totalProgress, targetProgress);
+        }
+        public static JobProgress CreateJobFinishing(ProgressValue totalProgress, ProgressValue targetProgress)
+        {
+            return new JobProgress(JobProgressType.StageProgress, JobStage.Finishing, totalProgress, targetProgress);
+        }
+        public static JobProgress CreateJobFinished(ProgressValue totalProgress)
+        {
+            return new JobProgress(JobProgressType.Finished, JobStage.Finished, totalProgress);
+        }
+        public static JobProgress CreateFromFault(JobProgressType progressType, JobStage jobStage, ProgressValue totalProgress)
+        {
+            return new JobProgress(progressType, jobStage, totalProgress);
+        }
 
+
+        public readonly JobProgressType JobProgressType;
+        public readonly JobStage JobStage;
+        public readonly ProgressValue TotalProgress;
+        public readonly ProgressValue? StageProgress;
+        public readonly IDownloadJob DownloadJob;
+        public readonly ISongTarget SongTarget;
+        public readonly DownloadResult DownloadResult;
+        public readonly TargetResult TargetResult;
+        public JobProgress(JobProgressType jobProgressType, JobStage jobStage, ProgressValue totalProgress, ProgressValue? stageProgress = null, 
+            IDownloadJob downloadJob = null, ISongTarget songTarget = null, DownloadResult downloadResult = null, TargetResult targetResult = null)
+        {
+            JobProgressType = jobProgressType;
+            JobStage = jobStage;
+            StageProgress = stageProgress;
+            TotalProgress = totalProgress;
+            DownloadJob = downloadJob;
+            SongTarget = songTarget;
+            DownloadResult = downloadResult;
+            TargetResult = targetResult;
+        }
         public override string ToString()
         {
-            return $"{JobProgressType}: {TotalProgress.TotalProgress}/{TotalProgress.ExpectedMax} | {JobStage}: {StageProgress}";
+            return $"{JobProgressType}: {TotalProgress.TotalProgress}/{TotalProgress.ExpectedMax} | {JobStage}: {StageProgress?.ToString() ?? "<N/A>"}";
         }
     }
 
@@ -43,8 +86,8 @@ namespace BeatSyncLib.Downloader
         NotStarted = 0,
         Downloading = 1,
         TransferringToTarget = 2,
-        Finishing = 4,
-        Finished = 5
+        Finishing = 3,
+        Finished = 4
     }
 
     public enum JobState
@@ -60,7 +103,7 @@ namespace BeatSyncLib.Downloader
     public enum JobProgressType
     {
         None = 0,
-        Progress = 1,
+        StageProgress = 1,
         StageCompletion = 2,
         Finished = 3,
         Error = 4,
