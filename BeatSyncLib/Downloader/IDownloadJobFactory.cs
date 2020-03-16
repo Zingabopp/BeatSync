@@ -7,6 +7,6 @@ namespace BeatSyncLib.Downloader
 {
     public interface IDownloadJobFactory
     {
-        IDownloadJob CreateDownloadJob(ScrapedSong song);
+        IDownloadJob CreateDownloadJob(ISong song);
     }
 }

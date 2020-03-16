@@ -8,13 +8,13 @@ namespace BeatSyncLib.Downloader
 {
     public class DownloadJobFactory : IDownloadJobFactory
     {
-        protected Func<ScrapedSong, DownloadContainer> ContainerFactory = null;
-        public DownloadJobFactory(Func<ScrapedSong, DownloadContainer> containerFactory)
+        protected Func<ISong, DownloadContainer> ContainerFactory = null;
+        public DownloadJobFactory(Func<ISong, DownloadContainer> containerFactory)
         {
             ContainerFactory = containerFactory ?? throw new ArgumentNullException(nameof(containerFactory));
         }
 
-        public IDownloadJob CreateDownloadJob(ScrapedSong song)
+        public IDownloadJob CreateDownloadJob(ISong song)
         {
             DownloadContainer downloadContainer = ContainerFactory(song);
             return new DownloadJob(song, downloadContainer);

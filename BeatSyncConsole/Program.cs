@@ -22,7 +22,7 @@ namespace BeatSyncConsole
             IDownloadJobFactory downloadJobFactory = new DownloadJobFactory(song =>
             {
                 // return new DownloadMemoryContainer();
-                return new DownloadFileContainer(Path.Combine(tempDirectory, (song.SongKey ?? song.Hash) + ".zip"));
+                return new DownloadFileContainer(Path.Combine(tempDirectory, (song.Key ?? song.Hash) + ".zip"));
             });
             ISongTargetFactorySettings targetFactorySettings = new DirectoryTargetFactorySettings() { OverwriteTarget = false };
             ISongTargetFactory targetFactory = new DirectoryTargetFactory(songsDirectory, targetFactorySettings);
@@ -43,15 +43,15 @@ namespace BeatSyncConsole
             return new JobBuilder()
                 .SetDownloadJobFactory(downloadJobFactory)
                 .AddTargetFactory(targetFactory)
-                .SetDefaultJobFinishedCallback(jobFinishedCallback);
+                .SetDefaultJobFinishedAsyncCallback(jobFinishedCallback);
 
         }
 
         static async Task Main(string[] args)
         {
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
-            List<ScrapedSong> songs = new List<ScrapedSong>();
-            ScrapedSong song = new ScrapedSong("19f2879d11a91b51a5c090d63471c3e8d9b7aee3", "Believer", "Rustic", "b");
+            List<ISong> songs = new List<ISong>();
+            ISong song = new ScrapedSong("19f2879d11a91b51a5c090d63471c3e8d9b7aee3", "Believer", "Rustic", "b");
             songs.Add(song);
             songs.Add(new ScrapedSong("fb557e1746a49376473d7d40159aa6290d4a9b66", "ruckyshit", "ruckus", "7ef5"));
             songs.Add(new ScrapedSong("68496811309fe62303edde686eb160f8e45aa9ce", "The Thrill (Porter Robinson Remix)", "ruckus", "4a4c"));
@@ -63,7 +63,7 @@ namespace BeatSyncConsole
             IJobBuilder jobBuilder = CreateJobBuilder();
             HashSet<IJob> runningJobs = new HashSet<IJob>();
             int completedJobs = 0;
-            foreach (var songToAdd in songs)
+            foreach (ISong songToAdd in songs)
             {
                 IJob job = jobBuilder.CreateJob(songToAdd);
                 job.JobProgressChanged += (s, p) =>
@@ -81,7 +81,7 @@ namespace BeatSyncConsole
                     else
                         Console.WriteLine($"({runningJobs.Count} jobs seen) Progress on {j}: {p}");
                 };
-                if (!manager.TryPostJob(job, out var j))
+                if (!manager.TryPostJob(job, out IJob j))
                 {
                     Console.WriteLine($"Couldn't post duplicate: {j}");
                 }
@@ -114,7 +114,7 @@ namespace BeatSyncConsole
                 return;
             };
 
-            jobBuilder.SetDefaultJobFinishedCallback(async c =>
+            jobBuilder.SetDefaultJobFinishedAsyncCallback(async c =>
             {
                 await Task.Delay(500);
             });

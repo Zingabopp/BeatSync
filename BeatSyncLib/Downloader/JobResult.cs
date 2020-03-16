@@ -25,7 +25,7 @@ namespace BeatSyncLib.Downloader
         public JobResult() { }
 
         public JobState JobState { get; set; }
-        public ScrapedSong Song { get; set; }
+        public ISong Song { get; set; }
         public string HashAfterDownload { get; set; }
         public DownloadResult DownloadResult { get; set; }
         public TargetResult[] TargetResults { get; set; }
@@ -34,7 +34,7 @@ namespace BeatSyncLib.Downloader
         public override string ToString()
         {
             string[] targetResults = TargetResults.Select(r => r.Success ? $"{r.TargetName} successful" : $"{r.TargetName} failed").ToArray();
-            return $"{Song.SongKey}, Download Status: {DownloadResult?.Status}, Target Results: {(string.Join(" | ", targetResults))}";
+            return $"{Song.Key}, Download Status: {DownloadResult?.Status}, Target Results: {(string.Join(" | ", targetResults))}";
         }
     }
 

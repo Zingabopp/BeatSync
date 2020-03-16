@@ -1,15 +1,12 @@
-﻿using System;
+﻿using SongFeedReaders.Data;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace BeatSyncLib.Playlists
 {
-    public interface IPlaylistSong : IEquatable<IPlaylistSong>
+    public interface IPlaylistSong : ISong, IEquatable<IPlaylistSong>
     {
-        string Hash { get; set; }
-        string Key { get; set; }
-        string LevelAuthorName { get; set; }
-        string Name { get; set; }
         DateTime? DateAdded { get; set; }
     }
 

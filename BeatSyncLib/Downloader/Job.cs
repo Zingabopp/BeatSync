@@ -15,7 +15,7 @@ namespace BeatSyncLib.Downloader
         public void Pause() { }
         public void Unpause() { }
         public Exception Exception { get; private set; }
-        public ScrapedSong Song { get; private set; }
+        public ISong Song { get; private set; }
         public event EventHandler JobStarted;
         public event EventHandler<JobResult> JobFinished;
         public event EventHandler<JobProgress> JobProgressChanged;
@@ -54,7 +54,7 @@ namespace BeatSyncLib.Downloader
             JobFinishedAsyncCallback = null;
         }
 
-        private Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, IProgress<JobProgress> progress)
+        private Job(ISong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, IProgress<JobProgress> progress)
         {
             Song = song;
             _downloadJob = downloadJob;
@@ -65,13 +65,13 @@ namespace BeatSyncLib.Downloader
             _totalStages = 1 + _targets.Length + 1;
             _stageIndex = 0;
         }
-        public Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
+        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
             : this(song, downloadJob, targets, progress)
         {
             JobFinishedAsyncCallback = jobFinishedAsyncCallback;
         }
 
-        public Job(ScrapedSong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
+        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
             : this(song, downloadJob, targets, progress)
         {
             JobFinishedCallback = jobFinishedCallback;
@@ -205,9 +205,9 @@ namespace BeatSyncLib.Downloader
         public override string ToString()
         {
             string retStr = string.Empty;
-            if (!string.IsNullOrEmpty(Song.SongKey))
-                retStr = $"({Song.SongKey}) ";
-            retStr = retStr + $"{Song.SongName} by {Song.MapperName}";
+            if (!string.IsNullOrEmpty(Song.Key))
+                retStr = $"({Song.Key}) ";
+            retStr = retStr + $"{Song.Name} by {Song.LevelAuthorName}";
 #if DEBUG
             retStr = string.Join(" | ", retStr, $"{JobState} ({JobStage})");
 #endif

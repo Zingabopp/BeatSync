@@ -21,7 +21,7 @@ namespace BeatSyncLib.Downloader
         }
 
 
-        public Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null)
+        public Job CreateJob(ISong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), $"{nameof(song)} cannot be null for {nameof(CreateJob)}");
@@ -55,7 +55,7 @@ namespace BeatSyncLib.Downloader
             return this;
         }
 
-        public IJobBuilder SetDefaultJobFinishedCallback(JobFinishedAsyncCallback jobFinishedCallback)
+        public IJobBuilder SetDefaultJobFinishedAsyncCallback(JobFinishedAsyncCallback jobFinishedCallback)
         {
             _finishedCallback = jobFinishedCallback;
             return this;

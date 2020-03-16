@@ -12,9 +12,9 @@ namespace BeatSyncLib.Downloader
     {
         IJobBuilder SetDownloadJobFactory(IDownloadJobFactory downloadJobFactory);
         IJobBuilder AddTargetFactory(ISongTargetFactory songTargetFactory);
-        IJobBuilder SetDefaultJobFinishedCallback(JobFinishedAsyncCallback jobFinishedCallback);
+        IJobBuilder SetDefaultJobFinishedAsyncCallback(JobFinishedAsyncCallback jobFinishedCallback);
 
-        Job CreateJob(ScrapedSong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null);
+        Job CreateJob(ISong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null);
     }
 
     public interface IJob
@@ -26,7 +26,7 @@ namespace BeatSyncLib.Downloader
         void Pause();
         void Unpause();
         Exception Exception { get; }
-        ScrapedSong Song { get; }
+        ISong Song { get; }
         JobResult Result { get; }
         JobStage JobStage { get; }
         JobState JobState { get; }

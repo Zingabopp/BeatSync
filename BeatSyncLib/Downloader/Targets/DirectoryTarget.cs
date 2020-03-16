@@ -47,12 +47,12 @@ namespace BeatSyncLib.Downloader.Targets
             DirectoryName = directoryName;
         }
 
-        public DirectoryTarget(string parentDirectory, ScrapedSong song, bool overwriteTarget = false)
+        public DirectoryTarget(string parentDirectory, ISong song, bool overwriteTarget = false)
             : this(parentDirectory, song?.Hash, overwriteTarget)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), $"{nameof(song)} cannot be null when creating a {nameof(DirectoryTarget)}.");
-            DirectoryName = Util.GetSongDirectoryName(song.SongKey, song.SongName, song.MapperName);
+            DirectoryName = Util.GetSongDirectoryName(song.Key, song.Name, song.LevelAuthorName);
         }
 
         public DirectoryTarget(string parentDirectory, string songHash, string songName, string mapperName, string songKey = null, bool overwriteTarget = false)

@@ -125,13 +125,13 @@ namespace BeatSyncLib.Downloader
         /// <exception cref="ArgumentException"></exception>
         /// <param name="song"></param>
         /// <param name="targetDirectory"></param>
-        public DownloadJob(ScrapedSong song, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
+        public DownloadJob(ISong song, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
             : this(container, jobFinishedCallback)
         {
             SongHash = song.Hash;
-            SongKey = song.SongKey;
-            SongName = song.SongName;
-            LevelAuthorName = song.MapperName;
+            SongKey = song.Key;
+            SongName = song.Name;
+            LevelAuthorName = song.LevelAuthorName;
         }
 
 

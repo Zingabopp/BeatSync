@@ -24,24 +24,24 @@ namespace BeatSyncLib.Utilities
             var scrapedSong = result?.Songs?.FirstOrDefault();
             if (scrapedSong == null)
                 return false;
-            song.Key = scrapedSong.SongKey;
+            song.Key = scrapedSong.Key;
             return true;
         }
 
-        public static IPlaylistSong ToPlaylistSong<T>(this ScrapedSong song) where T : IPlaylistSong, new()
+        public static IPlaylistSong ToPlaylistSong<T>(this ISong song) where T : IPlaylistSong, new()
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "ScrapedSong cannot be null for ToPlaylistSong()");
 
-            return new T() { Hash = song.Hash, Name = song.SongName, Key = song.SongKey, LevelAuthorName = song.MapperName };
+            return new T() { Hash = song.Hash, Name = song.Name, Key = song.Key, LevelAuthorName = song.LevelAuthorName };
         }
 
-        public static IFeedSong ToFeedSong<T>(this ScrapedSong song) where T : IFeedSong, new()
+        public static IFeedSong ToFeedSong<T>(this ISong song) where T : IFeedSong, new()
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "ScrapedSong cannot be null for ToPlaylistSong()");
 
-            return new T() { Hash = song.Hash, Name = song.SongName, Key = song.SongKey, LevelAuthorName = song.MapperName };
+            return new T() { Hash = song.Hash, Name = song.Name, Key = song.Key, LevelAuthorName = song.LevelAuthorName };
         }
     }
 }

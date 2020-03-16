@@ -57,13 +57,13 @@ namespace BeatSyncLib.Downloader.Targets
             return settings is DirectoryTargetFactorySettings _;
         }
 
-        public ISongTarget CreateTarget(ScrapedSong song)
+        public ISongTarget CreateTarget(ISong song)
         {
 
             return CreateTarget(song, DefaultSettings);
         }
 
-        public ISongTarget CreateTarget(ScrapedSong song, ISongTargetFactorySettings settings)
+        public ISongTarget CreateTarget(ISong song, ISongTargetFactorySettings settings)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "Cannot create a target from a null song.");

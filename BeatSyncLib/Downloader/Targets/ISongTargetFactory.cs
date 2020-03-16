@@ -8,8 +8,8 @@ namespace BeatSyncLib.Downloader.Targets
     public interface ISongTargetFactory
     {
         /// <summary>
-        /// Default settings to use for <see cref="CreateTarget(ScrapedSong)"/> 
-        /// or when <see cref="CreateTarget(ScrapedSong, ISongTargetFactorySettings)"/> is given a null value for the <see cref="ISongTargetFactorySettings"/> parameter.
+        /// Default settings to use for <see cref="CreateTarget(ISong)"/> 
+        /// or when <see cref="CreateTarget(ISong, ISongTargetFactorySettings)"/> is given a null value for the <see cref="ISongTargetFactorySettings"/> parameter.
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="settings"/> is invalid for this <see cref="ISongTargetFactory"/>.</exception>
@@ -26,7 +26,7 @@ namespace BeatSyncLib.Downloader.Targets
         /// <param name="song"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="song"/> is null.</exception>
-        ISongTarget CreateTarget(ScrapedSong song);
+        ISongTarget CreateTarget(ISong song);
         /// <summary>
         /// Creates a new <see cref="ISongTarget"/> for <paramref name="song"/> using <paramref name="settings"/> as the <see cref="ISongTargetFactorySettings"/>.
         /// If <paramref name="settings"/> is null, use <see cref="DefaultSettings"/>.
@@ -36,7 +36,7 @@ namespace BeatSyncLib.Downloader.Targets
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="song"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="settings"/> is invalid for this <see cref="ISongTargetFactory"/>.</exception>
-        ISongTarget CreateTarget(ScrapedSong song, ISongTargetFactorySettings settings);
+        ISongTarget CreateTarget(ISong song, ISongTargetFactorySettings settings);
     }
 
     public interface ISongTargetFactorySettings

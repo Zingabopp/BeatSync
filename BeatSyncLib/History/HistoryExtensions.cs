@@ -16,7 +16,7 @@ namespace BeatSyncLib.History
         {
             if (jobResult == null)
                 throw new ArgumentNullException(nameof(jobResult), $"{nameof(jobResult)} cannot be null for {nameof(CreateHistoryEntry)}");
-            HistoryEntry entry = new HistoryEntry(jobResult.Song.Hash, jobResult.Song.SongName, jobResult.Song.MapperName);
+            HistoryEntry entry = new HistoryEntry(jobResult.Song.Hash, jobResult.Song.Name, jobResult.Song.LevelAuthorName);
             if (jobResult.Successful)
                 entry.Flag = HistoryFlag.Downloaded;
             else
