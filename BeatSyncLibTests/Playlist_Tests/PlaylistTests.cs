@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Threading;
 
-namespace BeatSyncTests.Playlist_Tests
+namespace BeatSyncLibTests.Playlist_Tests
 {
     [TestClass]
     public class PlaylistTests

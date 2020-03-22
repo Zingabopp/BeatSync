@@ -48,8 +48,18 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HistoryManager_Tests\ContainsKey_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\HistoryTestData.cs" />
+    <Compile Include="HistoryManager_Tests\Initialize_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryAdd_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryGetValue_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
     <Compile Include="Playlist_Tests\BlisterTests.cs" />
     <Compile Include="Playlist_Tests\PlaylistTests.cs" />
+    <Compile Include="SongHasher_Tests\AddMissingHashes_Tests.cs" />
+    <Compile Include="SongHasher_Tests\GetSongHashData_Tests.cs" />
+    <Compile Include="SongHasher_Tests\LoadCachedSongHashesAsync_Test.cs" />
     <Compile Include="TestSetup.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

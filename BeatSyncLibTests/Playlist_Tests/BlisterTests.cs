@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using BeatSyncLib.Playlists.Blister;
 using System.IO;
 
-namespace BeatSyncTests.Playlist_Tests
+namespace BeatSyncLibTests.Playlist_Tests
 {
     [TestClass]
     public class BlisterTests

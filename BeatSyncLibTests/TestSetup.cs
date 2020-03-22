@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BeatSyncTests
+namespace BeatSyncLibTests
 {
     public static class TestSetup
     {
