@@ -9,29 +9,33 @@ namespace BeatSyncLib.History
     public class HistoryEntry
     {
         public HistoryEntry() { }
-        public HistoryEntry(string hash, string songName, string mapper, HistoryFlag flag = 0)
+        public HistoryEntry(string songInfo, HistoryFlag flag = 0)
         {
-            Hash = hash;
-            SongName = songName;
-            Mapper = mapper;
-            Flag = flag;
+            SongInfo = songInfo;
             Date = DateTime.Now;
+        }
+        public HistoryEntry(string songName, string mapper, HistoryFlag flag = 0)
+            : this($"{songName} by {mapper}", flag)
+        {
+            //Hash = hash;
+            //SongName = songName;
+            //Mapper = mapper;
         }
 
         public HistoryEntry(IPlaylistSong song, HistoryFlag flag = 0)
         {
-            Hash = song.Hash;
-            SongName = song.Name;
-            Mapper = song.LevelAuthorName;
+            //Hash = song.Hash;
+            //SongName = song.Name;
+            //Mapper = song.LevelAuthorName;
+            if (!string.IsNullOrEmpty(song.Key))
+                SongInfo = $"({song.Key}) {song.Name} by {song.LevelAuthorName}";
+            else
+                SongInfo = $"{song.Name} by {song.LevelAuthorName}";
             Flag = flag;
             Date = DateTime.Now;
         }
-        [JsonProperty("Hash")]
-        public string Hash { get; set; }
-        [JsonProperty("SongName")]
-        public string SongName { get; set; }
-        [JsonProperty("Mapper")]
-        public string Mapper { get; set; }
+        [JsonProperty("SongInfo")]
+        public string SongInfo { get; set; }
         [JsonProperty("Flag")]
         public HistoryFlag Flag { get; set; }
         [JsonProperty("Date")]

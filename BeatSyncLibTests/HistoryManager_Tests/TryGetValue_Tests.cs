@@ -23,7 +23,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void TryGetValue_NotInitialized()
         {
-            var historyManager = new HistoryManager();
+            var historyManager = new HistoryManager(HistoryTestPathDir);
             string key = "LKSJDFLKJASDLFKJ";
             HistoryEntry value = null;
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryGetValue(key, out value));

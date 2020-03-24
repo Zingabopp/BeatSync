@@ -60,7 +60,6 @@ namespace BeatSyncLib.History
         /// If already Initialized and the historyPath isn't changed, does nothing. If the historyPath is changed,
         ///  current history is cleared and loaded from file.
         /// </summary>
-        /// <param name="historyPath"></param>
         public void Initialize()
         {
             if (IsInitialized)
@@ -85,8 +84,8 @@ namespace BeatSyncLib.History
                         //historyEntry.Mapper = entry["Value"]["Mapper"].Value<string>();
                         //historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
                         //historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
-                        if (keyHash != historyEntry.Hash)
-                            Logger.log?.Warn($"History key doesn't match the entry's hash: '{keyHash}' != {historyEntry.Hash}");
+                        //if (keyHash != historyEntry.Hash)
+                        //    Logger.log?.Warn($"History key doesn't match the entry's hash: '{keyHash}' != {historyEntry.Hash}");
                         SongHistory.TryAdd(keyHash, historyEntry);
                     }
                 }
@@ -160,13 +159,17 @@ namespace BeatSyncLib.History
         /// <param name="songInfo"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryAdd(string songHash, string songName, string mapper, HistoryFlag flag)
+        public bool TryAdd(string songHash, string songInfo, HistoryFlag flag)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (string.IsNullOrEmpty(songHash))
                 return false;
-            return SongHistory.TryAdd(songHash.ToUpper(), new HistoryEntry(songHash, songName, mapper, flag));
+            return SongHistory.TryAdd(songHash.ToUpper(), new HistoryEntry(songInfo, flag));
+        }
+        public bool TryAdd(string songHash, string songName, string mapper, HistoryFlag flag)
+        {
+            return TryAdd(songHash, $"{songName} by {mapper}", flag);
         }
 
         /// <summary>

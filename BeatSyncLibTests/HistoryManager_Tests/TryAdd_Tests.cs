@@ -104,7 +104,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void TryAdd_NotInitialized()
         {
-            var historyManager = new HistoryManager();
+            var historyManager = new HistoryManager(HistoryTestPathDir);
             string key = "LKSJDFLKJASDLFKJ";
             string songName = null;
             string mapperName = null;
@@ -127,7 +127,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void TryAdd_PlaylistSong_NotInitialized()
         {
-            var historyManager = new HistoryManager();
+            var historyManager = new HistoryManager(HistoryTestPathDir);
             string hash = "LKSJDFLKJASDLFKJ";
             string songName = "TestName";
             string songKey = "aaaa";

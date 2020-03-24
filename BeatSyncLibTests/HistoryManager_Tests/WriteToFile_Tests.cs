@@ -86,7 +86,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void NotInitialized()
         {
-            var historyManager = new HistoryManager();
+            var historyManager = new HistoryManager(HistoryTestPathDir);
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.WriteToFile());
         }
 
