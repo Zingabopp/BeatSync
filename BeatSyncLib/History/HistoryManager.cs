@@ -76,7 +76,7 @@ namespace BeatSyncLib.History
                     var token = JToken.Parse(histStr);
                     foreach (JObject entry in token.Children())
                     {
-                        HistoryEntry historyEntry = entry.ToObject<HistoryEntry>();
+                        HistoryEntry historyEntry = entry["Value"].ToObject<HistoryEntry>();
                         //var historyEntry = new HistoryEntry();
                         string keyHash = entry["Key"].Value<string>();
                         //historyEntry.Hash = entry["Value"]["Hash"].Value<string>();
@@ -150,6 +150,18 @@ namespace BeatSyncLib.History
                 Logger.log?.Debug(exception);
             }
             return successful;
+        }
+
+
+        public bool TryAdd(string songHash, HistoryEntry historyEntry)
+        {
+            if (!IsInitialized)
+                throw new InvalidOperationException("HistoryManager is not initialized.");
+            if (historyEntry == null)
+                throw new ArgumentNullException(nameof(historyEntry), "Cannot add a null HistoryEntry.");
+            if (string.IsNullOrEmpty(songHash))
+                return false;
+            return SongHistory.TryAdd(songHash.ToUpper(), historyEntry);
         }
 
         /// <summary>

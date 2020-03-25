@@ -46,7 +46,8 @@ namespace BeatSyncLib.History
         {
             get
             {
-                if (Flag == HistoryFlag.Deleted
+                if (Flag == HistoryFlag.Downloaded
+                    || Flag == HistoryFlag.Deleted
                     || Flag == HistoryFlag.Missing
                     || Flag == HistoryFlag.BeatSaverNotFound)
                     return false;
