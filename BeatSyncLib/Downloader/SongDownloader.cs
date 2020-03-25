@@ -22,7 +22,7 @@ namespace BeatSyncLib.Downloader
     public class SongDownloader
     {
         private readonly string CustomLevelsPath;
-        private PluginConfig Config;
+        private BeatSyncConfig Config;
         private IPlaylist RecentPlaylist;
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
@@ -30,7 +30,7 @@ namespace BeatSyncLib.Downloader
         public DownloadManager DownloadManager { get; private set; }
         public IStatusManager StatusManager { get; set; }
 
-        public SongDownloader(PluginConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
+        public SongDownloader(BeatSyncConfig config, HistoryManager historyManager, SongHasher hashSource, string customLevelsPath)
         {
             DownloadManager = new DownloadManager(config.MaxConcurrentDownloads);
             CustomLevelsPath = customLevelsPath;
@@ -175,7 +175,7 @@ namespace BeatSyncLib.Downloader
         {
             List<Task<Dictionary<string, ScrapedSong>>> readerTasks = new List<Task<Dictionary<string, ScrapedSong>>>();
             DownloadManager.Start(cancellationToken);
-            PluginConfig config = Config;
+            BeatSyncConfig config = Config;
             if (config.BeastSaber.Enabled)
             {
                 readerTasks.Add(ReadBeastSaber(cancellationToken));

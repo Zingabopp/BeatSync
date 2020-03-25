@@ -9,13 +9,13 @@ using Newtonsoft.Json;
 // public bool DeleteDuplicateSongs { get; set; }
 namespace BeatSyncLib.Configs
 {
-    public class PluginConfig
+    public class BeatSyncConfig
         : ConfigBase
     {
-        public static PluginConfig DefaultConfig = new PluginConfig().SetDefaults();
+        public static BeatSyncConfig DefaultConfig = new BeatSyncConfig().SetDefaults();
 
-        public PluginConfig() { }
-        public PluginConfig(bool fillDefaults)
+        public BeatSyncConfig() { }
+        public BeatSyncConfig(bool fillDefaults)
             : this()
         {
             if (fillDefaults)
@@ -34,10 +34,6 @@ namespace BeatSyncLib.Configs
         private int? _recentPlaylistDays;
         [JsonIgnore]
         private bool? _allBeatSyncSongsPlaylist;
-        [JsonIgnore]
-        private StatusUiConfig _statusUi;
-        [JsonIgnore]
-        private SyncIntervalConfig _timeBetweenSyncs;
         [JsonIgnore]
         private BeastSaberConfig _beastSaber;
         [JsonIgnore]
@@ -167,58 +163,6 @@ namespace BeatSyncLib.Configs
                 SetConfigChanged();
             }
         }
-        [JsonProperty(Order = -63)]
-        public StatusUiConfig StatusUI
-        {
-            get
-            {
-                if (_statusUi == null)
-                {
-                    _statusUi = new StatusUiConfig();
-                    SetConfigChanged();
-                }
-                return _statusUi;
-            }
-            set
-            {
-                if (_statusUi == value)
-                    return;
-                if (_statusUi.ConfigMatches(value))
-                {
-                    _statusUi = value;
-                    return;
-                }
-                _statusUi = value;
-                SetConfigChanged();
-            }
-        }
-
-        [JsonProperty(Order = -61)]
-        public SyncIntervalConfig TimeBetweenSyncs
-        {
-            get
-            {
-                if (_timeBetweenSyncs == null)
-                {
-                    _timeBetweenSyncs = new SyncIntervalConfig();
-                    SetConfigChanged();
-                }
-                return _timeBetweenSyncs;
-            }
-            set
-            {
-                if (_timeBetweenSyncs == value)
-                    return;
-                if (_timeBetweenSyncs.ConfigMatches(value))
-                {
-                    _timeBetweenSyncs = value;
-                    return;
-                }
-                _timeBetweenSyncs = value;
-                SetConfigChanged();
-            }
-        }
-
         [JsonProperty(Order = -60)]
         public BeastSaberConfig BeastSaber
         {
@@ -309,8 +253,6 @@ namespace BeatSyncLib.Configs
                 //var reasons = base.ChangedValues.Concat(BeatSaver.ChangedValues).Concat(BeastSaber.ChangedValues).Concat(ScoreSaber.ChangedValues);
                 //Logger.log?.Info($"ChangedValues: {string.Join(", ", reasons)}");
                 return (base.ConfigChanged 
-                    || StatusUI.ConfigChanged 
-                    || TimeBetweenSyncs.ConfigChanged 
                     || BeatSaver.ConfigChanged 
                     || BeastSaber.ConfigChanged 
                     || ScoreSaber.ConfigChanged);
@@ -320,8 +262,6 @@ namespace BeatSyncLib.Configs
 
         public override void ResetConfigChanged()
         {
-            StatusUI.ResetConfigChanged();
-            TimeBetweenSyncs.ResetConfigChanged();
             BeastSaber.ResetConfigChanged();
             BeatSaver.ResetConfigChanged();
             ScoreSaber.ResetConfigChanged();
@@ -330,8 +270,6 @@ namespace BeatSyncLib.Configs
 
         public override void ResetFlags()
         {
-            StatusUI.ResetFlags();
-            TimeBetweenSyncs.ResetFlags();
             BeastSaber.ResetFlags();
             BeatSaver.ResetFlags();
             ScoreSaber.ResetFlags();
@@ -346,31 +284,25 @@ namespace BeatSyncLib.Configs
             var ____ = AllBeatSyncSongsPlaylist;
             var _____ = RecentPlaylistDays;
             var ______ = LastRun;
-            StatusUI.FillDefaults();
-            TimeBetweenSyncs.FillDefaults();
             BeatSaver.FillDefaults();
             BeastSaber.FillDefaults();
             ScoreSaber.FillDefaults();
         }
 
-        public PluginConfig Clone()
+        public BeatSyncConfig Clone()
         {
-            return JsonConvert.DeserializeObject<PluginConfig>(JsonConvert.SerializeObject(this));
+            return JsonConvert.DeserializeObject<BeatSyncConfig>(JsonConvert.SerializeObject(this));
         }
 
         public override bool ConfigMatches(ConfigBase other)
         {
-            if (other is PluginConfig castOther)
+            if (other is BeatSyncConfig castOther)
             {
                 if (DownloadTimeout != castOther.DownloadTimeout)
                     return false;
                 if (MaxConcurrentDownloads != castOther.MaxConcurrentDownloads)
                     return false;
                 if (RecentPlaylistDays != castOther.RecentPlaylistDays)
-                    return false;
-                if (!StatusUI.ConfigMatches(castOther.StatusUI))
-                    return false;
-                if (!TimeBetweenSyncs.ConfigMatches(castOther.TimeBetweenSyncs))
                     return false;
                 if (AllBeatSyncSongsPlaylist != castOther.AllBeatSyncSongsPlaylist)
                     return false;
@@ -386,43 +318,9 @@ namespace BeatSyncLib.Configs
             return true;
         }
 
-        public PluginConfig SetDefaults()
+        public BeatSyncConfig SetDefaults()
         {
             FillDefaults();
-            //RegenerateConfig = false;
-            //DownloadTimeout = 30;
-            //MaxConcurrentDownloads = 3;
-            //AllBeatSyncSongsPlaylist = false;
-            //RecentPlaylistDays = 7;
-
-            //BeatSaver = new BeatSaverConfig()
-            //{
-            //    Enabled = false,
-            //    MaxConcurrentPageChecks = 5,
-            //    Hot = new BeatSaverHot() { Enabled = false, MaxSongs = 10, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
-            //    Downloads = new BeatSaverDownloads() { Enabled = false, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
-            //    // , SeparateMapperPlaylists = false
-            //    FavoriteMappers = new BeatSaverFavoriteMappers() { Enabled = true, MaxSongs = 0, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append }
-            //};
-
-            //BeastSaber = new BeastSaberConfig()
-            //{
-            //    Enabled = true,
-            //    MaxConcurrentPageChecks = 5,
-            //    Username = "",
-            //    Bookmarks = new BeastSaberBookmarks() { Enabled = true, MaxSongs = 0, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
-            //    Follows = new BeastSaberFollowings() { Enabled = true, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
-            //    CuratorRecommended = new BeastSaberCuratorRecommended() { Enabled = false, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append }
-            //};
-
-            //ScoreSaber = new ScoreSaberConfig()
-            //{
-            //    Enabled = false,
-            //    TopRanked = new ScoreSaberTopRanked() { Enabled = false, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Replace },
-            //    LatestRanked = new ScoreSaberLatestRanked() { Enabled = true, MaxSongs = 20, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Replace },
-            //    Trending = new ScoreSaberTrending() { Enabled = true, MaxSongs = 20, RankedOnly = false, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append },
-            //    TopPlayed = new ScoreSaberTopPlayed() { Enabled = false, MaxSongs = 20, RankedOnly = false, CreatePlaylist = true, PlaylistStyle = PlaylistStyle.Append }
-            //};
             return this;
         }
 
