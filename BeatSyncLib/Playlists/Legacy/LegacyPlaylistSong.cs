@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,6 +32,18 @@ namespace BeatSyncLib.Playlists.Legacy
             DateAdded = DateTime.Now;
         }
 
+        public LegacyPlaylistSong(ISong song)
+            : this()
+        {
+            if (song == null)
+                throw new ArgumentNullException(nameof(song), $"song cannot be null for a new {nameof(LegacyPlaylistSong)}.");
+            Hash = song.Hash;
+            Name = song.Name;
+            Key = song.Key;
+            LevelAuthorName = song.LevelAuthorName;
+            DateAdded = DateTime.Now;
+        }
+
         [JsonProperty("key", Order = -10)]
         public string Key { get; set; }
 
@@ -52,7 +65,7 @@ namespace BeatSyncLib.Playlists.Legacy
 
         [JsonProperty("dateAdded", Order = -7)]
         public DateTime? DateAdded { get; set; }
-                [JsonProperty("feedSources", Order = -6)]
+        [JsonProperty("feedSources", Order = -6)]
         protected HashSet<string> _feedSources { get; set; }
         [JsonIgnore]
         private object _feedSourceLock = new object();
@@ -91,7 +104,7 @@ namespace BeatSyncLib.Playlists.Legacy
 
         [JsonIgnore]
         public List<IPlaylist> _associatedPlaylists { get; }
-
+        [JsonIgnore]
         public HashSet<string> FeedSources => new HashSet<string>(_feedSources);
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SongFeedReaders.Data;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -15,11 +16,14 @@ namespace BeatSyncLib.Playlists
             return ret;
         }
 
-        public static void Populate(this IPlaylistSong target, IPlaylistSong song)
+        public static void Populate(this IPlaylistSong target, ISong song)
         {
             target.Hash = song.Hash;
             target.Key = song.Key;
-            target.DateAdded = song.DateAdded;
+            if (song is IPlaylistSong playlistSong)
+                target.DateAdded = playlistSong.DateAdded;
+            else
+                target.DateAdded = DateTime.Now;
             target.Name = song.Name;
             target.LevelAuthorName = song.LevelAuthorName;
         }

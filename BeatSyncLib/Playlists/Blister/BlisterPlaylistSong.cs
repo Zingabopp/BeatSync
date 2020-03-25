@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
+using SongFeedReaders.Data;
 
 namespace BeatSyncLib.Playlists.Blister
 {
@@ -14,6 +15,16 @@ namespace BeatSyncLib.Playlists.Blister
         }
 
         public BlisterPlaylistSong(IPlaylistSong song)
+            : this()
+        {
+            this.Populate(song);
+            if (!string.IsNullOrEmpty(Hash))
+                Type = BeatmapType.Hash;
+            else if (!string.IsNullOrEmpty(Key))
+                Type = BeatmapType.Key;
+        }
+
+        public BlisterPlaylistSong(ISong song)
             : this()
         {
             this.Populate(song);

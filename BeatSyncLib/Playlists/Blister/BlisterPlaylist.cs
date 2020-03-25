@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
+using SongFeedReaders.Data;
 
 namespace BeatSyncLib.Playlists.Blister
 {
@@ -93,6 +94,13 @@ namespace BeatSyncLib.Playlists.Blister
         }
 
         public bool TryAdd(IPlaylistSong song)
+        {
+            if (song is BlisterPlaylistSong blisterSong)
+                return TryAdd(blisterSong);
+            else
+                return TryAdd(new BlisterPlaylistSong(song));
+        }
+        public bool TryAdd(ISong song)
         {
             if (song is BlisterPlaylistSong blisterSong)
                 return TryAdd(blisterSong);

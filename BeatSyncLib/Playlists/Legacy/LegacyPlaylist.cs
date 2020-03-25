@@ -1,5 +1,6 @@
 ﻿using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
+using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +43,7 @@ namespace BeatSyncLib.Playlists.Legacy
         private byte[] _coverImage;
         [NonSerialized]
         private List<LegacyPlaylistSong> _songs;
+        [NonSerialized]
         private Lazy<string> CoverLoader;
         #endregion
 
@@ -205,6 +207,14 @@ namespace BeatSyncLib.Playlists.Legacy
                 return TryAdd(legacySong);
             else
                 return TryAdd(new LegacyPlaylistSong(song));
+        }
+        public bool TryAdd(ISong song)
+        {
+            if (Beatmaps == null)
+                Beatmaps = new List<LegacyPlaylistSong>();
+            else if (Beatmaps.Exists(m => m.Hash == song.Hash || (!string.IsNullOrEmpty(m.Key) && m.Key == song.Key)))
+                return false;
+            return TryAdd(new LegacyPlaylistSong(song));
         }
 
         public bool TryAdd(LegacyPlaylistSong song)

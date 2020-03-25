@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SongFeedReaders.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -21,6 +22,7 @@ namespace BeatSyncLib.Playlists
         void MarkDirty();
         bool AllowDuplicates { get; set; }
         bool TryAdd(IPlaylistSong song);
+        bool TryAdd(ISong song);
         bool TryAdd(string songHash, string songName, string songKey, string mapper);
         bool TryRemove(string songHashOrKey);
         bool TryRemove(IPlaylistSong song);
