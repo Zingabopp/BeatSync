@@ -221,7 +221,7 @@ namespace BeatSyncLib.Playlists.Legacy
         {
             if (Beatmaps == null)
                 Beatmaps = new List<LegacyPlaylistSong>();
-            else if (Beatmaps.Exists(m => m.Hash == songHash || m.Key == songKey))
+            else if (Beatmaps.Exists(m => m.Hash == songHash || (!string.IsNullOrEmpty(m.Key) && m.Key == songKey)))
                 return false;
             return TryAdd(new LegacyPlaylistSong(songHash, songName, songKey, mapper));
         }

@@ -51,20 +51,20 @@ namespace BeatSyncLib.Playlists
 
         public static readonly ReadOnlyDictionary<BuiltInPlaylist, IPlaylist> DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, IPlaylist>(new Dictionary<BuiltInPlaylist, IPlaylist>()
         {
-            {BuiltInPlaylist.BeatSyncAll, CreatePlaylist("BeatSyncPlaylist.blist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
-            {BuiltInPlaylist.BeastSaberBookmarks, CreatePlaylist("BeatSyncBSaberBookmarks.blist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
-            {BuiltInPlaylist.BeastSaberFollows, CreatePlaylist("BeatSyncBSaberFollows.blist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
-            {BuiltInPlaylist.BeastSaberCurator, CreatePlaylist("BeatSyncBSaberCuratorRecommended.blist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
-            {BuiltInPlaylist.ScoreSaberTopRanked, CreatePlaylist("BeatSyncScoreSaberTopRanked.blist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
-            {BuiltInPlaylist.ScoreSaberLatestRanked, CreatePlaylist("BeatSyncScoreSaberLatestRanked.blist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
-            {BuiltInPlaylist.ScoreSaberTopPlayed, CreatePlaylist("BeatSyncScoreSaberTopPlayed.blist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
-            {BuiltInPlaylist.ScoreSaberTrending, CreatePlaylist("BeatSyncScoreSaberTrending.blist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
-            {BuiltInPlaylist.BeatSaverFavoriteMappers, CreatePlaylist("BeatSyncFavoriteMappers.blist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
-            {BuiltInPlaylist.BeatSaverLatest, CreatePlaylist("BeatSyncBeatSaverLatest.blist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
-            {BuiltInPlaylist.BeatSaverHot, CreatePlaylist("BeatSyncBeatSaverHot.blist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
-            {BuiltInPlaylist.BeatSaverPlays, CreatePlaylist("BeatSyncBeatSaverPlays.blist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
-            {BuiltInPlaylist.BeatSaverDownloads, CreatePlaylist("BeatSyncBeatSaverDownloads.blist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
-            {BuiltInPlaylist.BeatSyncRecent, CreatePlaylist("BeatSyncRecent.blist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
+            {BuiltInPlaylist.BeatSyncAll, CreatePlaylist("BeatSyncPlaylist.bplist", "BeatSync Playlist", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll]) },
+            {BuiltInPlaylist.BeastSaberBookmarks, CreatePlaylist("BeatSyncBSaberBookmarks.bplist", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
+            {BuiltInPlaylist.BeastSaberFollows, CreatePlaylist("BeatSyncBSaberFollows.bplist", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
+            {BuiltInPlaylist.BeastSaberCurator, CreatePlaylist("BeatSyncBSaberCuratorRecommended.bplist", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
+            {BuiltInPlaylist.ScoreSaberTopRanked, CreatePlaylist("BeatSyncScoreSaberTopRanked.bplist", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
+            {BuiltInPlaylist.ScoreSaberLatestRanked, CreatePlaylist("BeatSyncScoreSaberLatestRanked.bplist", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
+            {BuiltInPlaylist.ScoreSaberTopPlayed, CreatePlaylist("BeatSyncScoreSaberTopPlayed.bplist", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
+            {BuiltInPlaylist.ScoreSaberTrending, CreatePlaylist("BeatSyncScoreSaberTrending.bplist", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
+            {BuiltInPlaylist.BeatSaverFavoriteMappers, CreatePlaylist("BeatSyncFavoriteMappers.bplist", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
+            {BuiltInPlaylist.BeatSaverLatest, CreatePlaylist("BeatSyncBeatSaverLatest.bplist", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
+            {BuiltInPlaylist.BeatSaverHot, CreatePlaylist("BeatSyncBeatSaverHot.bplist", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
+            {BuiltInPlaylist.BeatSaverPlays, CreatePlaylist("BeatSyncBeatSaverPlays.bplist", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
+            {BuiltInPlaylist.BeatSaverDownloads, CreatePlaylist("BeatSyncBeatSaverDownloads.bplist", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
+            {BuiltInPlaylist.BeatSyncRecent, CreatePlaylist("BeatSyncRecent.bplist", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
         });
 
 
@@ -161,6 +161,8 @@ namespace BeatSyncLib.Playlists
                 else
                 {
                     playlist = FileIO.ReadPlaylist<LegacyPlaylist>(path);
+                    if (playlist == null)
+                        playlist = defPlaylist;
                     playlist.FilePath = path;
                     //if (playlist.Cover == new byte[] { (byte)'1' })
                     //{
