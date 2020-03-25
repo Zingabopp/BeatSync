@@ -96,11 +96,12 @@ namespace BeatSyncLib.Downloader
                 cts = null;
             }
             JobStage = JobStage.Downloading;
-            EventHandler handler = JobStarted;
             Exception exception = null;
             bool canceled = false;
+            EventHandler handler = JobStarted;
             handler?.Invoke(this, null);
             List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
+            DownloadContainer downloadContainer = null;
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -110,8 +111,7 @@ namespace BeatSyncLib.Downloader
                     throw downloadResult.Exception;
                 _stageIndex = 1;
                 ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, downloadResult));
-                //ReportJobProgress(JobProgressType.StageCompletion, downloadResult);
-                DownloadContainer downloadContainer = downloadResult.DownloadContainer;
+                downloadContainer = downloadResult.DownloadContainer;
                 downloadContainer.ProgressChanged += DownloadContainer_ProgressChanged;
                 JobStage = JobStage.TransferringToTarget;
                 for (int i = 0; i < _targets.Length; i++)
@@ -121,7 +121,6 @@ namespace BeatSyncLib.Downloader
                     completedTargets.Add(result);
                     _stageIndex++;
                     ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, result));
-                    //ReportJobProgress(JobProgressType.StageCompletion, result);
                 }
                 _targetResults = completedTargets.ToArray();
                 if (completedTargets.All(t => !t.Success))
@@ -153,7 +152,11 @@ namespace BeatSyncLib.Downloader
             {
                 JobStage = JobStage.Finishing;
             }
-
+            try
+            {
+                downloadContainer?.Dispose();
+            }
+            catch { }
             FinishJob(canceled, exception);
             JobFinishedAsyncCallback asyncCallback = JobFinishedAsyncCallback;
             if (asyncCallback != null)
