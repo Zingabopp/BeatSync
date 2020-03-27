@@ -1,4 +1,5 @@
 ﻿using BeatSyncConsole.Configs;
+using BeatSyncConsole.Utilities;
 using BeatSyncLib.Downloader;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.History;
@@ -10,6 +11,7 @@ using SongFeedReaders.Readers.BeatSaver;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities;
@@ -102,8 +104,9 @@ namespace BeatSyncConsole
         }
 
 
-        static async Task InitializeConfigAsync()
+        static async Task<bool> InitializeConfigAsync()
         {
+            bool validConfig = true;
             try
             {
                 if (File.Exists(ConfigPath))
@@ -120,6 +123,88 @@ namespace BeatSyncConsole
                 Config = new Config();
             }
             Config.FillDefaults();
+            if (!Config.CustomSongsPaths.Any(p => p.Enabled))
+            {
+                if (Config.CustomSongsPaths.Count == 0)
+                {
+                    Console.WriteLine("No song paths found in BeatSync.json, should I search for game installs? (Y/N): ");
+                    string response = Console.ReadLine();
+                    if (response == "Y" || response == "y")
+                    {
+                        Utilities.BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
+                        if (gameInstalls.Length > 0)
+                        {
+                            if (gameInstalls.Length == 1)
+                            {
+                                Console.WriteLine($"Found 1 game install, enabling for BeatSyncConsole: {gameInstalls[0]}");
+                                SongLocation newLocation = gameInstalls[0].ToSongLocation();
+                                newLocation.Enabled = false;
+                                Config.CustomSongsPaths.Add(newLocation);
+                                Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Found {gameInstalls.Length} game installs:");
+                                for (int i = 0; i < gameInstalls.Length; i++)
+                                {
+                                    Console.WriteLine($"  {i}: {gameInstalls[i]}");
+                                    SongLocation newLocation = gameInstalls[i].ToSongLocation();
+                                    newLocation.Enabled = false;
+                                    Config.CustomSongsPaths.Add(newLocation);
+                                }
+                                Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
+
+                            }
+                        }
+                    }
+                }
+                if (Config.CustomSongsPaths.Count > 0
+                    && Config.CustomSongsPaths.Where(p => !p.Enabled).Count() == Config.CustomSongsPaths.Count)
+                {
+                    Console.WriteLine("No locations currently enabled.");
+                    for (int i = 0; i < Config.CustomSongsPaths.Count; i++)
+                    {
+                        Console.WriteLine($"  {i}: {Config.CustomSongsPaths[i]}");
+                    }
+                    Console.WriteLine($"Enter the numbers of the installs you wish to enable, separated by commas.");
+                    string response = Console.ReadLine();
+                    string[] selectionResponse = response.Split(',');
+                    int[] selectionInts = selectionResponse.Select(r =>
+                    {
+                        if (int.TryParse(r.Trim(), out int parsed))
+                        {
+                            return parsed;
+                        }
+                        return -1;
+                    }).ToArray();
+                    for (int i = 0; i < selectionInts.Length; i++)
+                    {
+                        int current = selectionInts[i];
+                        if (current > -1 && current < Config.CustomSongsPaths.Count)
+                        {
+                            Config.CustomSongsPaths[current].Enabled = true;
+                            Console.WriteLine($"Enabling {Config.CustomSongsPaths[current]}.");
+                            Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
+                        }
+                        else
+                            Console.WriteLine($"'{selectionResponse[i]}' is invalid.");
+                    }
+                }
+            }
+            if (Config.CustomSongsPaths.Any(p => p.Enabled))
+            {
+                Console.WriteLine("Using the following targets:");
+                foreach (var enabledLocation in Config.CustomSongsPaths.Where(p => p.Enabled))
+                {
+                    Console.WriteLine($"  {enabledLocation}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No enabled custom songs paths found, please manually enter a target directory for your songs in BeatSync.json.");
+                validConfig = false;
+            }
+
             if (Config.ConfigChanged)
             {
                 try
@@ -136,16 +221,17 @@ namespace BeatSyncConsole
                     Console.WriteLine(ex);
                 }
             }
+            return validConfig;
         }
 
         static async Task GetBeatSaverAsync()
         {
-            var config = Config.BeatSyncConfig.BeatSaver;
-            var reader = new SongFeedReaders.Readers.BeatSaver.BeatSaverReader(config.MaxConcurrentPageChecks);
+            BeatSyncLib.Configs.BeatSaverConfig config = Config.BeatSyncConfig.BeatSaver;
+            BeatSaverReader reader = new SongFeedReaders.Readers.BeatSaver.BeatSaverReader(config.MaxConcurrentPageChecks);
             List<IPlaylist> playlists = new List<IPlaylist>();
             if (config.FavoriteMappers.Enabled)
             {
-                var favoriteMappersSettings = (BeatSaverFeedSettings)config.FavoriteMappers.ToFeedSettings();
+                BeatSaverFeedSettings favoriteMappersSettings = (BeatSaverFeedSettings)config.FavoriteMappers.ToFeedSettings();
                 //ProcessResults(await reader.GetSongsFromFeedAsync(config.FavoriteMappers.ToFeedSettings()).ConfigureAwait(false));
             }
             if (config.Hot.Enabled)
@@ -172,7 +258,7 @@ namespace BeatSyncConsole
         {
             if (!feedResult.Successful)
                 return;
-            if(feedResult.Songs.Count == 0)
+            if (feedResult.Songs.Count == 0)
             {
                 Console.WriteLine("No songs");
                 return;
@@ -183,9 +269,9 @@ namespace BeatSyncConsole
             {
                 if (jobResult.Successful)
                 {
-                    var song = jobResult.Song;
+                    ISong song = jobResult.Song;
                     Console.WriteLine($"Downloaded {song.ToString()} successfully.");
-                    foreach (var playlist in playlists)
+                    foreach (IPlaylist playlist in playlists)
                     {
                         playlist.TryAdd(song.Hash, song.Name, song.Key, song.LevelAuthorName);
                     }
@@ -193,16 +279,16 @@ namespace BeatSyncConsole
                 else
                     Console.WriteLine($"Failed to download {jobResult.Song.ToString()}.");
             }
-            foreach (var song in feedResult.Songs.Values)
+            foreach (ScrapedSong song in feedResult.Songs.Values)
             {
-                if(HistoryManager.TryGetValue(song.Hash, out HistoryEntry existing))
+                if (HistoryManager.TryGetValue(song.Hash, out HistoryEntry existing))
                 {
                     if (!existing.AllowRetry)
                     {
                         Console.WriteLine($"Skipping song: {song}");
-                        if(existing.Flag == HistoryFlag.Downloaded)
+                        if (existing.Flag == HistoryFlag.Downloaded)
                         {
-                            foreach (var playlist in playlists)
+                            foreach (IPlaylist playlist in playlists)
                             {
                                 playlist.TryAdd(song.Hash, song.Name, song.Key, song.LevelAuthorName);
                             }
@@ -210,10 +296,10 @@ namespace BeatSyncConsole
                         continue;
                     }
                 }
-                var newJob = JobBuilder.CreateJob(song);
+                Job newJob = JobBuilder.CreateJob(song);
                 manager.TryPostJob(newJob, out IJob postedJob);
                 postedJob.JobFinished += JobFinishedCallback; // TODO: Race condition here, might run callback twice.
-                if(postedJob.JobState == JobState.Finished)
+                if (postedJob.JobState == JobState.Finished)
                 {
                     postedJob.JobFinished -= JobFinishedCallback;
                     JobFinishedCallback(postedJob, postedJob.Result);
@@ -223,7 +309,14 @@ namespace BeatSyncConsole
 
         static async Task Main(string[] args)
         {
-            await InitializeConfigAsync().ConfigureAwait(false);
+            bool validConfig = await InitializeConfigAsync().ConfigureAwait(false);
+            if (!validConfig)
+            {
+                Console.WriteLine("BeatSyncConsole cannot run without a valid config, exiting.");
+                Console.WriteLine("Press any key to continue...");
+                Console.Read();
+                return;
+            }
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
             manager = new DownloadManager(Config.BeatSyncConfig.MaxConcurrentDownloads);
             HistoryManager = new HistoryManager(HistoryPath);

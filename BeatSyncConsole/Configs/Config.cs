@@ -12,18 +12,18 @@ namespace BeatSyncConsole.Configs
     {
         #region Private Fields
         [JsonIgnore]
-        private List<string> _customSongsPaths;
+        private List<SongLocation> _customSongsPaths;
         [JsonIgnore]
         private BeatSyncConfig _beatSyncConfig;
         #endregion
         #region Public Properties
-        public List<string> CustomSongsPaths
+        public List<SongLocation> CustomSongsPaths
         {
             get
             {
                 if(_customSongsPaths == null)
                 {
-                    _customSongsPaths = new List<string>();
+                    _customSongsPaths = new List<SongLocation>();
                     SetConfigChanged();
                 }
                 return _customSongsPaths;
