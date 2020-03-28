@@ -13,7 +13,7 @@ namespace BeatSyncLibTests.Playlist_Tests
         public void LoadBlisterPlaylist()
         {
             string playlistFile = Path.Combine(PlaylistsPath, "BeatSyncScoreSaberLatestRanked.blist");
-            var playlist = BlisterHandler.Deserialize(File.OpenRead(playlistFile));
+            var playlist = BlisterHandler.DeserializeFromStream(File.OpenRead(playlistFile));
         }
     }
 }

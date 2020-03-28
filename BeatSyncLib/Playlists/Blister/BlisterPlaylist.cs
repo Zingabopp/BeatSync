@@ -25,7 +25,7 @@ namespace BeatSyncLib.Playlists.Blister
         [JsonProperty("maps")]
         protected List<BlisterPlaylistSong> Beatmaps { get; set; }
         public BlisterPlaylistSong[] GetBeatmaps() => Beatmaps.ToArray();
-        public string FilePath { get; set; }
+        public string FileName { get; set; }
 
         public int Count => Beatmaps?.Count ?? 0;
 
@@ -176,12 +176,12 @@ namespace BeatSyncLib.Playlists.Blister
         public bool TryStore()
         {
             string backupName = null;
-            if (File.Exists(FilePath))
+            if (File.Exists(FileName))
             {
-                backupName = FilePath + ".bak";
-                File.Move(FilePath, backupName);
+                backupName = FileName + ".bak";
+                File.Move(FileName, backupName);
             }
-            using (FileStream fs = new FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (FileStream fs = new FileStream(FileName, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 BlisterHandler.SerializeStream(this, fs);
             }
@@ -214,15 +214,15 @@ namespace BeatSyncLib.Playlists.Blister
         public void PopulateFromFile(string path, bool updateFilePath = true)
         {
             if (string.IsNullOrEmpty(path))
-                path = FilePath;
+                path = FileName;
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path), "A path must be provided for playlists that don't have one.");
             if (!File.Exists(path))
                 throw new ArgumentException($"The file '{path}' does not exist.");
             using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-                BlisterHandler.Populate(fs, this);
-            if (updateFilePath && FilePath != path)
-                FilePath = path;
+                BlisterHandler.PopulateFromStream(fs, this);
+            if (updateFilePath && FileName != path)
+                FileName = path;
             //JsonConvert.PopulateObject(FileIO.LoadStringFromFile(path), this);
         }
     }

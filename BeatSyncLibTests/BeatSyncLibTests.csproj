@@ -55,6 +55,7 @@
     <Compile Include="HistoryManager_Tests\TryGetValue_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
     <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
+    <Compile Include="PlaylistManager_Tests\BasicTests.cs" />
     <Compile Include="Playlist_Tests\BlisterTests.cs" />
     <Compile Include="Playlist_Tests\PlaylistTests.cs" />
     <Compile Include="SongHasher_Tests\AddMissingHashes_Tests.cs" />

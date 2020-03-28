@@ -36,9 +36,10 @@ namespace BeatSyncLib.Playlists.Blister
     /// Tools to serialize and deserialize Blister playlists.
     /// From: https://github.com/lolPants/Blister/blob/master/Blister/PlaylistLib.cs
     /// </summary>
-    public static class BlisterHandler
+    public class BlisterHandler : IPlaylistHandler<BlisterPlaylist>
     {
         private static readonly JsonSerializer serializer = new JsonSerializer();
+        #region Static
         private static readonly string MagicNumberString = "Blist.v2";
         /// <summary>
         /// Blister format Magic Number
@@ -46,21 +47,6 @@ namespace BeatSyncLib.Playlists.Blister
         /// UTF-8 Encoded "Blist.v2"
         /// </summary>
         public static readonly byte[] MagicNumber = Encoding.UTF8.GetBytes(MagicNumberString);
-
-        /// <summary>
-        /// Deserialize BSON bytes to a Playlist struct
-        /// </summary>
-        /// <param name="bytes">BSON bytes</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidMagicNumberException"></exception>
-        public static BlisterPlaylist Deserialize(byte[] bytes)
-        {
-            using (MemoryStream ms = new MemoryStream(bytes))
-            {
-                return Deserialize(ms);
-            }
-        }
-
         private static Stream ReadMagicNumber(Stream stream)
         {
             byte[] magicBytes = new byte[MagicNumber.Length];
@@ -80,52 +66,6 @@ namespace BeatSyncLib.Playlists.Blister
         }
 
         /// <summary>
-        /// Deserialize a BSON byte stream to a <see cref="BlisterPlaylist"/>.
-        /// </summary>
-        /// <param name="stream">Byte Stream</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidMagicNumberException"></exception>
-        public static BlisterPlaylist Deserialize(Stream stream)
-        {
-            using (Stream magic = ReadMagicNumber(stream))
-            using (GZipStream gzip = new GZipStream(magic, CompressionMode.Decompress))
-            using (BsonDataReader reader = new BsonDataReader(gzip))
-            {
-                return serializer.Deserialize<BlisterPlaylist>(reader);
-            }
-        }
-
-        /// <summary>
-        /// Deserialize a BSON byte stream and populates the target <see cref="BlisterPlaylist"/> with the data.
-        /// </summary>
-        /// <param name="stream">Byte Stream</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidMagicNumberException"></exception>
-        public static void Populate(Stream stream, BlisterPlaylist target)
-        {
-            using (Stream magic = ReadMagicNumber(stream))
-            using (GZipStream gzip = new GZipStream(magic, CompressionMode.Decompress))
-            using (BsonDataReader reader = new BsonDataReader(gzip))
-            {
-                serializer.Populate(reader, target);
-            }
-        }
-
-        /// <summary>
-        /// Serialize a playlist struct to a byte array
-        /// </summary>
-        /// <param name="playlist">Playlist struct</param>
-        /// <returns></returns>
-        public static byte[] Serialize(BlisterPlaylist playlist)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                SerializeStream(playlist, ms);
-                return ms.ToArray();
-            }
-        }
-
-        /// <summary>
         /// Serialize a playlist struct to a Memory Stream
         /// </summary>
         /// <param name="playlist">Playlist struct</param>
@@ -141,6 +81,125 @@ namespace BeatSyncLib.Playlists.Blister
                 serializer.Serialize(writer, playlist);
             }
         }
+
+
+        /// <summary>
+        /// Deserialize a BSON byte stream to a <see cref="BlisterPlaylist"/>.
+        /// </summary>
+        /// <param name="stream">Byte Stream</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidMagicNumberException"></exception>
+        public static BlisterPlaylist DeserializeFromStream(Stream stream)
+        {
+            using (Stream magic = ReadMagicNumber(stream))
+            using (GZipStream gzip = new GZipStream(magic, CompressionMode.Decompress))
+            using (BsonDataReader reader = new BsonDataReader(gzip))
+            {
+                return serializer.Deserialize<BlisterPlaylist>(reader);
+            }
+        }
+
+
+        /// <summary>
+        /// Deserialize a BSON byte stream and populates the target <see cref="BlisterPlaylist"/> with the data.
+        /// </summary>
+        /// <param name="stream">Byte Stream</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidMagicNumberException"></exception>
+        public static void PopulateFromStream(Stream stream, BlisterPlaylist target)
+        {
+            using (Stream magic = ReadMagicNumber(stream))
+            using (GZipStream gzip = new GZipStream(magic, CompressionMode.Decompress))
+            using (BsonDataReader reader = new BsonDataReader(gzip))
+            {
+                serializer.Populate(reader, target);
+            }
+        }
+
+        #endregion
+        public string[] GetSupportedExtensions()
+        {
+            return new string[] { "blist" };
+        }
+
+        public Type HandledType { get; } = typeof(BlisterPlaylist);
+
+        /// <summary>
+        /// Deserialize BSON bytes to a Playlist struct
+        /// </summary>
+        /// <param name="bytes">BSON bytes</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidMagicNumberException"></exception>
+        public BlisterPlaylist Deserialize(byte[] bytes)
+        {
+            using (MemoryStream ms = new MemoryStream(bytes))
+            {
+                return DeserializeFromStream(ms);
+            }
+        }
+        public static BlisterPlaylist Deserialize(Stream stream) => DeserializeFromStream(stream);
+        public BlisterPlaylist Deserialize(string path)
+        {
+            using (FileStream stream = File.OpenRead(path))
+                return DeserializeFromStream(stream);
+        }
+
+        public void Populate(Stream stream, BlisterPlaylist target) => PopulateFromStream(stream, target);
+
+        /// <summary>
+        /// Serialize a playlist struct to a byte array
+        /// </summary>
+        /// <param name="playlist">Playlist struct</param>
+        /// <returns></returns>
+        public byte[] Serialize(BlisterPlaylist playlist)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                SerializeToStream(playlist, ms);
+                return ms.ToArray();
+            }
+        }
+        public void SerializeToStream(BlisterPlaylist playlist, Stream stream) => SerializeStream(playlist, stream);
+        public void SerializeToFile(BlisterPlaylist playlist, string path)
+        {
+            using (FileStream stream = File.OpenWrite(path))
+                SerializeToStream(playlist, stream);
+        }
+
+
+
+
+        #region IPlaylistHandler
+        void IPlaylistHandler.SerializeToStream(IPlaylist playlist, Stream stream)
+        {
+            BlisterPlaylist legacyPlaylist = (playlist as BlisterPlaylist) ?? throw new ArgumentException($"{playlist.GetType().Name} is not a supported Type for {nameof(BlisterHandler)}");
+            SerializeToStream(legacyPlaylist, stream);
+        }
+
+        void IPlaylistHandler.SerializeToFile(IPlaylist playlist, string path)
+        {
+            BlisterPlaylist legacyPlaylist = (playlist as BlisterPlaylist) ?? throw new ArgumentException($"{playlist.GetType().Name} is not a supported Type for {nameof(BlisterHandler)}");
+            SerializeToFile(legacyPlaylist, path);
+        }
+
+        void IPlaylistHandler.Populate(Stream stream, IPlaylist target)
+        {
+            if (target == null)
+                throw new ArgumentNullException(nameof(target), $"{nameof(target)} cannot be null.");
+            BlisterPlaylist legacyPlaylist = (target as BlisterPlaylist) ?? throw new ArgumentException($"{target.GetType().Name} is not a supported Type for {nameof(BlisterHandler)}");
+            PopulateFromStream(stream, legacyPlaylist);
+        }
+
+        IPlaylist IPlaylistHandler.Deserialize(string path)
+        {
+            return Deserialize(path);
+        }
+
+        IPlaylist IPlaylistHandler.Deserialize(Stream stream)
+        {
+            return DeserializeFromStream(stream);
+        }
+        #endregion
     }
 
     /// <summary>

@@ -17,8 +17,9 @@ namespace BeatSyncLibTests.Playlist_Tests
         [TestMethod]
         public void TestMethod1()
         {
+            PlaylistManager playlistManager = new PlaylistManager("Playlists");
             LegacyPlaylistSong song1 = new LegacyPlaylistSong("63F2998EDBCE2D1AD31917E4F4D4F8D66348105D", "Sun Pluck", "3a9b", "ruckus");
-            IPlaylist bookmarks = PlaylistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
+            IPlaylist bookmarks = playlistManager.GetPlaylist(BuiltInPlaylist.BeastSaberBookmarks);
             bookmarks.TryAdd(song1);
             string imageStr = BeatSyncLib.Utilities.Util.ByteArrayToString(((MemoryStream)bookmarks.GetCoverStream()).ToArray());
         }
@@ -29,7 +30,7 @@ namespace BeatSyncLibTests.Playlist_Tests
             string coverStr = "base64,ABCD";
             LegacyPlaylist playlist = new LegacyPlaylist("SetCover_String.bplist", "SetCover_String_Test", "PlaylistTests", coverStr);
             Assert.IsTrue(playlist.TryStore());
-            string path = Path.GetFullPath(playlist.FilePath);
+            string path = Path.GetFullPath(playlist.FileName);
             string imageStr = BeatSyncLib.Utilities.Util.ByteArrayToBase64(((MemoryStream)playlist.GetCoverStream()).ToArray());
             Assert.AreEqual(coverStr, imageStr);
         }

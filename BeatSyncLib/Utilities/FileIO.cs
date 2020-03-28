@@ -63,72 +63,28 @@ namespace BeatSyncLib.Utilities
         }
 
         /// <summary>
-        /// Updates an existing playlist from its file.
-        /// </summary>
-        /// <param name="playlist"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided playlist is null.</exception>
-        public static T ReadPlaylist<T>(T playlist) where T : IPlaylist
-        {
-            if (playlist == null)
-                throw new ArgumentNullException(nameof(playlist), "playlist cannot be null for FileIO.ReadPlaylist().");
-            var path = GetPlaylistFilePath(playlist.FilePath);
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-                return playlist;
-            JsonConvert.PopulateObject(LoadStringFromFile(path), playlist);
-            return playlist;
-        }
-
-        /// <summary>
-        /// Creates a new Playlist from a file.
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        /// <exception cref="IOException">Thrown if there's a problem copying/deleting an associated .bak file </exception>
-        public static T ReadPlaylist<T>(string fileName) where T : IPlaylist, new()
-        {
-            var path = GetPlaylistFilePath(fileName);
-            T playlist = default;
-            //var bakFile = new FileInfo(path + ".bak");
-            //if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
-            //{
-            //    Logger.log?.Debug($"Found backup playlist file {bakFile}, using this instead.");
-            //    bakFile.CopyTo(path, true);
-            //    bakFile.Delete();
-            //}
-            //using (var sr = File.OpenRead(path))
-            //{
-            //    playlist = new T() { BlisterPlaylist = Blister.PlaylistLib.Deserialize(sr) };
-            //}
-            //playlist.FilePath = fileName;
-            //Logger.log?.Debug($"ReadPlaylist(): Found Playlist {playlist.Title}");
-
-            return playlist;
-        }
-
-        /// <summary>
         /// Gets the path to the provided playlist file name. TODO: This needs work
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
-        {
-            if (File.Exists(fileName))
-                return Path.GetFullPath(fileName);
-            var path = Path.Combine(PlaylistManager.PlaylistPath, fileName);
-            if (File.Exists(path))
-                return Path.GetFullPath(path);
-            else if (!getDisabled)
-                return null;
+        //public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
+        //{
+        //    if (File.Exists(fileName))
+        //        return Path.GetFullPath(fileName);
+        //    var path = Path.Combine(PlaylistManager.PlaylistPath, fileName);
+        //    if (File.Exists(path))
+        //        return Path.GetFullPath(path);
+        //    else if (!getDisabled)
+        //        return null;
 
-            path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
-            if (string.IsNullOrEmpty(path))
-                return null;
-            if (File.Exists(path))
-                return path;
-            return null;
+        //    path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
+        //    if (string.IsNullOrEmpty(path))
+        //        return null;
+        //    if (File.Exists(path))
+        //        return path;
+        //    return null;
 
-        }
+        //}
 
 
 
