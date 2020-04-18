@@ -1,4 +1,5 @@
-﻿using BeatSyncLib.Downloader.Targets;
+﻿using BeatSyncLib.Downloader.Downloading;
+using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Playlists;
 using SongFeedReaders.Data;
 using System;
@@ -8,7 +9,7 @@ namespace BeatSyncLib.Downloader
 {
     public class JobBuilder : IJobBuilder
     {
-        private List<ISongTargetFactory> _songTargetFactories = new List<ISongTargetFactory>();
+        private List<SongTargetFactory> _songTargetFactories = new List<SongTargetFactory>();
         private IDownloadJobFactory _downloadJobFactory;
         private JobFinishedAsyncCallback _finishedCallback;
 
@@ -30,8 +31,8 @@ namespace BeatSyncLib.Downloader
             EnsureValidState();
             Job job = null;
             IDownloadJob downloadJob = _downloadJobFactory.CreateDownloadJob(song);
-            List<ISongTarget> songTargets = new List<ISongTarget>();
-            foreach (ISongTargetFactory songTargetFactory in _songTargetFactories)
+            List<SongTarget> songTargets = new List<SongTarget>();
+            foreach (SongTargetFactory songTargetFactory in _songTargetFactories)
             {
                 songTargets.Add(songTargetFactory.CreateTarget(song));
             }
@@ -39,7 +40,7 @@ namespace BeatSyncLib.Downloader
             return job;
         }
 
-        public IJobBuilder AddTargetFactory(ISongTargetFactory songTargetFactory)
+        public IJobBuilder AddTargetFactory(SongTargetFactory songTargetFactory)
         {
             if (songTargetFactory == null)
                 throw new ArgumentNullException(nameof(songTargetFactory), $"{nameof(songTargetFactory)} cannot be null for {nameof(AddTargetFactory)}");

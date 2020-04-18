@@ -1,4 +1,5 @@
 ﻿using BeatSyncLib.Configs;
+using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
 using BeatSyncLib.Playlists;
@@ -28,12 +29,12 @@ namespace BeatSyncLib.Downloader
         public HistoryManager HistoryManager { get; private set; }
         public SongHasher HashSource { get; private set; }
         public FavoriteMappers FavoriteMappers { get; private set; }
-        public DownloadManager DownloadManager { get; private set; }
+        public JobManager DownloadManager { get; private set; }
         public IStatusManager StatusManager { get; set; }
 
         public SongDownloader(BeatSyncConfig config, HistoryManager historyManager, SongHasher hashSource, PlaylistManager playlistManager, string customLevelsPath)
         {
-            DownloadManager = new DownloadManager(config.MaxConcurrentDownloads);
+            DownloadManager = new JobManager(config.MaxConcurrentDownloads);
             CustomLevelsPath = customLevelsPath;
             Directory.CreateDirectory(CustomLevelsPath);
             HashSource = hashSource;

@@ -10,23 +10,30 @@ using System.Threading;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public class DirectoryTarget : ISongTarget
+    public class DirectoryTarget : SongTarget
     {
-        public string TargetName => nameof(DirectoryTarget);
-
-        public bool TransferComplete { get; private set; }
+        public override string TargetName => nameof(DirectoryTarget);
+        public SongHasher SongHasher { get; private set; }
         public string SongHash { get; private set; }
         public string ParentDirectory { get; private set; }
         public string DirectoryName { get; private set; }
         public bool OverwriteTarget { get; private set; }
 
-        public TargetResult TargetResult { get; private set; }
-
-        protected DirectoryTarget(string parentDirectory, string songHash, bool overwriteTarget)
+        protected DirectoryTarget(int destinationId, string parentDirectory, string songHash, bool overwriteTarget)
+            : base(destinationId)
         {
             ParentDirectory = Path.GetFullPath(parentDirectory);
             SongHash = songHash;
             OverwriteTarget = overwriteTarget;
+        }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        public override async Task<bool> CheckSongExistsAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            if (!SongHasher.Initialized)
+                await SongHasher.HashDirectoryAsync().ConfigureAwait(false);
+            return SongHasher.ExistingSongs.ContainsKey(SongHash);
         }
 
         /// <summary>
@@ -37,8 +44,8 @@ namespace BeatSyncLib.Downloader.Targets
         /// <param name="songHash"></param>
         /// <param name="overwriteTarget"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public DirectoryTarget(string parentDirectory, string directoryName, string songHash, bool overwriteTarget = false)
-            : this(parentDirectory, songHash, overwriteTarget)
+        public DirectoryTarget(int destinationId, string parentDirectory, string directoryName, string songHash, bool overwriteTarget = false)
+            : this(destinationId, parentDirectory, songHash, overwriteTarget)
         {
             if (string.IsNullOrEmpty(parentDirectory))
                 throw new ArgumentNullException(nameof(parentDirectory), $"{nameof(parentDirectory)} cannot be null when creating a {nameof(DirectoryTarget)}.");
@@ -47,21 +54,21 @@ namespace BeatSyncLib.Downloader.Targets
             DirectoryName = directoryName;
         }
 
-        public DirectoryTarget(string parentDirectory, ISong song, bool overwriteTarget = false)
-            : this(parentDirectory, song?.Hash, overwriteTarget)
+        public DirectoryTarget(int destinationId, string parentDirectory, ISong song, bool overwriteTarget = false)
+            : this(destinationId, parentDirectory, song?.Hash, overwriteTarget)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), $"{nameof(song)} cannot be null when creating a {nameof(DirectoryTarget)}.");
             DirectoryName = Util.GetSongDirectoryName(song.Key, song.Name, song.LevelAuthorName);
         }
 
-        public DirectoryTarget(string parentDirectory, string songHash, string songName, string mapperName, string songKey = null, bool overwriteTarget = false)
-            : this(parentDirectory, songHash, overwriteTarget)
+        public DirectoryTarget(int destinationId, string parentDirectory, string songHash, string songName, string mapperName, string songKey = null, bool overwriteTarget = false)
+            : this(destinationId, parentDirectory, songHash, overwriteTarget)
         {
             DirectoryName = Util.GetSongDirectoryName(songKey, songName, mapperName);
         }
 
-        public async Task<TargetResult> TransferAsync(Stream sourceStream, CancellationToken cancellationToken)
+        public override async Task<TargetResult> TransferAsync(Stream sourceStream, CancellationToken cancellationToken)
         {
             string directoryPath = null;
             ZipExtractResult zipResult = null;
@@ -77,13 +84,13 @@ namespace BeatSyncLib.Downloader.Targets
                     if (hashAfterDownload != SongHash)
                         throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {SongHash} != {hashAfterDownload}");
                 }
-                TargetResult = new DirectoryTargetResult(TargetName, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
+                TargetResult = new DirectoryTargetResult(this, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
                 return TargetResult;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                TargetResult = new DirectoryTargetResult(TargetName, false, zipResult, ex);
+                TargetResult = new DirectoryTargetResult(this, false, zipResult, ex);
                 return TargetResult;
             }
 #pragma warning restore CA1031 // Do not catch general exception types
@@ -92,15 +99,13 @@ namespace BeatSyncLib.Downloader.Targets
                 TransferComplete = true;
             }
         }
-
-        public Task<TargetResult> TransferAsync(Stream sourceStream) => TransferAsync(sourceStream, CancellationToken.None);
     }
 
     public class DirectoryTargetResult : TargetResult
     {
         public ZipExtractResult ZipExtractResult { get; private set; }
-        public DirectoryTargetResult(string targetName, bool success, ZipExtractResult zipExtractResult, Exception exception)
-            : base(targetName, success, exception)
+        public DirectoryTargetResult(SongTarget target, bool success, ZipExtractResult zipExtractResult, Exception exception)
+            : base(target, success, exception)
         {
             ZipExtractResult = zipExtractResult;
         }

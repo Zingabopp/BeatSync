@@ -140,8 +140,11 @@ namespace BeatSyncLib.Utilities
         /// https://github.com/Kylemc1413/SongCore
         /// </summary>
         /// <returns>Hash of the song files. Null if the info.dat file doesn't exist</returns>
+        /// <exception cref="DirectoryNotFoundException"></exception>
         public static string GenerateHash(string songDirectory, string existingHash = "")
         {
+            if (!Directory.Exists(songDirectory))
+                throw new DirectoryNotFoundException($"Directory doesn't exist: '{songDirectory}'");
             byte[] combinedBytes = Array.Empty<byte>();
             string infoFile = Path.Combine(songDirectory, "info.dat");
             if (!File.Exists(infoFile))

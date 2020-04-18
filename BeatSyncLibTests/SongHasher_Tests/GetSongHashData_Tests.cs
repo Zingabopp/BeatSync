@@ -32,7 +32,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
         [TestMethod]
         public void MissingInfoDat()
         {
-            var hasher = new SongHasher<SongHashData>();
+            var hasher = new SongHasher<SongHashData>(TestSongsDir);
             var songDir = @"Data\Songs\0 (Missing Info.dat)";
             var hashData = SongHasher.GetSongHashDataAsync(songDir).Result;
             Assert.IsNull(hashData.songHash);
@@ -41,19 +41,30 @@ namespace BeatSyncLibTests.SongHasher_Tests
         [TestMethod]
         public void MissingExpectedDifficultyFile()
         {
-            var hasher = new SongHasher<SongHashData>();
+            var hasher = new SongHasher<SongHashData>(TestSongsDir);
             var songDir = @"Data\Songs\0 (Missing ExpectedDiff)";
             var hashData = SongHasher.GetSongHashDataAsync(songDir).Result;
             Assert.IsNotNull(hashData.songHash);
         }
 
         [TestMethod]
-        public void DirectoryDoesntExist()
+        public async Task DirectoryDoesntExist()
         {
             var songDir = Path.GetFullPath(@"Data\DoesntExistSongs");
-            var hasher = new SongHasher<SongHashData>();
+            var hasher = new SongHasher<SongHashData>(TestSongsDir);
+            try
+            {
+                await SongHasher.GetSongHashDataAsync(songDir).ConfigureAwait(false);
+                Assert.Fail("Should have thrown exception.");
+            }
+            catch (DirectoryNotFoundException ex)
+            {
 
-            var test = Assert.ThrowsExceptionAsync<DirectoryNotFoundException>(async () => await SongHasher.GetSongHashDataAsync(songDir).ConfigureAwait(false)).Result;
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail($"Expected {nameof(DirectoryNotFoundException)} but threw {ex.GetType().Name}");
+            }
         }
     }
 }

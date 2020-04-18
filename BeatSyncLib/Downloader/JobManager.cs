@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BeatSyncLib.Downloader
 {
-    public class DownloadManager
+    public class JobManager
     {
         private BlockingCollection<IJob> _queuedJobs = new BlockingCollection<IJob>();
 
@@ -75,7 +75,7 @@ namespace BeatSyncLib.Downloader
             _completedDownloads.Clear();
         }
 
-        public DownloadManager(int concurrentDownloads)
+        public JobManager(int concurrentDownloads)
         {
             ConcurrentDownloads = concurrentDownloads;
             _acceptingJobs = true;

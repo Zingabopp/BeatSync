@@ -1,8 +1,9 @@
-﻿using System;
+﻿using BeatSyncLib.Hashing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BeatSyncLib.Hashing;
+using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BeatSyncLibTests.SongHasher_Tests
 {
@@ -18,66 +19,50 @@ namespace BeatSyncLibTests.SongHasher_Tests
             TestSetup.Initialize();
         }
 
+        [TestMethod]
+        public async Task HashCacheDoesntExist()
+        {
+            string nonExistantCacheFile = Path.Combine(TestCacheDir, "DoesntExist.dat");
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir);
+            int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
+            Assert.AreEqual(newHashes, 6);
+        }
+
+        [TestMethod]
+        public async Task HashAllSongs()
+        {
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir);
+            int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
+            Assert.AreEqual(newHashes, 6);
+        }
+
         //[TestMethod]
-        public void BigTest()
-        {
-            var hasher = new SongHasher<SongHashData>();
-            hasher.LoadCachedSongHashes();
-            var songPath = new DirectoryInfo(hasher.HashDictionary.Keys.First());
-            songPath = songPath.Parent;
-            hasher = new SongHasher<SongHashData>(songPath.FullName);
-            hasher.LoadCachedSongHashes();
-            var newHashes = hasher.AddMissingHashes();
-            Console.WriteLine($"Hashed {newHashes} new songs");
-        }
+        //public async Task AfterFullCacheCoverage()
+        //{
+        //    string cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData.dat");
+        //    SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir);
+        //    int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
+        //    Assert.AreEqual(newHashes, 0);
+        //}
+
+        //[TestMethod]
+        //public async Task AfterPartialCacheCoverage()
+        //{
+        //    string cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData_Partial.dat");
+        //    SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir);
+        //    int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
+        //    Assert.AreEqual(newHashes, 2);
+        //}
 
         [TestMethod]
-        public void HashCacheDoesntExist()
+        public async Task EmptyDirectory()
         {
-            var nonExistantCacheFile = Path.Combine(TestCacheDir, "DoesntExist.dat");
-            var hasher = new SongHasher<SongHashData>(TestSongsDir, nonExistantCacheFile);
-            var newHashes = hasher.AddMissingHashes();
-            Assert.AreEqual(newHashes, 6);
-        }
-
-        [TestMethod]
-        public void HashAllSongs()
-        {
-            var cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData.dat");
-            var hasher = new SongHasher<SongHashData>(TestSongsDir, cacheFile);
-            var newHashes = hasher.AddMissingHashes();
-            Assert.AreEqual(newHashes, 6);
-        }
-
-        [TestMethod]
-        public void AfterFullCacheCoverage()
-        {
-            var cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData.dat");
-            var hasher = new SongHasher<SongHashData>(TestSongsDir, cacheFile);
-            hasher.LoadCachedSongHashes();
-            var newHashes = hasher.AddMissingHashes();
-            Assert.AreEqual(newHashes, 0);
-        }
-
-        [TestMethod]
-        public void AfterPartialCacheCoverage()
-        {
-            var cacheFile = Path.Combine(TestCacheDir, "TestSongsHashData_Partial.dat");
-            var hasher = new SongHasher<SongHashData>(TestSongsDir, cacheFile);
-            hasher.LoadCachedSongHashes();
-            var newHashes = hasher.AddMissingHashes();
-            Assert.AreEqual(newHashes, 2);
-        }
-
-        [TestMethod]
-        public void EmptyDirectory()
-        {
-            var emptyDir = Path.Combine(TestSongsDir, "EmptyDirectory");
-            var dInfo = new DirectoryInfo(emptyDir);
+            string emptyDir = Path.Combine(TestSongsDir, "EmptyDirectory");
+            DirectoryInfo dInfo = new DirectoryInfo(emptyDir);
             dInfo.Create();
             Assert.AreEqual(0, dInfo.GetFiles().Count());
-            var hasher = new SongHasher<SongHashData>(emptyDir);
-            var newHashes = hasher.AddMissingHashes();
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(emptyDir);
+            int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
             Assert.AreEqual(0, newHashes);
 
             //Clean up
@@ -86,14 +71,24 @@ namespace BeatSyncLibTests.SongHasher_Tests
         }
 
         [TestMethod]
-        public void DirectoryDoesntExist()
+        public async Task DirectoryDoesntExist()
         {
-            var nonExistantDir = Path.Combine(TestSongsDir, "DoesntExist");
+            string nonExistantDir = Path.Combine(TestSongsDir, "DoesntExist");
             if (Directory.Exists(nonExistantDir))
                 Directory.Delete(nonExistantDir, true);
             Assert.IsFalse(Directory.Exists(nonExistantDir));
-            var hasher = new SongHasher<SongHashData>(nonExistantDir);
-            Assert.ThrowsException<DirectoryNotFoundException>(() => hasher.AddMissingHashes());
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(nonExistantDir);
+            try
+            {
+                await hasher.HashDirectoryAsync().ConfigureAwait(false);
+                Assert.Fail("Should have thrown exception.");
+            }catch(DirectoryNotFoundException ex)
+            {
+
+            }catch(Exception ex)
+            {
+                Assert.Fail($"Expected {nameof(DirectoryNotFoundException)} but threw {ex.GetType().Name}");
+            }
             if (Directory.Exists(nonExistantDir))
                 Directory.Delete(nonExistantDir, true);
         }

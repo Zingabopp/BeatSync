@@ -23,12 +23,8 @@ namespace BeatSyncLib.Playlists.Legacy
                 throw new ArgumentNullException(nameof(target), $"{nameof(target)} cannot be null for {nameof(Populate)}.");
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream), $"{nameof(stream)} cannot be null for {nameof(Populate)}.");
-            string str = null;
             using (StreamReader sr = new StreamReader(stream))
-                str = sr.ReadToEnd();
-            if (string.IsNullOrEmpty(str))
-                throw new ArgumentException("Input stream gave an empty string.", nameof(stream));
-            JsonConvert.PopulateObject(str, target);
+                jsonSerializer.Populate(sr, target);
         }
         public LegacyPlaylist Deserialize(Stream stream)
         {

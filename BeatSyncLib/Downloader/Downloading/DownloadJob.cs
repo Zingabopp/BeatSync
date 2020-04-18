@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using WebUtilities;
 using static SongFeedReaders.Utilities;
 
-namespace BeatSyncLib.Downloader
+namespace BeatSyncLib.Downloader.Downloading
 {
     public class DownloadJob : IDownloadJob
     {

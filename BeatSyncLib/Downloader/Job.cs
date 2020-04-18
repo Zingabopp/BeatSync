@@ -1,4 +1,5 @@
-﻿using BeatSyncLib.Downloader.Targets;
+﻿using BeatSyncLib.Downloader.Downloading;
+using BeatSyncLib.Downloader.Targets;
 using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace BeatSyncLib.Downloader
         public JobState JobState { get; private set; }
 
         private readonly IDownloadJob _downloadJob;
-        private readonly ISongTarget[] _targets;
+        private readonly SongTarget[] _targets;
         private TargetResult[] _targetResults;
         private JobFinishedAsyncCallback JobFinishedAsyncCallback;
         private JobFinishedCallback JobFinishedCallback;
@@ -54,7 +55,7 @@ namespace BeatSyncLib.Downloader
             JobFinishedAsyncCallback = null;
         }
 
-        private Job(ISong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, IProgress<JobProgress> progress)
+        private Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, IProgress<JobProgress> progress)
         {
             Song = song;
             _downloadJob = downloadJob;
@@ -65,13 +66,13 @@ namespace BeatSyncLib.Downloader
             _totalStages = 1 + _targets.Length + 1;
             _stageIndex = 0;
         }
-        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
+        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
             : this(song, downloadJob, targets, progress)
         {
             JobFinishedAsyncCallback = jobFinishedAsyncCallback;
         }
 
-        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<ISongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
+        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
             : this(song, downloadJob, targets, progress)
         {
             JobFinishedCallback = jobFinishedCallback;

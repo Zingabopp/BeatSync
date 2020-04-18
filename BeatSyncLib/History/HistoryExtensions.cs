@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using BeatSyncLib.Downloader;
+using BeatSyncLib.Downloader.Downloading;
+
 namespace BeatSyncLib.History
 {
     public static class HistoryExtensions

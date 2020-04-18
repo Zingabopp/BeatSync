@@ -1,4 +1,5 @@
-﻿using BeatSyncLib.Downloader.Targets;
+﻿using BeatSyncLib.Downloader.Downloading;
+using BeatSyncLib.Downloader.Targets;
 using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace BeatSyncLib.Downloader
     public interface IJobBuilder
     {
         IJobBuilder SetDownloadJobFactory(IDownloadJobFactory downloadJobFactory);
-        IJobBuilder AddTargetFactory(ISongTargetFactory songTargetFactory);
+        IJobBuilder AddTargetFactory(SongTargetFactory songTargetFactory);
         IJobBuilder SetDefaultJobFinishedAsyncCallback(JobFinishedAsyncCallback jobFinishedCallback);
 
         Job CreateJob(ISong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null);
@@ -75,11 +76,11 @@ namespace BeatSyncLib.Downloader
         public readonly ProgressValue TotalProgress;
         public readonly ProgressValue? StageProgress;
         public readonly IDownloadJob DownloadJob;
-        public readonly ISongTarget SongTarget;
+        public readonly SongTarget SongTarget;
         public readonly DownloadResult DownloadResult;
         public readonly TargetResult TargetResult;
         public JobProgress(JobProgressType jobProgressType, JobStage jobStage, ProgressValue totalProgress, ProgressValue? stageProgress = null, 
-            IDownloadJob downloadJob = null, ISongTarget songTarget = null, DownloadResult downloadResult = null, TargetResult targetResult = null)
+            IDownloadJob downloadJob = null, SongTarget songTarget = null, DownloadResult downloadResult = null, TargetResult targetResult = null)
         {
             JobProgressType = jobProgressType;
             JobStage = jobStage;

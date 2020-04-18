@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using WebUtilities;
 using static BeatSyncLib.Utilities.Util;
 
-namespace BeatSyncLib.Downloader
+namespace BeatSyncLib.Downloader.Downloading
 {
     public interface IDownloadJob
     {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using WebUtilities;
 
-namespace BeatSyncLib.Downloader
+namespace BeatSyncLib.Downloader.Downloading
 {
     public class DownloadJobFactory : IDownloadJobFactory
     {

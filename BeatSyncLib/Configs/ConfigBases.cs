@@ -151,15 +151,15 @@ namespace BeatSyncLib.Configs
         }
 
         [JsonIgnore]
-        protected bool? _enabled;
+        private bool? _enabled;
         [JsonIgnore]
-        protected int? _maxSongs;
+        private int? _maxSongs;
         [JsonIgnore]
-        protected bool? _createPlaylist;
+        private bool? _createPlaylist;
         [JsonIgnore]
-        protected PlaylistStyle? _playlistStyle;
+        private PlaylistStyle? _playlistStyle;
         [JsonIgnore]
-        protected Playlists.BuiltInPlaylist? _feedPlaylist;
+        private Playlists.BuiltInPlaylist? _feedPlaylist;
 
         [JsonIgnore]
         protected abstract bool DefaultEnabled { get; }

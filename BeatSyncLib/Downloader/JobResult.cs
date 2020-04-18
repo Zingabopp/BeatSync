@@ -1,4 +1,5 @@
-﻿using BeatSyncLib.Downloader.Targets;
+﻿using BeatSyncLib.Downloader.Downloading;
+using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
 using SongFeedReaders.Data;
@@ -33,7 +34,7 @@ namespace BeatSyncLib.Downloader
 
         public override string ToString()
         {
-            string[] targetResults = TargetResults.Select(r => r.Success ? $"{r.TargetName} successful" : $"{r.TargetName} failed").ToArray();
+            string[] targetResults = TargetResults.Select(r => r.Success ? $"{r.Target.TargetName} successful" : $"{r.Target.TargetName} failed").ToArray();
             return $"{Song.Key}, Download Status: {DownloadResult?.Status}, Target Results: {(string.Join(" | ", targetResults))}";
         }
     }

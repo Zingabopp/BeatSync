@@ -8,34 +8,43 @@ using System.Threading.Tasks;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public interface ISongTarget
+    public abstract class SongTarget
     {
-        string TargetName { get; }
-        bool TransferComplete { get; }
-        TargetResult TargetResult { get; }
+        public abstract string TargetName { get; }
+        public int DestinationId { get; }
+        public bool TransferComplete { get; protected set; }
+        public TargetResult TargetResult { get; protected set; }
+
+        protected SongTarget(int destinationId)
+        {
+            DestinationId = destinationId;
+        }
+
+        public abstract Task<bool> CheckSongExistsAsync();
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sourceStream"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<TargetResult> TransferAsync(Stream sourceStream, CancellationToken cancellationToken);
+        public abstract Task<TargetResult> TransferAsync(Stream sourceStream, CancellationToken cancellationToken);
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sourceStream"></param>
         /// <returns></returns>
-        Task<TargetResult> TransferAsync(Stream sourceStream);
+        public Task<TargetResult> TransferAsync(Stream sourceStream) => TransferAsync(sourceStream, CancellationToken.None);
     }
 
     public class TargetResult
     {
-        public string TargetName { get; }
         public bool Success { get; protected set; }
+        public SongTarget Target { get; }
         public Exception Exception { get; protected set; }
-        public TargetResult(string targetName, bool success, Exception exception)
+        public TargetResult(SongTarget target, bool success, Exception exception)
         {
-            TargetName = targetName;
+            Target = target;
             Success = success;
             Exception = exception;
         }

@@ -6,10 +6,10 @@ using System.Text;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public class DirectoryTargetFactory : ISongTargetFactory
+    public class DirectoryTargetFactory : SongTargetFactory
     {
         private ISongTargetFactorySettings _defaultSettings;
-        public ISongTargetFactorySettings DefaultSettings 
+        public override ISongTargetFactorySettings DefaultSettings 
         {
             get { return _defaultSettings; }
             set
@@ -52,18 +52,18 @@ namespace BeatSyncLib.Downloader.Targets
             SongsDirectory = songsDirectory;
         }
 
-        public bool IsValidSettings(ISongTargetFactorySettings settings)
+        public override bool IsValidSettings(ISongTargetFactorySettings settings)
         {
             return settings is DirectoryTargetFactorySettings _;
         }
 
-        public ISongTarget CreateTarget(ISong song)
+        public override SongTarget CreateTarget(ISong song)
         {
 
             return CreateTarget(song, DefaultSettings);
         }
 
-        public ISongTarget CreateTarget(ISong song, ISongTargetFactorySettings settings)
+        public override SongTarget CreateTarget(ISong song, ISongTargetFactorySettings settings)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "Cannot create a target from a null song.");
@@ -71,7 +71,7 @@ namespace BeatSyncLib.Downloader.Targets
                 settings = DefaultSettings;
             if (settings is DirectoryTargetFactorySettings castSettings)
             {
-                return new DirectoryTarget(SongsDirectory, song, castSettings.OverwriteTarget);
+                return new DirectoryTarget(DestinationId, SongsDirectory, song, castSettings.OverwriteTarget);
             }
             else
                 throw new ArgumentException($"Type of {nameof(settings)} is invalid for {nameof(DirectoryTargetFactory)}: {settings.GetType().Name}.");
