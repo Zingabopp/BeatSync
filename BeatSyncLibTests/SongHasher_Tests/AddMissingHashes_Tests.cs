@@ -71,6 +71,15 @@ namespace BeatSyncLibTests.SongHasher_Tests
         }
 
         [TestMethod]
+        public void TestDirectoryHash()
+        {
+            string directory = "H:\\SteamApps\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\6f11 (Leave The Lights On (KROT Remix) - Rigid)";
+            long dirHash = 987761419790609;
+            long calcHash = SongHasher.GetDirectoryHash(directory);
+            Assert.AreEqual(dirHash, calcHash);
+        }
+
+        [TestMethod]
         public async Task DirectoryDoesntExist()
         {
             string nonExistantDir = Path.Combine(TestSongsDir, "DoesntExist");
@@ -82,10 +91,12 @@ namespace BeatSyncLibTests.SongHasher_Tests
             {
                 await hasher.HashDirectoryAsync().ConfigureAwait(false);
                 Assert.Fail("Should have thrown exception.");
-            }catch(DirectoryNotFoundException ex)
+            }
+            catch (DirectoryNotFoundException ex)
             {
 
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Assert.Fail($"Expected {nameof(DirectoryNotFoundException)} but threw {ex.GetType().Name}");
             }

@@ -49,10 +49,11 @@ namespace BeatSyncLib.Downloader.Downloading
     {
         Unknown = 0,
         Success = 1,
-        NetFailed = 2,
-        IOFailed = 3,
-        InvalidRequest = 4,
-        NetNotFound = 5,
-        Canceled = 6
+        Skipped = 2,
+        NetFailed = 3,
+        IOFailed = 4,
+        InvalidRequest = 5,
+        NetNotFound = 6,
+        Canceled = 7
     }
 }

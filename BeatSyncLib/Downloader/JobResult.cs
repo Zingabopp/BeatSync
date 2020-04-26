@@ -16,7 +16,8 @@ namespace BeatSyncLib.Downloader
             {
                 if (DownloadResult == null || TargetResults == null)
                     return false;
-                if (DownloadResult.Status != DownloadResultStatus.Success)
+                if (DownloadResult.Status != DownloadResultStatus.Success
+                    && DownloadResult.Status != DownloadResultStatus.Skipped)
                     return false;
                 if (TargetResults.Any(r => !r.Success))
                     return false;

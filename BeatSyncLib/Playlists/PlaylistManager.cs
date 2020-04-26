@@ -159,7 +159,7 @@ namespace BeatSyncLib.Playlists
                     continue;
                 if (playlist.IsDirty)
                 {
-                    Logger.log?.Debug($"Writing {playlist.FileName} to file.");
+                    Logger.log?.Debug($"Writing {playlist.FilePath} to file.");
                     playlist.TryStore();
                 }
             }
@@ -168,7 +168,7 @@ namespace BeatSyncLib.Playlists
             {
                 if (CustomPlaylists[key].IsDirty)
                 {
-                    Logger.log?.Debug($"Writing {CustomPlaylists[key].FileName} to file.");
+                    Logger.log?.Debug($"Writing {CustomPlaylists[key].FilePath} to file.");
                     CustomPlaylists[key].TryStore();
                 }
             }
@@ -186,7 +186,7 @@ namespace BeatSyncLib.Playlists
             if (!playlistExists || playlist == null)
             {
                 var defPlaylist = DefaultPlaylists[builtInPlaylist];
-                var path = Path.Combine(PlaylistPath, defPlaylist.FileName);
+                var path = Path.Combine(PlaylistPath, defPlaylist.FilePath);
                 var extension = Path.GetExtension(path);
                 if (!File.Exists(path) || !PlaylistExtensionHandlers.ContainsKey(extension))
                 {
@@ -199,16 +199,16 @@ namespace BeatSyncLib.Playlists
                     playlist = PlaylistExtensionHandlers[extension].Deserialize(path);
                     if (playlist == null)
                         playlist = defPlaylist;
-                    playlist.FileName = path;
+                    playlist.FilePath = path;
                     //if (playlist.Cover == new byte[] { (byte)'1' })
                     //{
                     //    playlist.ImageLoader = PlaylistImageLoaders[builtInPlaylist];
                     //}
-                    Logger.log?.Debug($"Playlist loaded from file: {playlist.FileName} with {playlist.Count} songs.");
+                    Logger.log?.Debug($"Playlist loaded from file: {playlist.FilePath} with {playlist.Count} songs.");
                 }
                 AvailablePlaylists.Add(builtInPlaylist, playlist);
             }
-            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} for {builtInPlaylist.ToString()} with {playlist?.Count} songs.");
+            Logger.log?.Debug($"Returning {playlist?.FilePath}: {playlist?.Title} for {builtInPlaylist.ToString()} with {playlist?.Count} songs.");
             return playlist;
         }
 
@@ -223,7 +223,7 @@ namespace BeatSyncLib.Playlists
             // Check if the playlist is one of the built in ones.
             foreach (var defaultPlaylist in DefaultPlaylists)
             {
-                if (defaultPlaylist.Value.FileName == playlistFileName)
+                if (defaultPlaylist.Value.FilePath == playlistFileName)
                 {
                     playlist = GetPlaylist(defaultPlaylist.Key);
                 }
@@ -244,18 +244,18 @@ namespace BeatSyncLib.Playlists
                 if (!string.IsNullOrEmpty(existingFile) && PlaylistExtensionHandlers.TryGetValue(extension, out IPlaylistHandler handler))
                 {
                     playlist = handler.Deserialize(existingFile);
-                    playlist.FileName = playlistFileName;
+                    playlist.FilePath = playlistFileName;
                     CustomPlaylists.TryAdd(playlistFileName, playlist);
-                    Logger.log?.Debug($"Playlist FileName is {playlist.FileName}");
+                    Logger.log?.Debug($"Playlist FileName is {playlist.FilePath}");
                 }
             }
-            Logger.log?.Debug($"Returning {playlist?.FileName}: {playlist?.Title} with {playlist?.Count} songs.");
+            Logger.log?.Debug($"Returning {playlist?.FilePath}: {playlist?.Title} with {playlist?.Count} songs.");
             return playlist;
         }
 
         public bool TryAdd(IPlaylist playlist)
         {
-            return CustomPlaylists.TryAdd(playlist.FileName.ToLower(), playlist);
+            return CustomPlaylists.TryAdd(playlist.FilePath.ToLower(), playlist);
         }
 
         public IPlaylist GetOrAdd(string playlistFileName, Func<IPlaylist> newPlaylist)
@@ -266,8 +266,8 @@ namespace BeatSyncLib.Playlists
                 playlist = newPlaylist();
                 if (playlist != null)
                 {
-                    if (!string.IsNullOrEmpty(playlist.FileName))
-                        CustomPlaylists.TryAdd(playlist.FileName?.ToLower() ?? "", playlist);
+                    if (!string.IsNullOrEmpty(playlist.FilePath))
+                        CustomPlaylists.TryAdd(playlist.FilePath?.ToLower() ?? "", playlist);
                     else
                         Logger.log?.Warn($"Invalid playlist file name in playlist function given to PlaylistManager.GetOrAdd()");
                 }

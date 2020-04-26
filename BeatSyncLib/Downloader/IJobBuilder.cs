@@ -51,11 +51,11 @@ namespace BeatSyncLib.Downloader
         }
         public static JobProgress CreateTargetCompletion(ProgressValue totalProgress, TargetResult result)
         {
-            return new JobProgress(JobProgressType.StageCompletion, JobStage.TransferringToTarget, totalProgress, targetResult: result);
+            return new JobProgress(JobProgressType.StageCompletion, JobStage.TransferringToTargets, totalProgress, targetResult: result);
         }
         public static JobProgress CreateTargetProgress(ProgressValue totalProgress, ProgressValue targetProgress)
         {
-            return new JobProgress(JobProgressType.StageProgress, JobStage.TransferringToTarget, totalProgress, targetProgress);
+            return new JobProgress(JobProgressType.StageProgress, JobStage.TransferringToTargets, totalProgress, targetProgress);
         }
         public static JobProgress CreateJobFinishing(ProgressValue totalProgress, ProgressValue targetProgress)
         {
@@ -101,7 +101,7 @@ namespace BeatSyncLib.Downloader
     {
         NotStarted = 0,
         Downloading = 1,
-        TransferringToTarget = 2,
+        TransferringToTargets = 2,
         Finishing = 3,
         Finished = 4
     }

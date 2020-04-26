@@ -20,6 +20,19 @@ namespace BeatSyncLib.Hashing
         /// </summary>
         public string CustomLevelsPath { get; protected set; }
 
+        private Task<int> _initializingTask;
+        private object _initializingLock = new object();
+
+        public Task<int> InitializeAsync()
+        {
+            lock (_initializingLock)
+            {
+                if (_initializingTask == null)
+                    _initializingTask = HashDirectoryAsync();
+            }
+            return _initializingTask;
+        }
+
         /// <summary>
         /// Hashes songs that aren't in the cache. Returns the number of hashed songs.
         /// </summary>
@@ -96,6 +109,71 @@ namespace BeatSyncLib.Hashing
         public static Task<ISongHashData> GetSongHashDataAsync(string songDirectory)
         {
             return Task.Run<ISongHashData>(() => new SongHashData() { songHash = Util.GenerateHash(songDirectory) });
+        }
+
+        public static long GetDirectoryHash(string directory)
+        {
+            long hash = 0;
+            DirectoryInfo directoryInfo = new DirectoryInfo(directory);
+            foreach (FileInfo f in directoryInfo.GetFiles())
+            {
+                hash ^= f.CreationTimeUtc.ToFileTimeUtc();
+                hash ^= f.LastWriteTimeUtc.ToFileTimeUtc();
+                hash ^= GetStringHash(f.Name);
+                hash ^= f.Length;
+            }
+            return hash;
+        }
+
+        private static int GetStringHashSafe(string str)
+        {
+            char[] src = str.ToCharArray();
+
+            int hash1 = 5381;
+            int hash2 = hash1;
+            int c;
+            int s = 0;
+            try
+            {
+                while ((c = src[s]) != 0)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ c;
+                    c = src[s];
+                    if (c == 0)
+                        break;
+                    hash2 = ((hash2 << 5) + hash2) ^ c;
+                    s += 2;
+                }
+                return hash1 + (hash2 * 1566083941);
+            }catch(Exception ex)
+            {
+
+                return 0;
+            }
+        }
+
+        private static int GetStringHash(string str)
+        {
+            unsafe
+            {
+                fixed (char* src = str)
+                {
+                    int hash1 = 5381;
+                    int hash2 = hash1;
+                    int c;
+                    char* s = src;
+                    while ((c = s[0]) != 0)
+                    {
+                        hash1 = ((hash1 << 5) + hash1) ^ c;
+                        c = s[1];
+                        if (c == 0)
+                            break;
+                        hash2 = ((hash2 << 5) + hash2) ^ c;
+                        s += 2;
+                    }
+                    return hash1 + (hash2 * 1566083941);
+                }
+            }
         }
     }
 

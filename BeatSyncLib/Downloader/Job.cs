@@ -28,13 +28,12 @@ namespace BeatSyncLib.Downloader
 
         private readonly IDownloadJob _downloadJob;
         private readonly SongTarget[] _targets;
-        private TargetResult[] _targetResults;
         private JobFinishedAsyncCallback JobFinishedAsyncCallback;
         private JobFinishedCallback JobFinishedCallback;
         private readonly IProgress<JobProgress> _progress;
         public DownloadResult DownloadResult { get; private set; }
         public TargetResult[] TargetResults { get; private set; }
-        private CancellationToken CancellationToken= CancellationToken.None;
+        private CancellationToken CancellationToken = CancellationToken.None;
         public void RegisterCancellationToken(CancellationToken cancellationToken)
         {
             if (!(JobState == JobState.Ready || JobState == JobState.NotReady))
@@ -86,6 +85,22 @@ namespace BeatSyncLib.Downloader
             _progress?.Report(progress);
         }
 
+
+        protected async Task<TargetResult[]> TransferToTargets(IEnumerable<SongTarget> targets, DownloadContainer downloadContainer, CancellationToken cancellationToken)
+        {
+            List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
+            foreach (var target in targets)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                TargetResult result = await target.TransferAsync(Song, downloadContainer.GetResultStream(), cancellationToken).ConfigureAwait(false);
+                completedTargets.Add(result);
+                _stageIndex++;
+                ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, result));
+            }
+            return completedTargets.ToArray();
+
+        }
+
         public async Task RunAsync(CancellationToken cancellationToken)
         {
             JobState = JobState.Running;
@@ -101,38 +116,60 @@ namespace BeatSyncLib.Downloader
             bool canceled = false;
             EventHandler handler = JobStarted;
             handler?.Invoke(this, null);
-            List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
             DownloadContainer downloadContainer = null;
+            List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
+            List<SongTarget> pendingTargets = new List<SongTarget>(_targets.Length);
+            foreach (var target in _targets)
+            {
+                SongState songState = await target.CheckSongExistsAsync(Song).ConfigureAwait(false);
+                if (songState != SongState.Wanted)
+                    completedTargets.Add(new TargetResult(target, songState, true, null));
+                else
+                    pendingTargets.Add(target);
+            }
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                _downloadJob.JobProgressChanged += _downloadJob_JobProgressChanged;
-                DownloadResult downloadResult = await _downloadJob.RunAsync(cancellationToken).ConfigureAwait(false);
-                if (downloadResult.Exception != null)
-                    throw downloadResult.Exception;
-                _stageIndex = 1;
-                ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, downloadResult));
-                downloadContainer = downloadResult.DownloadContainer;
-                downloadContainer.ProgressChanged += DownloadContainer_ProgressChanged;
-                JobStage = JobStage.TransferringToTarget;
-                for (int i = 0; i < _targets.Length; i++)
+                if (pendingTargets.Count > 0)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    TargetResult result = await _targets[i].TransferAsync(downloadContainer.GetResultStream(), cancellationToken).ConfigureAwait(false);
-                    completedTargets.Add(result);
-                    _stageIndex++;
-                    ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, result));
+                    _downloadJob.JobProgressChanged += _downloadJob_JobProgressChanged;
+                    DownloadResult = await _downloadJob.RunAsync(cancellationToken).ConfigureAwait(false);
+                    downloadContainer = DownloadResult.DownloadContainer;
+                    if (DownloadResult.Exception != null)
+                        throw DownloadResult.Exception;
+                    _stageIndex = 1;
+                    ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, DownloadResult));
+                    JobStage = JobStage.TransferringToTargets;
+                    foreach (var targetResult in completedTargets)
+                    {
+                        _stageIndex++;
+                        ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
+                    }
+                    completedTargets.AddRange(await TransferToTargets(pendingTargets, downloadContainer, cancellationToken).ConfigureAwait(false));
                 }
-                _targetResults = completedTargets.ToArray();
+                else
+                {
+                    DownloadResult = new DownloadResult(null, DownloadResultStatus.Skipped, 0);
+                    _stageIndex = 1;
+                    _downloadJob_JobProgressChanged(this, new DownloadJobProgressChangedEventArgs(DownloadJobStatus.Finished));
+                    JobStage = JobStage.TransferringToTargets;
+                    foreach (var targetResult in completedTargets)
+                    {
+                        _stageIndex++;
+                        ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
+                    }
+                }
+
                 if (completedTargets.All(t => !t.Success))
-                    throw completedTargets.First().Exception;
+                    throw completedTargets.First(t => !t.Success).Exception;
+                TargetResults = completedTargets.ToArray();
             }
             catch (OperationCanceledException ex)
             {
-                if (_targetResults == null && completedTargets.Count > 0)
-                    _targetResults = completedTargets.ToArray();
+                if (TargetResults == null && completedTargets.Count > 0)
+                    TargetResults = completedTargets.ToArray();
                 else
-                    _targetResults = Array.Empty<TargetResult>();
+                    TargetResults = Array.Empty<TargetResult>();
 
                 canceled = true;
                 exception = ex;
@@ -141,10 +178,10 @@ namespace BeatSyncLib.Downloader
             }
             catch (Exception ex)
             {
-                if (_targetResults == null && completedTargets.Count > 0)
-                    _targetResults = completedTargets.ToArray();
+                if (TargetResults == null && completedTargets.Count > 0)
+                    TargetResults = completedTargets.ToArray();
                 else
-                    _targetResults = Array.Empty<TargetResult>();
+                    TargetResults = Array.Empty<TargetResult>();
                 exception = ex;
                 JobState = JobState.Error;
                 ReportProgress(JobProgress.CreateFromFault(JobProgressType.Error, JobStage, CurrentProgress));
@@ -158,6 +195,10 @@ namespace BeatSyncLib.Downloader
                 downloadContainer?.Dispose();
             }
             catch { }
+            if(DownloadResult == null)
+            {
+
+            }
             FinishJob(canceled, exception);
             JobFinishedAsyncCallback asyncCallback = JobFinishedAsyncCallback;
             if (asyncCallback != null)
@@ -178,13 +219,6 @@ namespace BeatSyncLib.Downloader
         protected virtual void FinishJob(bool canceled = false, Exception exception = null)
         {
             Exception = exception;
-            Result = new JobResult()
-            {
-                Song = Song,
-                DownloadResult = _downloadJob?.DownloadResult,
-                TargetResults = _targets.Select(t => t.TargetResult).ToArray(),
-                Exception = exception
-            };
             if (canceled || exception is OperationCanceledException)
                 JobState = JobState.Cancelled;
             else if (exception != null)
@@ -192,7 +226,14 @@ namespace BeatSyncLib.Downloader
             else
                 JobState = JobState.Finished;
             _stageIndex++;
-            JobStage = JobStage.Finished;
+            Result = new JobResult()
+            {
+                Song = Song,
+                DownloadResult = DownloadResult,
+                JobState = JobState,
+                TargetResults = TargetResults.ToArray(),
+                Exception = exception
+            };
             EventHandler<JobResult> handler = JobFinished;
             handler?.Invoke(this, Result);
             ReportProgress(JobProgress.CreateJobFinished(CurrentProgress));

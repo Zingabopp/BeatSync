@@ -15,7 +15,7 @@ namespace BeatSyncLib.Playlists.Legacy
         public LegacyPlaylist() { }
         public LegacyPlaylist(string filePath, string title, string author, string cover)
         {
-            FileName = Path.GetFileName(filePath);
+            FilePath = Path.GetFileName(filePath);
             Title = title;
             Author = author;
             SetCover(cover);
@@ -23,7 +23,7 @@ namespace BeatSyncLib.Playlists.Legacy
         }
         public LegacyPlaylist(string filePath, string title, string author, Lazy<string> coverLoader)
         {
-            FileName = Path.GetFileName(filePath);
+            FilePath = Path.GetFileName(filePath);
             Title = title;
             Author = author;
             CoverLoader = coverLoader;
@@ -122,7 +122,7 @@ namespace BeatSyncLib.Playlists.Legacy
 
         #endregion
         [JsonIgnore]
-        public string FileName
+        public string FilePath
         {
             get { return _fileName; }
             set
@@ -293,16 +293,16 @@ namespace BeatSyncLib.Playlists.Legacy
             exception = null;
             try
             {
-                if (File.Exists(FileName))
+                if (File.Exists(FilePath))
                 {
-                    File.Copy(FileName, FileName + ".bak", true);
-                    File.Delete(FileName);
+                    File.Copy(FilePath, FilePath + ".bak", true);
+                    File.Delete(FilePath);
                 }
             }
             catch { }
             try
             {
-                using (var sw = File.CreateText(FileName))
+                using (var sw = File.CreateText(FilePath))
                 {
                     var serializer = new JsonSerializer() { Formatting = Formatting.Indented };
                     serializer.Serialize(sw, this);
@@ -315,7 +315,7 @@ namespace BeatSyncLib.Playlists.Legacy
             }
             try
             {
-                File.Delete(FileName + ".bak");
+                File.Delete(FilePath + ".bak");
             }
             catch { }
             return true;
@@ -324,7 +324,7 @@ namespace BeatSyncLib.Playlists.Legacy
         public void PopulateFromFile(string path, bool updateFilePath = true)
         {
             if (string.IsNullOrEmpty(path))
-                path = FileName;
+                path = FilePath;
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path), "A path must be provided for playlists that don't have one.");
             if (!File.Exists(path))

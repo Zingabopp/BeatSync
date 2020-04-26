@@ -30,7 +30,7 @@ namespace BeatSyncLibTests.Playlist_Tests
             string coverStr = "base64,ABCD";
             LegacyPlaylist playlist = new LegacyPlaylist("SetCover_String.bplist", "SetCover_String_Test", "PlaylistTests", coverStr);
             Assert.IsTrue(playlist.TryStore());
-            string path = Path.GetFullPath(playlist.FileName);
+            string path = Path.GetFullPath(playlist.FilePath);
             string imageStr = BeatSyncLib.Utilities.Util.ByteArrayToBase64(((MemoryStream)playlist.GetCoverStream()).ToArray());
             Assert.AreEqual(coverStr, imageStr);
         }

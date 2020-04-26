@@ -1,4 +1,5 @@
-﻿using SongFeedReaders.Data;
+﻿using BeatSyncLib.Playlists;
+using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,42 +13,40 @@ namespace BeatSyncLib.Downloader.Targets
     {
         public abstract string TargetName { get; }
         public int DestinationId { get; }
-        public bool TransferComplete { get; protected set; }
         public TargetResult TargetResult { get; protected set; }
+        public PlaylistManager PlaylistManager { get; protected set; }
 
         protected SongTarget(int destinationId)
         {
             DestinationId = destinationId;
         }
 
-        public abstract Task<bool> CheckSongExistsAsync();
+        public abstract Task<SongState> CheckSongExistsAsync(string songHash);
+
+        public virtual Task<SongState> CheckSongExistsAsync(ISong song) => CheckSongExistsAsync(song.Hash);
 
         /// <summary>
-        /// 
+        /// Transfers a song zip file to a target. All exceptions are caught and returned in <see cref="TargetResult.Exception"/>.
         /// </summary>
-        /// <param name="sourceStream"></param>
+        /// <param name="song">Metadata for the song.</param>
+        /// <param name="sourceStream">Stream of the zip file containing the song.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task<TargetResult> TransferAsync(Stream sourceStream, CancellationToken cancellationToken);
+        public abstract Task<TargetResult> TransferAsync(ISong song, Stream sourceStream, CancellationToken cancellationToken);
         /// <summary>
-        /// 
+        /// Transfers a song zip file to a target. All exceptions are caught and returned in <see cref="TargetResult.Exception"/>.
         /// </summary>
-        /// <param name="sourceStream"></param>
+        /// <param name="song">Metadata for the song.</param>
+        /// <param name="sourceStream">Stream of the zip file containing the song.</param>
         /// <returns></returns>
-        public Task<TargetResult> TransferAsync(Stream sourceStream) => TransferAsync(sourceStream, CancellationToken.None);
+        public Task<TargetResult> TransferAsync(ISong song, Stream sourceStream) => TransferAsync(song, sourceStream, CancellationToken.None);
     }
 
-    public class TargetResult
+    public enum SongState
     {
-        public bool Success { get; protected set; }
-        public SongTarget Target { get; }
-        public Exception Exception { get; protected set; }
-        public TargetResult(SongTarget target, bool success, Exception exception)
-        {
-            Target = target;
-            Success = success;
-            Exception = exception;
-        }
+        Wanted = 0,
+        Exists = 1,
+        NotWanted = 2
     }
 
     public class SongTargetTransferException : Exception

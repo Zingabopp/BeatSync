@@ -116,9 +116,9 @@ namespace BeatSyncLib.Playlists.Legacy
         {
             if (playlist == null)
                 throw new ArgumentNullException(nameof(playlist), "playlist cannot be null for PlaylistSong.AddPlaylist");
-            if (string.IsNullOrEmpty(playlist.FileName))
+            if (string.IsNullOrEmpty(playlist.FilePath))
                 throw new ArgumentException("playlist FileName cannot be null or empty for PlaylistSong.AddPlaylist");
-            if (!_associatedPlaylists.Any(p => p.FileName == playlist.FileName))
+            if (!_associatedPlaylists.Any(p => p.FilePath == playlist.FilePath))
                 _associatedPlaylists.Add(playlist);
         }
 

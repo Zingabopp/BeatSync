@@ -11,7 +11,7 @@ namespace BeatSyncLib.Playlists
         string Title { get; set; }
         string Author { get; set; }
         string Description { get; set; }
-        string FileName { get; set; }
+        string FilePath { get; set; }
         Stream GetCoverStream();
         int Count { get; }
         IPlaylistSong[] GetPlaylistSongs();

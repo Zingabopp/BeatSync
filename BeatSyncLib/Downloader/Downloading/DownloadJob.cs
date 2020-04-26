@@ -53,10 +53,11 @@ namespace BeatSyncLib.Downloader.Downloading
         private CancellationToken _runCancellationToken;
 
         /// <summary>
-        /// Private constructor to use with the others.
+        /// 
         /// </summary>
+        /// <param name="container"></param>
+        /// <param name="jobFinishedCallback"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        /// <param name="targetFile"></param>
         private DownloadJob(DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
         {
             if (container == null)
@@ -80,33 +81,36 @@ namespace BeatSyncLib.Downloader.Downloading
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="song"></param>
+        /// <param name="container"></param>
+        /// <param name="jobFinishedCallback"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        /// <param name="song"></param>
-        /// <param name="customLevelsPath"></param>
-        public DownloadJob(IPlaylistSong song, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
+        public DownloadJob(ISong song, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
             : this(container, jobFinishedCallback)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "song cannot be null.");
-            if (string.IsNullOrEmpty(song.Hash))
-                throw new ArgumentException("PlaylistSong's hash cannot be null.", nameof(song));
+            if (string.IsNullOrEmpty(song.Hash) && string.IsNullOrEmpty(song.Key))
+                throw new ArgumentException("ISong must have a Hash or Key.", nameof(song));
             //Song = song;
             SongHash = song.Hash;
             SongKey = song.Key;
             SongName = song.Name;
             LevelAuthorName = song.LevelAuthorName;
         }
+
         /// <summary>
         /// 
         /// </summary>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentException"></exception>
         /// <param name="songHash"></param>
         /// <param name="songName"></param>
         /// <param name="songKey"></param>
         /// <param name="mapperName"></param>
-        /// <param name="customLevelsPath"></param>
+        /// <param name="container"></param>
+        /// <param name="jobFinishedCallback"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public DownloadJob(string songHash, string songName, string songKey, string mapperName, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
             : this(container, jobFinishedCallback)
         {
@@ -117,23 +121,6 @@ namespace BeatSyncLib.Downloader.Downloading
             SongName = songName;
             LevelAuthorName = mapperName;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentException"></exception>
-        /// <param name="song"></param>
-        /// <param name="targetDirectory"></param>
-        public DownloadJob(ISong song, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
-            : this(container, jobFinishedCallback)
-        {
-            SongHash = song.Hash;
-            SongKey = song.Key;
-            SongName = song.Name;
-            LevelAuthorName = song.LevelAuthorName;
-        }
-
 
         public async Task<DownloadResult> RunAsync(CancellationToken cancellationToken)
         {
@@ -220,14 +207,13 @@ namespace BeatSyncLib.Downloader.Downloading
         }
 
         /// <summary>
-        /// Attempts to download a song to the specified target path.
+        /// Attempts to download a song to the specified <see cref="DownloadContainer"/>.
         /// </summary>
-        /// <param name="downloadContainer">Full path to the downloaded file.</param>
+        /// <param name="downloadContainer">Target container for the download.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<DownloadResult> DownloadSongAsync(DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
-            DownloadResult result = null;
             string stringForUri = null;
             Uri downloadUri;
             try
@@ -235,16 +221,16 @@ namespace BeatSyncLib.Downloader.Downloading
                 if (!string.IsNullOrEmpty(SongHash))
                     stringForUri = BeatSaverHashDownloadUrlBase + SongHash.ToLower();
                 else if (!string.IsNullOrEmpty(SongKey))
-                    stringForUri = BeatSaverDownloadUrlKeyBase + SongKey.ToLower();
+                    stringForUri = BeatSaverKeyDownloadUrlBase + SongKey.ToLower();
                 else
                     return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "No SongHash or SongKey provided to the DownloadJob.");
                 downloadUri = new Uri(stringForUri);
             }
-            catch (Exception ex)
+            catch (FormatException ex)
             {
                 return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, $"Could not create a valid Uri from '{stringForUri}'.", ex);
             }
-            result = await FileIO.DownloadFileAsync(downloadUri, downloadContainer, cancellationToken).ConfigureAwait(false);
+            DownloadResult result = await FileIO.DownloadFileAsync(downloadUri, downloadContainer, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
@@ -255,7 +241,7 @@ namespace BeatSyncLib.Downloader.Downloading
                 retStr = $"({SongKey}) ";
             retStr += $"{SongName} by {LevelAuthorName}";
 #if DEBUG
-            retStr += $"({Status.ToString()})";
+            retStr += $"({Status})";
 #endif
             return retStr;
         }
