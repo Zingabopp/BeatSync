@@ -11,14 +11,26 @@ namespace BeatSyncLib.Downloader.Targets
 {
     public abstract class SongTarget
     {
+        private static object _idLock = new object();
+        private static int _nextDestinationId = 0;
+        protected static int GetNextDestinationId()
+        {
+            int nextId = 0;
+            lock (_idLock)
+            {
+                nextId = _nextDestinationId;
+                _nextDestinationId++;
+            }
+            return nextId;
+        }
         public abstract string TargetName { get; }
         public int DestinationId { get; }
-        public TargetResult TargetResult { get; protected set; }
-        public PlaylistManager PlaylistManager { get; protected set; }
+        public TargetResult? TargetResult { get; protected set; }
+        public PlaylistManager? PlaylistManager { get; protected set; }
 
-        protected SongTarget(int destinationId)
+        protected SongTarget()
         {
-            DestinationId = destinationId;
+            DestinationId = GetNextDestinationId();
         }
 
         public abstract Task<SongState> CheckSongExistsAsync(string songHash);

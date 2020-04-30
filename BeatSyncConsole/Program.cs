@@ -39,12 +39,15 @@ namespace BeatSyncConsole
             IDownloadJobFactory downloadJobFactory = new DownloadJobFactory(song =>
             {
                 // return new DownloadMemoryContainer();
-                return new DownloadFileContainer(Path.Combine(tempDirectory, (song.Key ?? song.Hash) + ".zip"));
+                return new FileDownloadContainer(Path.Combine(tempDirectory, (song.Key ?? song.Hash) + ".zip"));
             });
             IJobBuilder jobBuilder = new JobBuilder().SetDownloadJobFactory(downloadJobFactory);
             foreach (SongLocation location in Config.CustomSongsPaths.Where(l => l.Enabled).ToArray())
             {
-                DirectoryTargetFactorySettings targetFactorySettings = new DirectoryTargetFactorySettings() { OverwriteTarget = false };
+                bool overwriteTarget = false;
+                HistoryManager? historyManager = null;
+                SongHasher? songHasher = null;
+                PlaylistManager? playlistManager = null;
                 if (!string.IsNullOrEmpty(location.HistoryPath))
                 {
                     string historyPath = location.HistoryPath;
@@ -52,10 +55,8 @@ namespace BeatSyncConsole
                         historyPath = Path.Combine(location.BasePath, historyPath);
                     string historyDirectory = Path.GetDirectoryName(historyPath);
                     Directory.CreateDirectory(Path.GetDirectoryName(historyPath));
-                    HistoryManager historyManager = new HistoryManager(historyPath);
+                    historyManager = new HistoryManager(historyPath);
                     historyManager.Initialize();
-                    targetFactorySettings.HistoryManager = historyManager;
-                    HistoryManagers.Add(historyManager);
                 }
                 if (!string.IsNullOrEmpty(location.PlaylistDirectory))
                 {
@@ -63,16 +64,15 @@ namespace BeatSyncConsole
                     if (!Path.IsPathFullyQualified(playlistDirectory))
                         playlistDirectory = Path.Combine(location.BasePath, playlistDirectory);
                     Directory.CreateDirectory(playlistDirectory);
-                    PlaylistManager playlistManager = new PlaylistManager(location.PlaylistDirectory);
-                    PlaylistManagers.Add(playlistManager);
+                    playlistManager = new PlaylistManager(location.PlaylistDirectory);
                 }
                 string songsDirectory = location.SongsDirectory;
                 if (!Path.IsPathFullyQualified(songsDirectory))
                     songsDirectory = Path.Combine(location.BasePath, songsDirectory);
-                targetFactorySettings.SongHasher = new SongHasher<SongHashData>(songsDirectory);
+                songHasher = new SongHasher<SongHashData>(songsDirectory);
                 Directory.CreateDirectory(songsDirectory);
-                SongTargetFactory targetFactory = new DirectoryTargetFactory(songsDirectory, targetFactorySettings);
-                jobBuilder.AddTargetFactory(targetFactory);
+                SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
+                jobBuilder.AddTarget(songTarget);
             }
             JobFinishedAsyncCallback jobFinishedCallback = new JobFinishedAsyncCallback(async (JobResult c) =>
             {

@@ -12,10 +12,10 @@ namespace BeatSyncLib.Downloader
     public interface IJobBuilder
     {
         IJobBuilder SetDownloadJobFactory(IDownloadJobFactory downloadJobFactory);
-        IJobBuilder AddTargetFactory(SongTargetFactory songTargetFactory);
+        IJobBuilder AddTarget(SongTarget songTarget);
         IJobBuilder SetDefaultJobFinishedAsyncCallback(JobFinishedAsyncCallback jobFinishedCallback);
 
-        Job CreateJob(ISong song, IProgress<JobProgress> progress = null, JobFinishedAsyncCallback finishedCallback = null);
+        Job CreateJob(ISong song, IProgress<JobProgress>? progress = null, JobFinishedAsyncCallback? finishedCallback = null);
     }
 
     public interface IJob
@@ -75,12 +75,12 @@ namespace BeatSyncLib.Downloader
         public readonly JobStage JobStage;
         public readonly ProgressValue TotalProgress;
         public readonly ProgressValue? StageProgress;
-        public readonly IDownloadJob DownloadJob;
-        public readonly SongTarget SongTarget;
-        public readonly DownloadResult DownloadResult;
-        public readonly TargetResult TargetResult;
+        public readonly IDownloadJob? DownloadJob;
+        public readonly SongTarget? SongTarget;
+        public readonly DownloadResult? DownloadResult;
+        public readonly TargetResult? TargetResult;
         public JobProgress(JobProgressType jobProgressType, JobStage jobStage, ProgressValue totalProgress, ProgressValue? stageProgress = null, 
-            IDownloadJob downloadJob = null, SongTarget songTarget = null, DownloadResult downloadResult = null, TargetResult targetResult = null)
+            IDownloadJob? downloadJob = null, SongTarget? songTarget = null, DownloadResult? downloadResult = null, TargetResult? targetResult = null)
         {
             JobProgressType = jobProgressType;
             JobStage = jobStage;

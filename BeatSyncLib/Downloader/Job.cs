@@ -106,17 +106,17 @@ namespace BeatSyncLib.Downloader
             JobState = JobState.Running;
             if (CancellationToken.CanBeCanceled)
             {
-                CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationToken);
+                CancellationTokenSource? cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationToken);
                 cancellationToken = cts.Token;
                 cts.Dispose();
                 cts = null;
             }
             JobStage = JobStage.Downloading;
-            Exception exception = null;
+            Exception? exception = null;
             bool canceled = false;
             EventHandler handler = JobStarted;
             handler?.Invoke(this, null);
-            DownloadContainer downloadContainer = null;
+            DownloadContainer? downloadContainer = null;
             List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
             List<SongTarget> pendingTargets = new List<SongTarget>(_targets.Length);
             foreach (var target in _targets)

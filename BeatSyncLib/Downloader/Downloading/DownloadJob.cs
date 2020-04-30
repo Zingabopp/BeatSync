@@ -24,7 +24,7 @@ namespace BeatSyncLib.Downloader.Downloading
         private DownloadResult _downloadResult;
 
         //public PlaylistSong Song { get; private set; }
-        public string FileLocation => (DownloadResult?.DownloadContainer as DownloadFileContainer)?.FilePath;
+        public string FileLocation => (DownloadResult?.DownloadContainer as FileDownloadContainer)?.FilePath;
         public string SongHash { get; private set; }
         public string SongKey { get; private set; }
         public string SongName { get; private set; }

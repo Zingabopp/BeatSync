@@ -2,8 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<ReferencePath>$(ProjectDir)..\Refs</ReferencePath>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
+	  <ReferencePath>$(ProjectDir)..\Refs</ReferencePath>
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

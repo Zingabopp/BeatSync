@@ -18,8 +18,8 @@ namespace BeatSyncLib.Downloader.Targets
         public string SongsDirectory { get; private set; }
         public bool OverwriteTarget { get; private set; }
 
-        protected DirectoryTarget(int destinationId, string songsDirectory, bool overwriteTarget, SongHasher songHasher, HistoryManager historyManager, PlaylistManager playlistManager)
-            : base(destinationId)
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, SongHasher songHasher, HistoryManager historyManager, PlaylistManager playlistManager)
+            : base()
         {
             SongsDirectory = Path.GetFullPath(songsDirectory);
             SongHasher = songHasher;
