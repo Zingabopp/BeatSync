@@ -26,7 +26,6 @@ namespace BeatSyncLib.Downloader.Targets
         public abstract string TargetName { get; }
         public int DestinationId { get; }
         public TargetResult? TargetResult { get; protected set; }
-        public PlaylistManager? PlaylistManager { get; protected set; }
 
         protected SongTarget()
         {

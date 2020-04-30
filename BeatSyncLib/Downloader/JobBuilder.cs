@@ -13,6 +13,8 @@ namespace BeatSyncLib.Downloader
         private IDownloadJobFactory _downloadJobFactory;
         private JobFinishedAsyncCallback _finishedCallback;
 
+        public IEnumerable<SongTarget> SongTargets => _songTargets.ToArray();
+
         public void EnsureValidState()
         {
             if (_songTargets.Count == 0)

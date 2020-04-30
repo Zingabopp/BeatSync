@@ -17,7 +17,6 @@ namespace BeatSyncLib.Playlists
         public string PlaylistPath { get; protected set; }
         public string DisabledPlaylistsPath => Path.Combine(PlaylistPath, "DisabledPlaylists");
         public static readonly string[] PlaylistExtensions = new string[] { ".blist", ".bplist", ".json" };
-
         protected PlaylistManager()
         {
             RegisterHandler(new LegacyPlaylistHandler());

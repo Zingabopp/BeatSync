@@ -13,6 +13,7 @@ using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeatSaver;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -27,8 +28,6 @@ namespace BeatSyncConsole
         internal static readonly string HistoryPath = "history.json";
         internal static readonly string ConfigBackupPath = "config.json.bak";
 
-        internal static List<HistoryManager> HistoryManagers = new List<HistoryManager>();
-        internal static List<PlaylistManager> PlaylistManagers = new List<PlaylistManager>();
         internal static JobManager manager = new JobManager(1);
         internal static IJobBuilder JobBuilder;
         internal static Config Config;
@@ -53,10 +52,17 @@ namespace BeatSyncConsole
                     string historyPath = location.HistoryPath;
                     if (!Path.IsPathFullyQualified(historyPath))
                         historyPath = Path.Combine(location.BasePath, historyPath);
-                    string historyDirectory = Path.GetDirectoryName(historyPath);
-                    Directory.CreateDirectory(Path.GetDirectoryName(historyPath));
-                    historyManager = new HistoryManager(historyPath);
-                    historyManager.Initialize();
+                    string historyDirectory = Path.GetDirectoryName(historyPath) ?? string.Empty;
+                    try
+                    {
+                        Directory.CreateDirectory(historyDirectory);
+                        historyManager = new HistoryManager(historyPath);
+                        historyManager.Initialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Unable to initialize HistoryManager at '{historyPath}': {ex.Message}");
+                    }
                 }
                 if (!string.IsNullOrEmpty(location.PlaylistDirectory))
                 {
@@ -64,12 +70,13 @@ namespace BeatSyncConsole
                     if (!Path.IsPathFullyQualified(playlistDirectory))
                         playlistDirectory = Path.Combine(location.BasePath, playlistDirectory);
                     Directory.CreateDirectory(playlistDirectory);
-                    playlistManager = new PlaylistManager(location.PlaylistDirectory);
+                    playlistManager = new PlaylistManager(playlistDirectory);
                 }
                 string songsDirectory = location.SongsDirectory;
                 if (!Path.IsPathFullyQualified(songsDirectory))
                     songsDirectory = Path.Combine(location.BasePath, songsDirectory);
                 songHasher = new SongHasher<SongHashData>(songsDirectory);
+                songHasher.InitializeAsync().GetAwaiter().GetResult();
                 Directory.CreateDirectory(songsDirectory);
                 SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
                 jobBuilder.AddTarget(songTarget);
@@ -83,10 +90,11 @@ namespace BeatSyncConsole
                 else
                 {
                     HistoryEntry entry = c.CreateHistoryEntry();
-                    foreach (HistoryManager histManager in HistoryManagers)
+                    foreach (SongTarget target in jobBuilder.SongTargets)
                     {
                         // Add entry to history, this should only succeed for jobs that didn't get to the targets.
-                        histManager.TryAdd(c.Song.Hash, entry);
+                        if (target is ITargetWithHistory targetWithHistory && targetWithHistory.HistoryManager != null)
+                            targetWithHistory.HistoryManager.TryAdd(c.Song.Hash, entry);
                     }
                     Console.WriteLine($"Job failed: {c.Song}");
                 }
@@ -262,13 +270,9 @@ namespace BeatSyncConsole
             BeatSyncLib.Configs.BeatSaverConfig config = Config.BeatSyncConfig.BeatSaver;
             BeatSaverReader reader = new SongFeedReaders.Readers.BeatSaver.BeatSaverReader(config.MaxConcurrentPageChecks);
             List<BuiltInPlaylist> playlists = new List<BuiltInPlaylist>();
-            if (config.FavoriteMappers.Enabled)
-            {
-                BeatSaverFeedSettings favoriteMappersSettings = (BeatSaverFeedSettings)config.FavoriteMappers.ToFeedSettings();
-                //ProcessResults(await reader.GetSongsFromFeedAsync(config.FavoriteMappers.ToFeedSettings()).ConfigureAwait(false));
-            }
             if (config.Hot.Enabled)
             {
+                Console.WriteLine("  Starting Hot feed...");
                 playlists.Clear();
                 if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
                     playlists.Add(BuiltInPlaylist.BeatSyncAll);
@@ -279,6 +283,7 @@ namespace BeatSyncConsole
             }
             if (config.Downloads.Enabled)
             {
+                Console.WriteLine("  Starting Downloads feed...");
                 playlists.Clear();
                 if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
                     playlists.Add(BuiltInPlaylist.BeatSyncAll);
@@ -288,6 +293,7 @@ namespace BeatSyncConsole
             }
             if (config.FavoriteMappers.Enabled)
             {
+                Console.WriteLine("  Starting FavoriteMappers feed...");
                 playlists.Clear();
                 if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
                     playlists.Add(BuiltInPlaylist.BeatSyncAll);
@@ -325,9 +331,10 @@ namespace BeatSyncConsole
                 {
                     ISong song = jobResult.Song;
                     Console.WriteLine($"Downloaded {song} successfully.");
+                    PlaylistManager[] playlistManagers = jobResult.TargetResults.Where(r => r.Success && r.Target is ITargetWithPlaylists).Select(r => ((ITargetWithPlaylists)r.Target).PlaylistManager).ToArray();
                     foreach (BuiltInPlaylist playlist in playlists)
                     {
-                        foreach (PlaylistManager playlistManager in PlaylistManagers)
+                        foreach (PlaylistManager playlistManager in playlistManagers)
                         {
                             playlistManager.GetPlaylist(playlist).TryAdd(song);
                         }
@@ -379,28 +386,29 @@ namespace BeatSyncConsole
             manager = new JobManager(Config.BeatSyncConfig.MaxConcurrentDownloads);
             manager.Start(CancellationToken.None);
             JobBuilder = CreateJobBuilder();
-            foreach (HistoryManager historyManager in HistoryManagers)
-            {
-                historyManager.Initialize();
-            }
+
             await GetBeatSaverAsync().ConfigureAwait(false);
 
             await manager.CompleteAsync().ConfigureAwait(false);
-            foreach (PlaylistManager playlistManager in PlaylistManagers)
+            foreach (var target in JobBuilder.SongTargets)
             {
-                playlistManager.WriteAllPlaylists();
-            }
-            foreach (HistoryManager historyManager in HistoryManagers)
-            {
-                try
+                if (target is ITargetWithPlaylists targetWithPlaylists)
                 {
-                    historyManager.WriteToFile();
+                    targetWithPlaylists.PlaylistManager?.WriteAllPlaylists();
                 }
-                catch (Exception ex)
+                if (target is ITargetWithHistory targetWithHistory)
                 {
-                    Console.WriteLine($"Unable to save history at '{historyManager.HistoryPath}': {ex.Message}");
+                    try
+                    {
+                        targetWithHistory.HistoryManager?.WriteToFile();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Unable to save history at '{targetWithHistory.HistoryManager?.HistoryPath}': {ex.Message}");
+                    }
                 }
             }
+
             Console.WriteLine("Press any key to continue...");
             Console.Read();
         }

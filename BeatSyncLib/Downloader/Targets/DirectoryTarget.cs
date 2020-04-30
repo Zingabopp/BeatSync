@@ -10,15 +10,16 @@ using System.Threading.Tasks;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public class DirectoryTarget : SongTarget
+    public class DirectoryTarget : SongTarget, ITargetWithHistory, ITargetWithPlaylists
     {
         public override string TargetName => nameof(DirectoryTarget);
-        public SongHasher SongHasher { get; private set; }
-        public HistoryManager HistoryManager { get; private set; }
-        public string SongsDirectory { get; private set; }
-        public bool OverwriteTarget { get; private set; }
+        public SongHasher SongHasher { get; protected set; }
+        public HistoryManager? HistoryManager { get; protected set; }
+        public PlaylistManager? PlaylistManager { get; protected set; }
+        public string SongsDirectory { get; protected set; }
+        public bool OverwriteTarget { get; protected set; }
 
-        public DirectoryTarget(string songsDirectory, bool overwriteTarget, SongHasher songHasher, HistoryManager historyManager, PlaylistManager playlistManager)
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, SongHasher songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
             : base()
         {
             SongsDirectory = Path.GetFullPath(songsDirectory);
