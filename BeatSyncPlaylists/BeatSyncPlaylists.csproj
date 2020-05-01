@@ -7,6 +7,75 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icons\BeastSaber\baseline_bookmarks_black_18dp.png" />
+    <None Remove="Icons\BeastSaber\baseline_stars_black_18dp.png" />
+    <None Remove="Icons\BeastSaber\baseline_visibility_black_18dp.png" />
+    <None Remove="Icons\BeastSaber\BeatSyncBSaber.png" />
+    <None Remove="Icons\BeastSaber\BSaberBookmarks.png" />
+    <None Remove="Icons\BeastSaber\BSaberCurator.png" />
+    <None Remove="Icons\BeastSaber\BSaberFollows.png" />
+    <None Remove="Icons\BeatSaver\baseline_bookmarks_black_18dp.png" />
+    <None Remove="Icons\BeatSaver\baseline_cloud_download_black_18dp.png" />
+    <None Remove="Icons\BeatSaver\baseline_event_available_black_18dp.png" />
+    <None Remove="Icons\BeatSaver\baseline_play_circle_outline_black_18dp.png" />
+    <None Remove="Icons\BeatSaver\baseline_visibility_black_18dp.png" />
+    <None Remove="Icons\BeatSaver\baseline_whatshot_black_18dp.png" />
+    <None Remove="Icons\BeatSaver\BeatSaverDownloads.png" />
+    <None Remove="Icons\BeatSaver\BeatSaverFavoriteMappers.png" />
+    <None Remove="Icons\BeatSaver\BeatSaverHot.png" />
+    <None Remove="Icons\BeatSaver\BeatSaverLatest.png" />
+    <None Remove="Icons\BeatSaver\BeatSaverMapper.png" />
+    <None Remove="Icons\BeatSaver\BeatSaverPlays.png" />
+    <None Remove="Icons\BeatSync\baseline_event_available_black_18dp.png" />
+    <None Remove="Icons\BeatSync\BeatSyncAll.png" />
+    <None Remove="Icons\BeatSync\BeatSyncRecent.png" />
+    <None Remove="Icons\ScoreSaber\baseline_event_available_black_18dp.png" />
+    <None Remove="Icons\ScoreSaber\baseline_play_circle_outline_black_18dp.png" />
+    <None Remove="Icons\ScoreSaber\baseline_stars_black_18dp.png" />
+    <None Remove="Icons\ScoreSaber\baseline_trending_up_black_18dp.png" />
+    <None Remove="Icons\ScoreSaber\ScoreSaberLatestRanked.png" />
+    <None Remove="Icons\ScoreSaber\ScoreSaberTopPlayed.png" />
+    <None Remove="Icons\ScoreSaber\ScoreSaberTopRanked.png" />
+    <None Remove="Icons\ScoreSaber\ScoreSaberTrending.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icons\BeastSaber\baseline_bookmarks_black_18dp.png" />
+    <Content Include="Icons\BeastSaber\baseline_stars_black_18dp.png" />
+    <Content Include="Icons\BeastSaber\baseline_visibility_black_18dp.png" />
+    <Content Include="Icons\BeastSaber\BeatSyncBSaber.png" />
+    <Content Include="Icons\BeatSaver\baseline_bookmarks_black_18dp.png" />
+    <Content Include="Icons\BeatSaver\baseline_cloud_download_black_18dp.png" />
+    <Content Include="Icons\BeatSaver\baseline_event_available_black_18dp.png" />
+    <Content Include="Icons\BeatSaver\baseline_play_circle_outline_black_18dp.png" />
+    <Content Include="Icons\BeatSaver\baseline_visibility_black_18dp.png" />
+    <Content Include="Icons\BeatSaver\baseline_whatshot_black_18dp.png" />
+    <Content Include="Icons\BeatSync\baseline_event_available_black_18dp.png" />
+    <Content Include="Icons\ScoreSaber\baseline_event_available_black_18dp.png" />
+    <Content Include="Icons\ScoreSaber\baseline_play_circle_outline_black_18dp.png" />
+    <Content Include="Icons\ScoreSaber\baseline_stars_black_18dp.png" />
+    <Content Include="Icons\ScoreSaber\baseline_trending_up_black_18dp.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Icons\BeastSaber\BSaberBookmarks.png" />
+    <EmbeddedResource Include="Icons\BeastSaber\BSaberCurator.png" />
+    <EmbeddedResource Include="Icons\BeastSaber\BSaberFollows.png" />
+    <EmbeddedResource Include="Icons\BeatSaver\BeatSaverDownloads.png" />
+    <EmbeddedResource Include="Icons\BeatSaver\BeatSaverFavoriteMappers.png" />
+    <EmbeddedResource Include="Icons\BeatSaver\BeatSaverHot.png" />
+    <EmbeddedResource Include="Icons\BeatSaver\BeatSaverLatest.png" />
+    <EmbeddedResource Include="Icons\BeatSaver\BeatSaverMapper.png" />
+    <EmbeddedResource Include="Icons\BeatSaver\BeatSaverPlays.png" />
+    <EmbeddedResource Include="Icons\BeatSync\BeatSyncAll.png" />
+    <EmbeddedResource Include="Icons\BeatSync\BeatSyncRecent.png" />
+    <EmbeddedResource Include="Icons\ScoreSaber\ScoreSaberLatestRanked.png" />
+    <EmbeddedResource Include="Icons\ScoreSaber\ScoreSaberTopPlayed.png" />
+    <EmbeddedResource Include="Icons\ScoreSaber\ScoreSaberTopRanked.png" />
+    <EmbeddedResource Include="Icons\ScoreSaber\ScoreSaberTrending.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
