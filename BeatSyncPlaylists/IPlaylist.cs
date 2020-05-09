@@ -28,6 +28,10 @@ namespace BeatSyncPlaylists
         /// </summary>
         string Filename { get; set; }
         /// <summary>
+        /// Suggested file extension for the playlist. May be null.
+        /// </summary>
+        string? SuggestedExtension { get; set; }
+        /// <summary>
         /// Returns a <see cref="Stream"/> for the playlist cover image.
         /// </summary>
         /// <returns></returns>

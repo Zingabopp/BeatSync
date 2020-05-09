@@ -27,6 +27,7 @@ namespace BeatSyncPlaylists
         public abstract string? Author { get; set; }
         public abstract string? Description { get; set; }
         public abstract string Filename { get; set; }
+        public string? SuggestedExtension { get; set; }
         public bool IsDirty { get; set; }
         public bool AllowDuplicates { get; set; }
         public int Count => _songs.Count;

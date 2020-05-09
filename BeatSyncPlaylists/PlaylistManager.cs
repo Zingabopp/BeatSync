@@ -178,7 +178,10 @@ namespace BeatSyncPlaylists
         {
             if (PlaylistHandlers.TryGetValue(playlist.GetType(), out IPlaylistHandler playlistHandler))
             {
-                string fileName = playlist.Filename + "." + playlistHandler.DefaultExtension;
+                string extension = playlistHandler.DefaultExtension;
+                if (playlist.SuggestedExtension != null && playlistHandler.GetSupportedExtensions().Contains(playlist.SuggestedExtension))
+                    extension = playlist.SuggestedExtension;
+                string fileName = playlist.Filename + "." + extension;
                 Logger.log?.Debug($"Writing {fileName} to file.");
                 playlistHandler.SerializeToFile(playlist, Path.Combine(PlaylistPath, fileName));
                 playlist.MarkDirty(false);
@@ -203,19 +206,24 @@ namespace BeatSyncPlaylists
                 var defPlaylist = DefaultPlaylists[builtInPlaylist];
                 string[] files = Directory.GetFiles(PlaylistPath);
                 string file = files.FirstOrDefault(f => defPlaylist.Filename.Equals(Path.GetFileNameWithoutExtension(f), StringComparison.OrdinalIgnoreCase));
-
-                if (file != null && PlaylistExtensionHandlers.TryGetValue(Path.GetExtension(file).TrimStart('.'), out IPlaylistHandler handler))
+                string? fileExtension = null;
+                if(file != null)
+                    fileExtension = Path.GetExtension(file).TrimStart('.');
+                if (fileExtension != null && PlaylistExtensionHandlers.TryGetValue(fileExtension, out IPlaylistHandler handler))
                 {
+#pragma warning disable CS8604 // Possible null reference argument.
                     playlist = handler.Deserialize(file);
+                    playlist.SuggestedExtension = fileExtension;
+#pragma warning restore CS8604 // Possible null reference argument.
                     if (playlist == null)
                     {
                         playlist = defPlaylist;
-                        Logger.log?.Debug($"Playlist created with filename: {playlist.Filename}.");
+                        Logger.log?.Debug($"Playlist created with filename: {playlist.Filename}.{fileExtension}.");
                     }
                     else
                     {
-                        playlist.Filename = Path.GetFileName(file);
-                        Logger.log?.Debug($"Playlist loaded from file: {playlist.Filename} with {playlist.Count} songs.");
+                        playlist.Filename = Path.GetFileNameWithoutExtension(file);
+                        Logger.log?.Debug($"Playlist loaded from file: {playlist.Filename}.{fileExtension} with {playlist.Count} songs.");
                     }
                 }
                 else
