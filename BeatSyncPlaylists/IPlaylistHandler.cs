@@ -8,6 +8,7 @@ namespace BeatSyncPlaylists
     public interface IPlaylistHandler
     {
         string[] GetSupportedExtensions();
+        string DefaultExtension { get; }
         Type HandledType { get; }
         IPlaylist Deserialize(string path);
         IPlaylist Deserialize(Stream stream);

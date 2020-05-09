@@ -36,7 +36,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollectDependencies", "BS-P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyRenameStep", "BS-Plugin-BuildTools\AssemblyRenameStep\AssemblyRenameStep.csproj", "{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncPlaylists", "BeatSyncPlaylists\BeatSyncPlaylists.csproj", "{E1981AE8-0750-4D39-98A5-B60FBF010C32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncPlaylists", "BeatSyncPlaylists\BeatSyncPlaylists.csproj", "{E1981AE8-0750-4D39-98A5-B60FBF010C32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncPlaylistsTests", "BeatSyncPlaylistsTests\BeatSyncPlaylistsTests.csproj", "{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,6 +90,10 @@ Global
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

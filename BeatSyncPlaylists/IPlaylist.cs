@@ -24,7 +24,7 @@ namespace BeatSyncPlaylists
         /// </summary>
         string? Description { get; set; }
         /// <summary>
-        /// Filename without extension or path.
+        /// Filename without extension, does not include directory path.
         /// </summary>
         string Filename { get; set; }
         /// <summary>

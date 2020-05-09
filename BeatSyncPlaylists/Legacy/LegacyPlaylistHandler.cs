@@ -14,6 +14,8 @@ namespace BeatSyncPlaylists.Legacy
             return new string[] { "bplist", "json" };
         }
 
+        public string DefaultExtension => "bplist";
+
         public Type HandledType { get; } = typeof(LegacyPlaylist);
 
         public void Populate(Stream stream, LegacyPlaylist target)
@@ -43,7 +45,7 @@ namespace BeatSyncPlaylists.Legacy
         {
             using (StreamWriter sw = new StreamWriter(stream))
             {
-                jsonSerializer.Serialize(sw, playlist);
+                jsonSerializer.Serialize(sw, playlist, typeof(LegacyPlaylist));
             }
         }
 

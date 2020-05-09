@@ -5,174 +5,92 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace BeatSyncPlaylists.Legacy
 {
-    public class LegacyPlaylist : IPlaylist<LegacyPlaylistSong>
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    public class LegacyPlaylist : Playlist<LegacyPlaylistSong>
     {
-        private readonly List<LegacyPlaylistSong> _songs = new List<LegacyPlaylistSong>();
-
+        [DataMember]
+        [JsonProperty("songs", Order = 5)]
+        protected override IList<LegacyPlaylistSong> _songs { get; set; } = new List<LegacyPlaylistSong>();
+        private Lazy<string>? ImageLoader;
         protected LegacyPlaylist()
         { }
 
-        public IPlaylistSong this[int index]
+        protected LegacyPlaylist(string fileName, string title, string? author)
         {
-            get => _songs[index];
-
-            set
-            {
-                _songs[index] = ConvertFrom(value);
-            }
+            Filename = fileName;
+            Title = title;
+            Author = author;
         }
 
-        protected LegacyPlaylistSong ConvertFrom(ISong song)
+        public LegacyPlaylist(string fileName, string title, string? author, Lazy<string> imageLoader)
+            : this(fileName, title, author)
+        {
+            ImageLoader = imageLoader;
+        }
+
+        public LegacyPlaylist(string fileName, string title, string? author, string? coverImage)
+            : this(fileName, title, author)
+        {
+            SetCover(coverImage);
+        }
+
+        protected override LegacyPlaylistSong ConvertFrom(ISong song)
         {
             if (song is LegacyPlaylistSong legacySong)
                 return legacySong;
             return new LegacyPlaylistSong(song);
         }
 
-        public string Title { get; set; } = string.Empty;
-        public string? Author { get; set; }
-        public string? Description { get; set; }
-        public string Filename { get; set; } = string.Empty;
-        public bool IsDirty { get; set; }
-        public bool AllowDuplicates { get; set; }
-        public int Count => _songs.Count;
-        public bool IsReadOnly => false;
+        [DataMember]
+        [JsonProperty("playlistTitle", Order = -10)]
+        public override string Title { get; set; } = string.Empty;
+        [DataMember]
+        [JsonProperty("playlistAuthor", Order = -5)]
+        public override string? Author { get; set; }
+        [DataMember]
+        [JsonProperty("playlistDescription", Order = 0, NullValueHandling = NullValueHandling.Ignore)]
+        public override string? Description { get; set; }
+        [DataMember]
+        [JsonProperty("image", Order = 10)]
+        protected string coverString => ImageLoader?.Value ?? string.Empty;
+        public override string Filename { get; set; } = string.Empty;
 
-        public void Add(ISong song)
-        {
-            if (AllowDuplicates || (!_songs.Any(s => s.Hash == song.Hash || s.Key == song.Key)))
-            {
-                _songs.Add(ConvertFrom(song));
-                MarkDirty();
-            }
-        }
-
-        public void Add(string songHash, string? songName, string? songKey, string? mapper) =>
-            Add(new LegacyPlaylistSong(songHash, songName, songKey, mapper));
-
-        public void Add(IPlaylistSong item) => Add((ISong)item);
-
-        public void Clear()
-        {
-            _songs.Clear();
-            MarkDirty();
-        }
-
-        public bool Contains(IPlaylistSong item)
-        {
-            return _songs.Any(s => s.Equals(item));
-        }
-
-        public void CopyTo(IPlaylistSong[] array, int arrayIndex)
-        {
-            int index = arrayIndex;
-            foreach (var song in _songs)
-            {
-                array[index] = song;
-                index++;
-            }
-        }
-
-        public Stream GetCoverStream()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerator<IPlaylistSong> GetEnumerator()
-        {
-            return _songs.GetEnumerator();
-        }
-
-        public int IndexOf(IPlaylistSong item)
-        {
-            if (item is LegacyPlaylistSong legacySong)
-                return _songs.IndexOf(legacySong);
-            else
-                return -1;
-        }
-
-        public void Insert(int index, IPlaylistSong item)
-        {
-            _songs.Insert(index, ConvertFrom(item));
-            MarkDirty();
-        }
-
-        public void MarkDirty(bool dirty = true)
-        {
-            IsDirty = dirty;
-        }
-
-        public bool Remove(IPlaylistSong item)
-        {
-            bool songRemoved = false;
-            if (item is LegacyPlaylistSong legacySong)
-                songRemoved = _songs.Remove(legacySong);
-            else
-            {
-                LegacyPlaylistSong song = _songs.FirstOrDefault(s => s.Equals(item));
-                if (song != null)
-                    songRemoved = _songs.Remove(song);
-            }
-            if (songRemoved)
-                MarkDirty();
-            return songRemoved;
-        }
-
-        public int RemoveAll(Func<LegacyPlaylistSong, bool> match)
+        public override bool IsReadOnly => false;
+        public override int RemoveAll(Func<LegacyPlaylistSong, bool> match)
         {
             int removedSongs = 0;
             if (match != null)
-                removedSongs = _songs.RemoveAll(s => match(s));
+                removedSongs = ((List<LegacyPlaylistSong>)_songs).RemoveAll(s => match(s));
             if (removedSongs > 0)
                 MarkDirty();
             return removedSongs;
         }
 
-        public void RemoveAt(int index)
-        {
-            _songs.RemoveAt(index);
-            MarkDirty();
-        }
-
-        public void RemoveDuplicates()
+        public override Stream GetCoverStream()
         {
             throw new NotImplementedException();
         }
 
-        public void SetCover(byte[] coverImage)
+        public override void SetCover(byte[] coverImage)
         {
             throw new NotImplementedException();
         }
 
-        public void SetCover(string coverImageStr)
+        public override void SetCover(string? coverImageStr)
+        {
+            if (coverImageStr == null)
+                return;
+            ImageLoader = new Lazy<string>(() => coverImageStr);
+        }
+
+        public override void SetCover(Stream stream)
         {
             throw new NotImplementedException();
-        }
-
-        public void SetCover(Stream stream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool TryRemoveByHash(string songHash)
-        {
-            songHash = songHash.ToUpper();
-            return RemoveAll(s => s.Hash == songHash) > 0;
-        }
-
-        public bool TryRemoveByKey(string songKey)
-        {
-            songKey = songKey.ToLower();
-            return RemoveAll(s => s.Key == songKey) > 0;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _songs.GetEnumerator();
         }
     }
 }
