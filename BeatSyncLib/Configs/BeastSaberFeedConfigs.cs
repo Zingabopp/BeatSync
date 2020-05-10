@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BeatSyncLib.Playlists;
+using BeatSyncPlaylists;
 using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeastSaber;
 

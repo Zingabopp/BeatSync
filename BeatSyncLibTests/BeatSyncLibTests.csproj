@@ -55,9 +55,6 @@
     <Compile Include="HistoryManager_Tests\TryGetValue_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
     <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
-    <Compile Include="PlaylistManager_Tests\BasicTests.cs" />
-    <Compile Include="Playlist_Tests\BlisterTests.cs" />
-    <Compile Include="Playlist_Tests\PlaylistTests.cs" />
     <Compile Include="SongHasher_Tests\AddMissingHashes_Tests.cs" />
     <Compile Include="SongHasher_Tests\GetSongHashData_Tests.cs" />
     <Compile Include="SongHasher_Tests\LoadCachedSongHashesAsync_Test.cs" />
@@ -78,6 +75,10 @@
     <ProjectReference Include="..\BeatSyncLib\BeatSyncLib.csproj">
       <Project>{e2a07bdb-7085-48a3-aa50-b6e0856a7cca}</Project>
       <Name>BeatSyncLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BeatSyncPlaylists\BeatSyncPlaylists.csproj">
+      <Project>{e1981ae8-0750-4d39-98a5-b60fbf010c32}</Project>
+      <Name>BeatSyncPlaylists</Name>
     </ProjectReference>
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj">
       <Project>{460a61bc-c89a-433d-a9e2-37447694d76c}</Project>

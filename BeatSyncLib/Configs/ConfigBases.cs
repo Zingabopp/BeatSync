@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using SongFeedReaders.Readers;
+using BeatSyncPlaylists;
 
 namespace BeatSyncLib.Configs
 {
@@ -159,7 +160,7 @@ namespace BeatSyncLib.Configs
         [JsonIgnore]
         private PlaylistStyle? _playlistStyle;
         [JsonIgnore]
-        private Playlists.BuiltInPlaylist? _feedPlaylist;
+        private BuiltInPlaylist? _feedPlaylist;
 
         [JsonIgnore]
         protected abstract bool DefaultEnabled { get; }
@@ -170,7 +171,7 @@ namespace BeatSyncLib.Configs
         [JsonIgnore]
         protected abstract PlaylistStyle DefaultPlaylistStyle { get; }
         [JsonIgnore]
-        protected abstract Playlists.BuiltInPlaylist DefaultFeedPlaylist { get; }
+        protected abstract BuiltInPlaylist DefaultFeedPlaylist { get; }
 
         [JsonProperty(Order = -100)]
         public bool Enabled
@@ -261,7 +262,7 @@ namespace BeatSyncLib.Configs
             }
         }
         [JsonIgnore]
-        public Playlists.BuiltInPlaylist FeedPlaylist
+        public BuiltInPlaylist FeedPlaylist
         {
             get
             {

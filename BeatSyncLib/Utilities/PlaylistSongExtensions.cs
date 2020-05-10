@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BeatSyncLib.Downloader;
-using BeatSyncLib.Playlists;
+using BeatSyncPlaylists;
 using SongFeedReaders;
 using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Readers;

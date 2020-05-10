@@ -1,6 +1,6 @@
 ﻿using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
-using BeatSyncLib.Playlists;
+using BeatSyncPlaylists;
 using BeatSyncLib.Utilities;
 using SongFeedReaders.Data;
 using System;

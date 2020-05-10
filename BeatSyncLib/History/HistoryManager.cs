@@ -1,4 +1,4 @@
-﻿using BeatSyncLib.Playlists;
+﻿using BeatSyncPlaylists;
 using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
