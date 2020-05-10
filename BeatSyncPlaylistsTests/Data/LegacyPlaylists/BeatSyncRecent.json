@@ -1,7 +1,7 @@
 {
-  "playlistTitle": "BeatSync Playlist",
+  "playlistTitle": "BeatSync Recent",
   "playlistAuthor": "BeatSync",
-  "playlistDescription": "Every song BeatSync has downloaded.",
+  "playlistDescription": "Recently downloaded BeatSync songs.",
   "songs": [
     {
       "key": "a",

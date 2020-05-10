@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <None Remove="Data\LegacyPlaylists\BeatSyncPlaylist.bplist" />
+    <None Remove="Data\LegacyPlaylists\BeatSyncRecent.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Data\LegacyPlaylists\BeatSyncRecent.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Data\LegacyPlaylists\BeatSyncPlaylist.bplist">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

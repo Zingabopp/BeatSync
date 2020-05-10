@@ -6,9 +6,9 @@ using System.IO;
 namespace BeatSyncPlaylistsTests.Manager
 {
     [TestClass]
-    public class PlaylistReading
+    public class PlaylistSaving
     {
-        static PlaylistReading()
+        static PlaylistSaving()
         {
             TestSetup.Setup();
             DirectorySetup();
@@ -44,15 +44,26 @@ namespace BeatSyncPlaylistsTests.Manager
         }
 
         [TestMethod]
-        public void GetJsonBeatSyncRecent()
+        public void SaveJsonBeatSyncRecent()
         {
-            PlaylistManager manager = new PlaylistManager(TestPlaylistDirectory);
-            IPlaylist playlist = manager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
+            PlaylistManager readManager = new PlaylistManager(TestPlaylistDirectory);
+            IPlaylist playlist = readManager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
             Assert.AreEqual("BeatSync Recent", playlist.Title);
             Assert.AreEqual("BeatSync", playlist.Author);
             Assert.AreEqual("BeatSyncRecent", playlist.Filename);
             Assert.AreEqual("Recently downloaded BeatSync songs.", playlist.Description);
             Assert.AreEqual(1, playlist.Count);
+
+            PlaylistManager manager = new PlaylistManager(PlaylistDirectory);
+            playlist.Add(new LegacyPlaylistSong("FDSA", "AddedSong", "b", "AddedMapper"));
+            manager.StorePlaylist(playlist);
+            string fileName = Path.Combine(PlaylistDirectory, playlist.Filename + ".json");
+            Assert.IsTrue(File.Exists(fileName));
+
+            manager = new PlaylistManager(PlaylistDirectory);
+            playlist = manager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
+            Assert.AreEqual(2, playlist.Count);
+            Assert.AreEqual("AddedSong", playlist[1].Name);
         }
     }
 }
