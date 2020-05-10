@@ -163,13 +163,11 @@ namespace BeatSyncPlaylists
                     StorePlaylist(playlist);
                 }
             }
-            var customPlaylistKeys = CustomPlaylists.Keys;
-            foreach (var key in customPlaylistKeys)
+            foreach (IPlaylist customPlaylist in CustomPlaylists.Values)
             {
-                IPlaylist playlist = CustomPlaylists[key];
-                if (playlist.IsDirty)
+                if (customPlaylist.IsDirty)
                 {
-                    StorePlaylist(playlist);
+                    StorePlaylist(customPlaylist);
                 }
             }
         }
@@ -207,7 +205,7 @@ namespace BeatSyncPlaylists
                 string[] files = Directory.GetFiles(PlaylistPath);
                 string file = files.FirstOrDefault(f => defPlaylist.Filename.Equals(Path.GetFileNameWithoutExtension(f), StringComparison.OrdinalIgnoreCase));
                 string? fileExtension = null;
-                if(file != null)
+                if (file != null)
                     fileExtension = Path.GetExtension(file).TrimStart('.');
                 if (fileExtension != null && PlaylistExtensionHandlers.TryGetValue(fileExtension, out IPlaylistHandler handler))
                 {
@@ -238,18 +236,31 @@ namespace BeatSyncPlaylists
             return playlist;
         }
 
+        protected void AddToCustomPlaylists(IPlaylist playlist)
+        {
+            if (!string.IsNullOrEmpty(playlist.Filename))
+                CustomPlaylists.TryAdd(playlist.Filename.ToUpper(), playlist);
+        }
+
+        protected bool TryGetCustomPlaylist(string fileName, out IPlaylist? playlist)
+        {
+            return CustomPlaylists.TryGetValue(fileName.ToUpper(), out playlist);
+        }
+
         /// <summary>
         /// Retrieves the specified playlist. If the playlist doesn't exist, returns null.
         /// </summary>
         /// <param name="builtInPlaylist"></param>
         /// <returns></returns>
-        public IPlaylist GetPlaylist(string playlistFileName)
+        public IPlaylist? GetPlaylist(string playlistFileName)
         {
+            if (string.IsNullOrEmpty(playlistFileName))
+                return null;
             IPlaylist? playlist = null;
             // Check if the playlist is one of the built in ones.
             foreach (var defaultPlaylist in DefaultPlaylists)
             {
-                if (defaultPlaylist.Value.Filename == playlistFileName)
+                if (defaultPlaylist.Value.Filename.Equals(playlistFileName, StringComparison.OrdinalIgnoreCase))
                 {
                     playlist = GetPlaylist(defaultPlaylist.Key);
                 }
@@ -257,31 +268,30 @@ namespace BeatSyncPlaylists
 
 
             // Check if this playlist exists in CustomPlaylists
-            if (playlist == null && CustomPlaylists.ContainsKey(playlistFileName.ToLower()))
+            if (playlist == null)
             {
-                playlist = CustomPlaylists[playlistFileName.ToLower()];
+                TryGetCustomPlaylist(playlistFileName, out playlist);
             }
 
             // Check if the playlistFileName exists
             if (playlist == null)
             {
-                var existingFile = Path.Combine(PlaylistPath, playlistFileName);
-                string extension = Path.GetExtension(existingFile);
-                if (!string.IsNullOrEmpty(existingFile) && PlaylistExtensionHandlers.TryGetValue(extension, out IPlaylistHandler handler))
+
+                string? existingFile = Directory.GetFiles(PlaylistPath).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).Equals(playlistFileName, StringComparison.OrdinalIgnoreCase));
+                if (existingFile != null)
                 {
-                    playlist = handler.Deserialize(existingFile);
-                    playlist.Filename = playlistFileName;
-                    CustomPlaylists.TryAdd(playlistFileName, playlist);
-                    Logger.log?.Debug($"Playlist FileName is {playlist.Filename}");
+                    string extension = Path.GetExtension(existingFile);
+                    if (!string.IsNullOrEmpty(existingFile) && PlaylistExtensionHandlers.TryGetValue(extension, out IPlaylistHandler handler))
+                    {
+                        playlist = handler.Deserialize(existingFile);
+                        playlist.Filename = playlistFileName;
+                        AddToCustomPlaylists(playlist);
+                        Logger.log?.Debug($"Playlist FileName is {playlist.Filename}");
+                    }
                 }
             }
             Logger.log?.Debug($"Returning {playlist?.Filename}: {playlist?.Title} with {playlist?.Count} songs.");
             return playlist;
-        }
-
-        public bool TryAdd(IPlaylist playlist)
-        {
-            return CustomPlaylists.TryAdd(playlist.Filename.ToLower(), playlist);
         }
 
         public IPlaylist GetOrAdd(string playlistFileName, Func<IPlaylist> newPlaylist)
@@ -293,7 +303,7 @@ namespace BeatSyncPlaylists
                 if (playlist != null)
                 {
                     if (!string.IsNullOrEmpty(playlist.Filename))
-                        CustomPlaylists.TryAdd(playlist.Filename?.ToLower() ?? "", playlist);
+                        AddToCustomPlaylists(playlist);
                     else
                         Logger.log?.Warn($"Invalid playlist file name in playlist function given to PlaylistManager.GetOrAdd()");
                 }
