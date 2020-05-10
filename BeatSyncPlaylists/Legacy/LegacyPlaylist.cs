@@ -55,9 +55,23 @@ namespace BeatSyncPlaylists.Legacy
         [DataMember]
         [JsonProperty("playlistDescription", Order = 0, NullValueHandling = NullValueHandling.Ignore)]
         public override string? Description { get; set; }
+
+        private string _coverString;
         [DataMember]
         [JsonProperty("image", Order = 10)]
-        protected string coverString => ImageLoader?.Value ?? string.Empty;
+        protected string coverString
+        {
+            get
+            {
+                if (_coverString == null)
+                    _coverString = ImageLoader?.Value ?? string.Empty;
+                return _coverString;
+            }
+            set
+            {
+                _coverString = value;
+            }
+        }
         public override string Filename { get; set; } = string.Empty;
 
         public override bool IsReadOnly => false;
