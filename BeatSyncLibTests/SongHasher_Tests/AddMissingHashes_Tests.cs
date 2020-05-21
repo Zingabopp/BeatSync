@@ -70,14 +70,14 @@ namespace BeatSyncLibTests.SongHasher_Tests
                 dInfo.Delete(true);
         }
 
-        [TestMethod]
-        public void TestDirectoryHash()
-        {
-            string directory = "H:\\SteamApps\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\6f11 (Leave The Lights On (KROT Remix) - Rigid)";
-            long dirHash = 987761419790609;
-            long calcHash = SongHasher.GetDirectoryHash(directory);
-            Assert.AreEqual(dirHash, calcHash);
-        }
+        //[TestMethod]
+        //public void TestDirectoryHash()
+        //{
+        //    string directory = "H:\\SteamApps\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\6f11 (Leave The Lights On (KROT Remix) - Rigid)";
+        //    long dirHash = 987761419790609;
+        //    long calcHash = SongHasher.GetDirectoryHash(directory);
+        //    Assert.AreEqual(dirHash, calcHash);
+        //}
 
         [TestMethod]
         public async Task DirectoryDoesntExist()

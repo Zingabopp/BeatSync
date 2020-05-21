@@ -7,10 +7,19 @@ using System.Linq;
 
 namespace BeatSyncPlaylists
 {
+    /// <summary>
+    /// Base class for a Playlist.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class Playlist<T> : IPlaylist<T>
         where T : IPlaylistSong, new()
     {
+        /// <summary>
+        /// List of songs in the playlist.
+        /// </summary>
         protected abstract IList<T> _songs { get; set; }
+
+        /// <inheritdoc/>
         public IPlaylistSong this[int index]
         {
             get => _songs[index];
@@ -21,29 +30,45 @@ namespace BeatSyncPlaylists
             }
         }
 
+        /// <inheritdoc/>
+        public event EventHandler? PlaylistChanged;
+
+        /// <summary>
+        /// Removes all playlists that match the provided delegate.
+        /// </summary>
+        /// <param name="match"></param>
+        /// <returns></returns>
         public abstract int RemoveAll(Func<T, bool> match);
 
+        /// <inheritdoc/>
         public abstract string Title { get; set; }
+        /// <inheritdoc/>
         public abstract string? Author { get; set; }
+        /// <inheritdoc/>
         public abstract string? Description { get; set; }
+        /// <inheritdoc/>
         public abstract string Filename { get; set; }
+        /// <inheritdoc/>
         public string? SuggestedExtension { get; set; }
-        public bool IsDirty { get; set; }
+        /// <inheritdoc/>
         public bool AllowDuplicates { get; set; }
+        /// <inheritdoc/>
         public int Count => _songs.Count;
+        /// <inheritdoc/>
         public virtual bool IsReadOnly => false;
 
         protected abstract T ConvertFrom(ISong song);
 
+        /// <inheritdoc/>
         public virtual void Add(ISong song)
         {
             if (AllowDuplicates || (!_songs.Any(s => s.Hash == song.Hash || s.Key == song.Key)))
             {
                 _songs.Add(ConvertFrom(song));
-                MarkDirty();
             }
         }
 
+        /// <inheritdoc/>
         public virtual void Add(string songHash, string? songName, string? songKey, string? mapper) =>
             Add(new T() {
                 Hash = songHash, 
@@ -52,19 +77,22 @@ namespace BeatSyncPlaylists
                 LevelAuthorName = mapper 
             });
 
+        /// <inheritdoc/>
         public virtual void Add(IPlaylistSong item) => Add((ISong)item);
 
+        /// <inheritdoc/>
         public virtual void Clear()
         {
             _songs.Clear();
-            MarkDirty();
         }
 
+        /// <inheritdoc/>
         public virtual bool Contains(IPlaylistSong item)
         {
             return _songs.Any(s => s.Equals(item));
         }
 
+        /// <inheritdoc/>
         public void CopyTo(IPlaylistSong[] array, int arrayIndex)
         {
             int index = arrayIndex;
@@ -75,6 +103,7 @@ namespace BeatSyncPlaylists
             }
         }
 
+        /// <inheritdoc/>
         public abstract Stream GetCoverStream();
 
         public IEnumerator<T> GetEnumerator()
@@ -82,6 +111,7 @@ namespace BeatSyncPlaylists
             return _songs.GetEnumerator();
         }
 
+        /// <inheritdoc/>
         public int IndexOf(IPlaylistSong item)
         {
             if (item is T song)
@@ -90,17 +120,20 @@ namespace BeatSyncPlaylists
                 return -1;
         }
 
+        /// <inheritdoc/>
         public void Insert(int index, IPlaylistSong item)
         {
             _songs.Insert(index, ConvertFrom(item));
-            MarkDirty();
         }
 
-        public void MarkDirty(bool dirty = true)
+        /// <inheritdoc/>
+        public void RaisePlaylistChanged()
         {
-            IsDirty = dirty;
+            EventHandler? handler = PlaylistChanged;
+            handler?.Invoke(this, null);
         }
 
+        /// <inheritdoc/>
         public bool Remove(IPlaylistSong item)
         {
             bool songRemoved = false;
@@ -112,45 +145,51 @@ namespace BeatSyncPlaylists
                 if (song != null)
                     songRemoved = _songs.Remove(song);
             }
-            if (songRemoved)
-                MarkDirty();
             return songRemoved;
         }
 
+        /// <inheritdoc/>
         public void RemoveAt(int index)
         {
             _songs.RemoveAt(index);
-            MarkDirty();
         }
 
+        /// <inheritdoc/>
         public void RemoveDuplicates()
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public abstract void SetCover(byte[] coverImage);
 
+        /// <inheritdoc/>
         public abstract void SetCover(string? coverImageStr);
 
+        /// <inheritdoc/>
         public abstract void SetCover(Stream stream);
 
+        /// <inheritdoc/>
         public bool TryRemoveByHash(string songHash)
         {
             songHash = songHash.ToUpper();
             return RemoveAll(s => s.Hash == songHash) > 0;
         }
 
+        /// <inheritdoc/>
         public bool TryRemoveByKey(string songKey)
         {
             songKey = songKey.ToLower();
             return RemoveAll(s => s.Key == songKey) > 0;
         }
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _songs.GetEnumerator();
         }
 
+        /// <inheritdoc/>
         IEnumerator<IPlaylistSong> IEnumerable<IPlaylistSong>.GetEnumerator()
         {
             var thing = (IList<IPlaylistSong>)_songs;

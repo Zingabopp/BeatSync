@@ -36,14 +36,15 @@ namespace BeatSyncPlaylistsTests.Manager.PlaylistCreation
         public void CreateBuiltIn()
         {
             PlaylistManager manager = new PlaylistManager(PlaylistDirectory);
-            IPlaylist playlist = manager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
+            IPlaylist playlist = manager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll);
             Assert.IsNotNull(playlist);
             Assert.AreEqual(0, playlist.Count);
             LegacyPlaylistSong testSong = new LegacyPlaylistSong("ASDF", "TestSong", "a", "TestMapper");
             playlist.Add(testSong);
-            Assert.IsTrue(playlist.IsDirty);
+            playlist.RaisePlaylistChanged();
+            Assert.IsTrue(manager.PlaylistIsChanged(playlist));
             manager.StorePlaylist(playlist);
-            Assert.IsFalse(playlist.IsDirty);
+            Assert.IsFalse(manager.PlaylistIsChanged(playlist));
         }
     }
 }

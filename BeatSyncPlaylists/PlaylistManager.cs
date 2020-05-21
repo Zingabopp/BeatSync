@@ -14,7 +14,16 @@ namespace BeatSyncPlaylists
     {
         protected readonly Dictionary<Type, IPlaylistHandler> PlaylistHandlers = new Dictionary<Type, IPlaylistHandler>();
         protected readonly Dictionary<string, IPlaylistHandler> PlaylistExtensionHandlers = new Dictionary<string, IPlaylistHandler>();
-        public string PlaylistPath { get; protected set; }
+
+        private readonly Dictionary<BuiltInPlaylist, IPlaylist> AvailablePlaylists = new Dictionary<BuiltInPlaylist, IPlaylist>(); // Doesn't need to be concurrent, basically readonly
+        private object _changedLock = new object();
+        private HashSet<IPlaylist> ChangedPlaylists = new HashSet<IPlaylist>();
+        /// <summary>
+        /// Key is the file name in uppercase.
+        /// </summary>
+        private ConcurrentDictionary<string, IPlaylist> CustomPlaylists = new ConcurrentDictionary<string, IPlaylist>();
+        public static readonly string AuthorPlaylistPrefix = "BeatSyncAuthor_";
+        public string? PlaylistPath { get; protected set; }
 
         public IPlaylistHandler DefaultHandler { get; } = new LegacyPlaylistHandler();
 
@@ -22,24 +31,6 @@ namespace BeatSyncPlaylists
         protected PlaylistManager()
         {
             RegisterHandler(new LegacyPlaylistHandler());
-            DefaultPlaylists = new ReadOnlyDictionary<BuiltInPlaylist, IPlaylist>(new Dictionary<BuiltInPlaylist, IPlaylist>()
-                {
-                    {BuiltInPlaylist.BeatSyncAll, CreatePlaylist("BeatSyncPlaylist", "BeatSync Playlist", "BeatSync",
-                        PlaylistImageLoaders[BuiltInPlaylist.BeatSyncAll], "Every song BeatSync has downloaded.") },
-                    {BuiltInPlaylist.BeastSaberBookmarks, CreatePlaylist("BeatSyncBSaberBookmarks", "BeastSaber Bookmarks", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberBookmarks]) },
-                    {BuiltInPlaylist.BeastSaberFollows, CreatePlaylist("BeatSyncBSaberFollows", "BeastSaber Follows", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberFollows]) },
-                    {BuiltInPlaylist.BeastSaberCurator, CreatePlaylist("BeatSyncBSaberCuratorRecommended", "Curator Recommended", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeastSaberCurator]) },
-                    {BuiltInPlaylist.ScoreSaberTopRanked, CreatePlaylist("BeatSyncScoreSaberTopRanked", "ScoreSaber Top Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopRanked]) },
-                    {BuiltInPlaylist.ScoreSaberLatestRanked, CreatePlaylist("BeatSyncScoreSaberLatestRanked", "ScoreSaber Latest Ranked", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberLatestRanked]) },
-                    {BuiltInPlaylist.ScoreSaberTopPlayed, CreatePlaylist("BeatSyncScoreSaberTopPlayed", "ScoreSaber Top Played", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTopPlayed]) },
-                    {BuiltInPlaylist.ScoreSaberTrending, CreatePlaylist("BeatSyncScoreSaberTrending", "ScoreSaber Trending", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.ScoreSaberTrending]) },
-                    {BuiltInPlaylist.BeatSaverFavoriteMappers, CreatePlaylist("BeatSyncFavoriteMappers", "Favorite Mappers", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverFavoriteMappers]) },
-                    {BuiltInPlaylist.BeatSaverLatest, CreatePlaylist("BeatSyncBeatSaverLatest", "BeatSaver Latest", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverLatest]) },
-                    {BuiltInPlaylist.BeatSaverHot, CreatePlaylist("BeatSyncBeatSaverHot", "Beat Saver Hot", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverHot]) },
-                    {BuiltInPlaylist.BeatSaverPlays, CreatePlaylist("BeatSyncBeatSaverPlays", "Beat Saver Plays", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverPlays]) },
-                    {BuiltInPlaylist.BeatSaverDownloads, CreatePlaylist("BeatSyncBeatSaverDownloads", "Beat Saver Downloads", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverDownloads]) },
-                    {BuiltInPlaylist.BeatSyncRecent, CreatePlaylist("BeatSyncRecent", "BeatSync Recent Songs", "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSyncRecent]) }
-                });
         }
 
         public PlaylistManager(string playlistDirectory)
@@ -79,14 +70,6 @@ namespace BeatSyncPlaylists
             return handler;
         }
 
-        private Dictionary<BuiltInPlaylist, IPlaylist> AvailablePlaylists = new Dictionary<BuiltInPlaylist, IPlaylist>(); // Doesn't need to be concurrent, basically readonly
-
-        /// <summary>
-        /// Key is the file name in lowercase.
-        /// </summary>
-        private ConcurrentDictionary<string, IPlaylist> CustomPlaylists = new ConcurrentDictionary<string, IPlaylist>();
-
-
         public static Lazy<string> GetImageLoader(string resourcePath)
         {
             return new Lazy<string>(() => Utilities.ImageToBase64(resourcePath));
@@ -111,16 +94,16 @@ namespace BeatSyncPlaylists
             {BuiltInPlaylist.BeatSaverMapper, GetImageLoader("BeatSyncPlaylists.Icons.BeatSaver.BeatSaverMapper.png") }
         });
 
-        public readonly ReadOnlyDictionary<BuiltInPlaylist, IPlaylist> DefaultPlaylists;
-
         public IPlaylist CreatePlaylist(string fileName, string title, string author, Lazy<string> imageLoader, string? description = null)
         {
-            return new LegacyPlaylist(fileName, title, author, imageLoader) { Description = description };
+            IPlaylist playlist = new LegacyPlaylist(fileName, title, author, imageLoader) { Description = description };
+            return playlist;
         }
 
         public IPlaylist CreatePlaylist(string fileName, string title, string author, string coverImage, string? description = null)
         {
-            return new LegacyPlaylist(fileName, title, author, coverImage) { Description = description };
+            IPlaylist playlist = new LegacyPlaylist(fileName, title, author, coverImage) { Description = description };
+            return playlist;
         }
 
         /// <summary>
@@ -152,28 +135,39 @@ namespace BeatSyncPlaylists
             RemoveSongFromAll(song.Hash);
         }
 
-        public void WriteAllPlaylists()
+        public void StoreAllPlaylists()
         {
-            foreach (var playlist in AvailablePlaylists.Values)
+            IPlaylist[]? changedPlaylists;
+            lock (_changedLock)
+            {
+                changedPlaylists = ChangedPlaylists.ToArray();
+                ChangedPlaylists.Clear();
+            }
+            foreach (var playlist in changedPlaylists)
             {
                 if (playlist == null)
                     continue;
-                if (playlist.IsDirty)
-                {
-                    StorePlaylist(playlist);
-                }
-            }
-            foreach (IPlaylist customPlaylist in CustomPlaylists.Values)
-            {
-                if (customPlaylist.IsDirty)
-                {
-                    StorePlaylist(customPlaylist);
-                }
+                StorePlaylist(playlist, false);
             }
         }
 
-        public void StorePlaylist(IPlaylist playlist)
+        private void OnPlaylistChanged(object sender, EventArgs e)
         {
+            if(sender is IPlaylist playlist)
+            {
+                AddToChanged(playlist);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="playlist"></param>
+        /// <param name="removeFromChanged"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void StorePlaylist(IPlaylist playlist, bool removeFromChanged = true)
+        {
+            string playlistPath = PlaylistPath ?? throw new InvalidOperationException($"{nameof(PlaylistPath)} has not been set.");
             if (PlaylistHandlers.TryGetValue(playlist.GetType(), out IPlaylistHandler playlistHandler))
             {
                 string extension = playlistHandler.DefaultExtension;
@@ -181,8 +175,9 @@ namespace BeatSyncPlaylists
                     extension = playlist.SuggestedExtension;
                 string fileName = playlist.Filename + "." + extension;
                 Logger.log?.Debug($"Writing {fileName} to file.");
-                playlistHandler.SerializeToFile(playlist, Path.Combine(PlaylistPath, fileName));
-                playlist.MarkDirty(false);
+                playlistHandler.SerializeToFile(playlist, Path.Combine(playlistPath, fileName));
+                if (removeFromChanged)
+                    RemoveFromChanged(playlist);
             }
             else
             {
@@ -190,82 +185,86 @@ namespace BeatSyncPlaylists
             }
         }
 
-        /// <summary>
-        /// Retrieves the specified playlist. If the playlist doesn't exist, creates one using the default.
-        /// </summary>
-        /// <param name="builtInPlaylist"></param>
-        /// <returns></returns>
-        public IPlaylist GetPlaylist(BuiltInPlaylist builtInPlaylist)
+        protected IPlaylist? LoadPlaylistFromFile(string fileName)
         {
+            if (string.IsNullOrEmpty(fileName))
+                throw new ArgumentNullException(nameof(fileName), "fileName cannot be null or empty.");
+            string playlistPath = PlaylistPath ?? throw new InvalidOperationException($"{nameof(PlaylistPath)} has not been set.");
             IPlaylist? playlist = null;
-            bool playlistExists = AvailablePlaylists.TryGetValue(builtInPlaylist, out playlist);
-            if (!playlistExists || playlist == null)
+            string[] files = Directory.GetFiles(playlistPath);
+            string file = files.FirstOrDefault(f => fileName.Equals(Path.GetFileNameWithoutExtension(f), StringComparison.OrdinalIgnoreCase));
+            string? fileExtension = null;
+            if (file != null)
             {
-                var defPlaylist = DefaultPlaylists[builtInPlaylist];
-                string[] files = Directory.GetFiles(PlaylistPath);
-                string file = files.FirstOrDefault(f => defPlaylist.Filename.Equals(Path.GetFileNameWithoutExtension(f), StringComparison.OrdinalIgnoreCase));
-                string? fileExtension = null;
-                if (file != null)
-                    fileExtension = Path.GetExtension(file).TrimStart('.');
+                fileExtension = Path.GetExtension(file).TrimStart('.');
                 if (fileExtension != null && PlaylistExtensionHandlers.TryGetValue(fileExtension, out IPlaylistHandler handler))
                 {
-#pragma warning disable CS8604 // Possible null reference argument.
                     playlist = handler.Deserialize(file);
                     playlist.SuggestedExtension = fileExtension;
-#pragma warning restore CS8604 // Possible null reference argument.
-                    if (playlist == null)
-                    {
-                        playlist = defPlaylist;
-                        Logger.log?.Debug($"Playlist created with filename: {playlist.Filename}.{fileExtension}.");
-                    }
-                    else
+                    if (playlist != null)
                     {
                         playlist.Filename = Path.GetFileNameWithoutExtension(file);
+                        AddToCustomPlaylists(playlist, false);
                         Logger.log?.Debug($"Playlist loaded from file: {playlist.Filename}.{fileExtension} with {playlist.Count} songs.");
                     }
                 }
-                else
-                {
-                    playlist = defPlaylist;
-                    Logger.log?.Debug($"Playlist created with filename: {playlist.Filename}.");
-                }
-                AvailablePlaylists.Add(builtInPlaylist, playlist);
             }
-            if (playlist == null)
-                throw new ArgumentException($"BuiltInPlaylist not supported: {builtInPlaylist}.", nameof(builtInPlaylist));
             return playlist;
         }
 
-        protected void AddToCustomPlaylists(IPlaylist playlist)
+        public bool AddToCustomPlaylists(IPlaylist playlist, bool asChanged = true)
         {
             if (!string.IsNullOrEmpty(playlist.Filename))
-                CustomPlaylists.TryAdd(playlist.Filename.ToUpper(), playlist);
+            {
+                if (CustomPlaylists.TryAdd(playlist.Filename.ToUpper(), playlist))
+                {
+                    playlist.PlaylistChanged += OnPlaylistChanged;
+                    if (asChanged)
+                        AddToChanged(playlist);
+                    return true;
+                }
+                else
+                    return false;
+            }
+            throw new InvalidOperationException("Playlist Filename cannot be null or empty.");
         }
 
-        protected bool TryGetCustomPlaylist(string fileName, out IPlaylist? playlist)
+        public bool TryGetCustomPlaylist(string fileName, out IPlaylist? playlist)
         {
             return CustomPlaylists.TryGetValue(fileName.ToUpper(), out playlist);
+        }
+
+        public void AddToChanged(IPlaylist playlist)
+        {
+            lock (_changedLock)
+            {
+                ChangedPlaylists.Add(playlist);
+            }
+        }
+        private void RemoveFromChanged(IPlaylist playlist)
+        {
+            lock (_changedLock)
+            {
+                ChangedPlaylists.Remove(playlist);
+            }
+        }
+        public bool PlaylistIsChanged(IPlaylist playlist)
+        {
+            return ChangedPlaylists.Contains(playlist);
         }
 
         /// <summary>
         /// Retrieves the specified playlist. If the playlist doesn't exist, returns null.
         /// </summary>
-        /// <param name="builtInPlaylist"></param>
+        /// <param name="playlistFileName"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public IPlaylist? GetPlaylist(string playlistFileName)
         {
+            _ = PlaylistPath ?? throw new InvalidOperationException($"{nameof(PlaylistPath)} has not been set.");
             if (string.IsNullOrEmpty(playlistFileName))
                 return null;
             IPlaylist? playlist = null;
-            // Check if the playlist is one of the built in ones.
-            foreach (var defaultPlaylist in DefaultPlaylists)
-            {
-                if (defaultPlaylist.Value.Filename.Equals(playlistFileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    playlist = GetPlaylist(defaultPlaylist.Key);
-                }
-            }
-
 
             // Check if this playlist exists in CustomPlaylists
             if (playlist == null)
@@ -273,42 +272,26 @@ namespace BeatSyncPlaylists
                 TryGetCustomPlaylist(playlistFileName, out playlist);
             }
 
-            // Check if the playlistFileName exists
+            // Try to load from file
             if (playlist == null)
             {
-
-                string? existingFile = Directory.GetFiles(PlaylistPath).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).Equals(playlistFileName, StringComparison.OrdinalIgnoreCase));
-                if (existingFile != null)
-                {
-                    string extension = Path.GetExtension(existingFile);
-                    if (!string.IsNullOrEmpty(existingFile) && PlaylistExtensionHandlers.TryGetValue(extension, out IPlaylistHandler handler))
-                    {
-                        playlist = handler.Deserialize(existingFile);
-                        playlist.Filename = playlistFileName;
-                        AddToCustomPlaylists(playlist);
-                        Logger.log?.Debug($"Playlist FileName is {playlist.Filename}");
-                    }
-                }
+                playlist = LoadPlaylistFromFile(playlistFileName);
             }
-            Logger.log?.Debug($"Returning {playlist?.Filename}: {playlist?.Title} with {playlist?.Count} songs.");
+            if (playlist != null)
+                Logger.log?.Debug($"Returning {playlist?.Filename}: {playlist?.Title} with {playlist?.Count} songs.");
             return playlist;
         }
 
-        public IPlaylist GetOrAdd(string playlistFileName, Func<IPlaylist> newPlaylist)
+        public IPlaylist GetOrAdd(string playlistFileName, Func<IPlaylist> playlistFactory)
         {
+            if (string.IsNullOrEmpty(playlistFileName))
+                throw new ArgumentNullException(nameof(playlistFileName), "playlistFileName cannot be null or empty.");
             var playlist = GetPlaylist(playlistFileName);
             if (playlist == null)
             {
-                playlist = newPlaylist();
-                if (playlist != null)
-                {
-                    if (!string.IsNullOrEmpty(playlist.Filename))
-                        AddToCustomPlaylists(playlist);
-                    else
-                        Logger.log?.Warn($"Invalid playlist file name in playlist function given to PlaylistManager.GetOrAdd()");
-                }
-                else
-                    Logger.log?.Warn($"Playlist function returned a null playlist in PlaylistManager.GetOrAdd()");
+                playlist = playlistFactory() ?? throw new ArgumentException("playlistFactory returned a null IPlaylist.", nameof(playlistFactory));
+                playlist.Filename = playlistFileName;
+                AddToCustomPlaylists(playlist);
             }
             return playlist;
         }

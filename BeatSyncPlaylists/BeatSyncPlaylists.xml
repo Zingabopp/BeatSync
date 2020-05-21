@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BeatSyncPlaylists</name>
+    </assembly>
+    <members>
+        <member name="T:BeatSyncPlaylists.IPlaylist">
+            <summary>
+            Interface for a playlist.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.Title">
+            <summary>
+            Playlist title.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.Author">
+            <summary>
+            Playlist author.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.Description">
+            <summary>
+            Playlist description.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.Filename">
+            <summary>
+            Filename without extension, does not include directory path.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.SuggestedExtension">
+            <summary>
+            Suggested file extension for the playlist. May be null.
+            </summary>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.GetCoverStream">
+            <summary>
+            Returns a <see cref="T:System.IO.Stream"/> for the playlist cover image.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.SetCover(System.Byte[])">
+            <summary>
+            Sets the cover image from a byte array.
+            </summary>
+            <param name="coverImage"></param>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.SetCover(System.String)">
+            <summary>
+            Sets the cover image from a base64 string.
+            </summary>
+            <param name="coverImageStr"></param>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.SetCover(System.IO.Stream)">
+            <summary>
+            Sets the cover image from a <see cref="T:System.IO.Stream"/>.
+            </summary>
+            <param name="stream"></param>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.IsDirty">
+            <summary>
+            True if the <see cref="T:BeatSyncPlaylists.IPlaylist"/> was changed.
+            </summary>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.MarkDirty(System.Boolean)">
+            <summary>
+            Marks the playlist as changed.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.IPlaylist.AllowDuplicates">
+            <summary>
+            Allow duplicate songs in the playlist.
+            </summary>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.Add(SongFeedReaders.Data.ISong)">
+            <summary>
+            Adds the <see cref="T:SongFeedReaders.Data.ISong"/> to the playlist. 
+            Does nothing if <see cref="P:BeatSyncPlaylists.IPlaylist.AllowDuplicates"/> is false and the song is already in the playlist. 
+            Converts the <see cref="T:SongFeedReaders.Data.ISong"/> if needed.
+            </summary>
+            <param name="song"></param>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.Add(System.String,System.String,System.String,System.String)">
+            <summary>
+            Creates a new <see cref="T:BeatSyncPlaylists.IPlaylistSong"/> and adds it to the playlist.
+            Does nothing if <see cref="P:BeatSyncPlaylists.IPlaylist.AllowDuplicates"/> is false and the song is already in the playlist. 
+            </summary>
+            <param name="songHash"></param>
+            <param name="songName"></param>
+            <param name="songKey"></param>
+            <param name="mapper"></param>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.TryRemoveByHash(System.String)">
+            <summary>
+            Tries to remove all songs with the given hash from the playlist. Returns true if successful.
+            </summary>
+            <param name="songHash"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.TryRemoveByKey(System.String)">
+            <summary>
+            Tries to remove all songs with the given key from the playlist. Returns true if successful.
+            </summary>
+            <param name="songKey"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.RemoveDuplicates">
+            <summary>
+            Removes all duplicate songs from the playlist.
+            </summary>
+        </member>
+        <member name="F:BeatSyncPlaylists.PlaylistManager.CustomPlaylists">
+            <summary>
+            Key is the file name in lowercase.
+            </summary>
+        </member>
+        <member name="M:BeatSyncPlaylists.PlaylistManager.RemoveSongFromAll(System.String)">
+            <summary>
+            Attempts to remove the song with the matching hash from all loaded playlists.
+            </summary>
+            <param name="hash"></param>
+        </member>
+        <member name="M:BeatSyncPlaylists.PlaylistManager.RemoveSongFromAll(BeatSyncPlaylists.IPlaylistSong)">
+            <summary>
+            Attempts to remove the song from all loaded playlists.
+            </summary>
+            <param name="song"></param>
+        </member>
+        <member name="M:BeatSyncPlaylists.PlaylistManager.StorePlaylist(BeatSyncPlaylists.IPlaylist)">
+            <summary>
+            
+            </summary>
+            <param name="playlist"></param>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:BeatSyncPlaylists.PlaylistManager.GetPlaylist(System.String)">
+            <summary>
+            Retrieves the specified playlist. If the playlist doesn't exist, returns null.
+            </summary>
+            <param name="builtInPlaylist"></param>
+            <returns></returns>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:BeatSyncPlaylists.Utilities.Base64ToByteArray(System.String@)">
+            <summary>
+            Converts a Base64 string to a byte array.
+            </summary>
+            <param name="base64Str"></param>
+            <returns></returns>
+            <exception cref="T:System.FormatException">Thrown when the provided string isn't a valid Base64 string.</exception>
+        </member>
+        <member name="M:BeatSyncPlaylists.Utilities.GetResource(System.Reflection.Assembly,System.String)">
+            <summary>
+            Gets a resource and returns it as a byte array.
+            From https://github.com/brian91292/BeatSaber-CustomUI/blob/master/Utilities/Utilities.cs
+            </summary>
+            <param name="asm"></param>
+            <param name="ResourceName"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

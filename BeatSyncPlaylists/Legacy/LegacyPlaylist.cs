@@ -80,8 +80,6 @@ namespace BeatSyncPlaylists.Legacy
             int removedSongs = 0;
             if (match != null)
                 removedSongs = ((List<LegacyPlaylistSong>)_songs).RemoveAll(s => match(s));
-            if (removedSongs > 0)
-                MarkDirty();
             return removedSongs;
         }
 

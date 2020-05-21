@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>BeatSyncPlaylists.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Icons\BeastSaber\baseline_bookmarks_black_18dp.png" />
     <None Remove="Icons\BeastSaber\baseline_stars_black_18dp.png" />

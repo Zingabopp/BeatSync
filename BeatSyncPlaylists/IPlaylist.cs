@@ -52,14 +52,6 @@ namespace BeatSyncPlaylists
         /// <param name="stream"></param>
         void SetCover(Stream stream);
         /// <summary>
-        /// True if the <see cref="IPlaylist"/> was changed.
-        /// </summary>
-        bool IsDirty { get; }
-        /// <summary>
-        /// Marks the playlist as changed.
-        /// </summary>
-        void MarkDirty(bool dirty = true);
-        /// <summary>
         /// Allow duplicate songs in the playlist.
         /// </summary>
         bool AllowDuplicates { get; set; }
@@ -95,6 +87,14 @@ namespace BeatSyncPlaylists
         /// Removes all duplicate songs from the playlist.
         /// </summary>
         void RemoveDuplicates();
+        /// <summary>
+        /// Raised when <see cref="RaisePlaylistChanged"/> is called.
+        /// </summary>
+        event EventHandler? PlaylistChanged;
+        /// <summary>
+        /// Raises the PlaylistChanged event.
+        /// </summary>
+        void RaisePlaylistChanged();
     }
 
     public interface IPlaylist<T> : IPlaylist

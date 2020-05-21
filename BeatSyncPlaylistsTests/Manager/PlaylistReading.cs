@@ -1,7 +1,14 @@
+#if NCRUNCH
+#define CLEANUP
+#endif
+#define CLEANUP
 using BeatSyncPlaylists;
-using BeatSyncPlaylists.Legacy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace BeatSyncPlaylistsTests.Manager
 {
@@ -32,10 +39,10 @@ namespace BeatSyncPlaylistsTests.Manager
         }
 
         [TestMethod]
-        public void GetBeatSyncAllPlaylist()
+        public void GetBuiltInPlaylist()
         {
             PlaylistManager manager = new PlaylistManager(TestPlaylistDirectory);
-            IPlaylist playlist = manager.GetPlaylist(BuiltInPlaylist.BeatSyncAll);
+            IPlaylist playlist = manager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll);
             Assert.AreEqual("BeatSync Playlist", playlist.Title);
             Assert.AreEqual("BeatSync", playlist.Author);
             Assert.AreEqual("BeatSyncPlaylist", playlist.Filename);
@@ -44,15 +51,52 @@ namespace BeatSyncPlaylistsTests.Manager
         }
 
         [TestMethod]
+        public void CreateAndGetAllBuiltin()
+        {
+            string outputDir = Path.Combine(PlaylistDirectory, "CreateAndGetAllBuiltin");
+            Directory.CreateDirectory(outputDir);
+            PlaylistManager manager = new PlaylistManager(outputDir);
+            Array rawValues = Enum.GetValues(typeof(BuiltInPlaylist));
+            List<BuiltInPlaylist> allTypes = new List<BuiltInPlaylist>(rawValues.Length);
+            int valIndex = 0;
+            foreach (var value in rawValues)
+            {
+                BuiltInPlaylist castVal = (BuiltInPlaylist)value;
+                if (castVal != BuiltInPlaylist.BeatSaverMapper)
+                {
+                    allTypes.Add(castVal);
+
+                    IPlaylist playlist = manager.GetOrAddPlaylist(castVal);
+                    playlist.Add(valIndex.ToString(), $"InPlaylist {valIndex}", valIndex.ToString(), "TestMapper");
+                    playlist.RaisePlaylistChanged();
+                    valIndex++;
+                }
+            }
+            manager.StoreAllPlaylists(); 
+            manager = new PlaylistManager(outputDir);
+            for (int i = 0; i < allTypes.Count; i++)
+            {
+                BuiltInPlaylist current = allTypes[i];
+                IPlaylist playlist = manager.GetOrAddPlaylist(current);
+                Assert.AreEqual(1, playlist.Count);
+                Assert.AreEqual(i.ToString(), playlist[0].Hash, $"Failed on {current}");
+            }
+#if CLEANUP
+            Directory.Delete(outputDir, true);
+#endif
+        }
+
+        [TestMethod]
         public void GetJsonBeatSyncRecent()
         {
             PlaylistManager manager = new PlaylistManager(TestPlaylistDirectory);
-            IPlaylist playlist = manager.GetPlaylist(BuiltInPlaylist.BeatSyncRecent);
+            IPlaylist playlist = manager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent);
             Assert.AreEqual("BeatSync Recent", playlist.Title);
             Assert.AreEqual("BeatSync", playlist.Author);
             Assert.AreEqual("BeatSyncRecent", playlist.Filename);
             Assert.AreEqual("Recently downloaded BeatSync songs.", playlist.Description);
             Assert.AreEqual(1, playlist.Count);
+            Assert.IsFalse(manager.PlaylistIsChanged(playlist));
         }
     }
 }

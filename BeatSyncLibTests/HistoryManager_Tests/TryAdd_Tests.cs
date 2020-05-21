@@ -4,9 +4,9 @@ using BeatSyncLib.History;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using BeatSyncLib.Playlists;
+using BeatSyncPlaylists;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
-using BeatSyncLib.Playlists.Legacy;
+using BeatSyncPlaylists.Legacy;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
 {

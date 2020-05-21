@@ -43,7 +43,7 @@ namespace BeatSyncLib.Downloader
             PlaylistManager = playlistManager;
             FavoriteMappers.Initialize();
             Config = config.Clone();
-            RecentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager?.GetPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
+            RecentPlaylist = Config.RecentPlaylistDays > 0 ? PlaylistManager?.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
         }
 
         [Obsolete("Zip handling")]
@@ -225,7 +225,7 @@ namespace BeatSyncLib.Downloader
                 songsToDownload.Merge(await readTask.ConfigureAwait(false));
             }
             Logger.log?.Info($"Found {songsToDownload.Count} unique songs.");
-            IPlaylist? allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager?.GetPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
+            IPlaylist? allPlaylist = config.AllBeatSyncSongsPlaylist ? PlaylistManager?.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll) : null;
             if (allPlaylist != null)
             {
                 foreach (KeyValuePair<string, ScrapedSong> pair in songsToDownload)
@@ -241,12 +241,12 @@ namespace BeatSyncLib.Downloader
         }
 
         #region Feed Read Functions
-        public async Task<FeedResult> ReadFeed(IFeedReader reader, IFeedSettings settings, int postId, IPlaylist feedPlaylist, PlaylistStyle playlistStyle, CancellationToken cancellationToken)
+        public async Task<FeedResult> ReadFeed(IFeedReader reader, IFeedSettings settings, int postId, IPlaylist? feedPlaylist, PlaylistStyle playlistStyle, CancellationToken cancellationToken)
         {
             //Logger.log?.Info($"Getting songs from {feedName} feed.");
             string feedName = reader.GetFeedName(settings);
             FeedResult feedResult = await reader.GetSongsFromFeedAsync(settings, null, cancellationToken).ConfigureAwait(false) ?? new FeedResult(new Dictionary<string, ScrapedSong>(), null, null, FeedResultError.Error);
-            if (feedResult.Count > 0 && playlistStyle == PlaylistStyle.Replace)
+            if (feedPlaylist != null && feedResult.Count > 0 && playlistStyle == PlaylistStyle.Replace)
                 feedPlaylist.Clear();
             DateTime addDate = DateTime.Now;
             TimeSpan decrement = new TimeSpan(1);
@@ -276,7 +276,7 @@ namespace BeatSyncLib.Downloader
                 string source = $"{reader.Name}.{feedName}";
                 song.AddFeedSource(source);
                 feedPlaylist?.Add(song);
-                addDate = addDate - decrement;
+                addDate -= decrement;
             }
             int pages = feedResult.Songs.Values.Select(s => s.SourceUri.ToString()).Distinct().Count();
             string historyPostFix = string.Empty;
@@ -370,7 +370,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, "Starting Feed: Bookmarks...") ?? 0;
                     IFeedSettings feedSettings = config.Bookmarks.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.Bookmarks.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.Bookmarks.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.Bookmarks.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.Bookmarks.PlaylistStyle;
                     if (cancellationToken.IsCancellationRequested)
@@ -406,7 +406,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, "Starting Feed: Follows...") ?? 0;
                     IFeedSettings feedSettings = config.Follows.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.Follows.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.Follows.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.Follows.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.Follows.PlaylistStyle;
                     if (cancellationToken.IsCancellationRequested)
@@ -454,7 +454,7 @@ namespace BeatSyncLib.Downloader
                     //}
                     IFeedSettings feedSettings = config.CuratorRecommended.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.CuratorRecommended.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.CuratorRecommended.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.CuratorRecommended.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.CuratorRecommended.PlaylistStyle;
                     if (cancellationToken.IsCancellationRequested)
@@ -533,7 +533,7 @@ namespace BeatSyncLib.Downloader
                     if (!config.FavoriteMappers.SeparateMapperPlaylists)
                     {
                         feedPlaylist = config.FavoriteMappers.CreatePlaylist
-                            ? PlaylistManager?.GetPlaylist(config.FavoriteMappers.FeedPlaylist)
+                            ? PlaylistManager?.GetOrAddPlaylist(config.FavoriteMappers.FeedPlaylist)
                             : null;
                     }
 
@@ -597,7 +597,7 @@ namespace BeatSyncLib.Downloader
                     StatusManager?.PinPost(postId);
                     IFeedSettings feedSettings = config.Hot.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.Hot.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.Hot.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.Hot.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.Hot.PlaylistStyle;
                     await Util.WaitForPause(cancellationToken).ConfigureAwait(false);
@@ -632,7 +632,7 @@ namespace BeatSyncLib.Downloader
                     StatusManager?.PinPost(postId);
                     IFeedSettings feedSettings = config.Downloads.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.Downloads.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.Downloads.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.Downloads.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.Downloads.PlaylistStyle;
                     await Util.WaitForPause(cancellationToken).ConfigureAwait(false);
@@ -713,7 +713,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, "Starting Feed: TopRanked...") ?? 0;
                     IFeedSettings feedSettings = config.TopRanked.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.TopRanked.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.TopRanked.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.TopRanked.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.TopRanked.PlaylistStyle;
                     await Util.WaitForPause(cancellationToken).ConfigureAwait(false);
@@ -737,7 +737,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, "Starting Feed: Trending...") ?? 0;
                     IFeedSettings feedSettings = config.Trending.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.Trending.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.Trending.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.Trending.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.Trending.PlaylistStyle;
                     await Util.WaitForPause(cancellationToken).ConfigureAwait(false);
@@ -761,7 +761,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, "Starting Feed: TopPlayed...") ?? 0;
                     IFeedSettings feedSettings = config.TopPlayed.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.TopPlayed.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.TopPlayed.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.TopPlayed.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.TopPlayed.PlaylistStyle;
                     await Util.WaitForPause(cancellationToken).ConfigureAwait(false);
@@ -785,7 +785,7 @@ namespace BeatSyncLib.Downloader
                     int postId = StatusManager?.Post(readerName, "Starting Feed: LatestRanked...") ?? 0;
                     IFeedSettings feedSettings = config.LatestRanked.ToFeedSettings();
                     IPlaylist? feedPlaylist = config.LatestRanked.CreatePlaylist
-                        ? PlaylistManager?.GetPlaylist(config.LatestRanked.FeedPlaylist)
+                        ? PlaylistManager?.GetOrAddPlaylist(config.LatestRanked.FeedPlaylist)
                         : null;
                     PlaylistStyle playlistStyle = config.LatestRanked.PlaylistStyle;
                     await Util.WaitForPause(cancellationToken).ConfigureAwait(false);

@@ -4,7 +4,7 @@ using BeatSyncLib;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using BeatSyncLib.Playlists;
+using BeatSyncPlaylists;
 using BeatSyncLib.History;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
 
