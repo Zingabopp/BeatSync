@@ -275,6 +275,7 @@ namespace BeatSyncConsole
                 await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
 
                 ProcessFinishedJobs(jobs, JobBuilder.SongTargets, feedConfig);
+                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
             }
         }
 
@@ -293,6 +294,7 @@ namespace BeatSyncConsole
                 IEnumerable<IJob>? jobs = CreateJobs(results);
                 await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 ProcessFinishedJobs(jobs, JobBuilder.SongTargets, feedConfig);
+                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
             }
         }
 
@@ -311,6 +313,7 @@ namespace BeatSyncConsole
                 await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
 
                 ProcessFinishedJobs(jobs, JobBuilder.SongTargets, feedConfig);
+                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
             }
 
             string[] mappers = config.FavoriteMappers.Mappers ?? Array.Empty<string>();
@@ -324,6 +327,8 @@ namespace BeatSyncConsole
                     List<IPlaylist> feedPlaylists = new List<IPlaylist>();
                     foreach (var mapper in mappers)
                     {
+
+                        Console.WriteLine($"  Getting songs by {mapper}...");
                         playlists.Clear();
                         foreach (var targetWithPlaylist in JobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
                         {
@@ -357,7 +362,11 @@ namespace BeatSyncConsole
                             }
                         }
                         ProcessFinishedJobs(jobs, playlists);
+
+                        Console.WriteLine($"  Finished getting songs by {mapper}...");
                     }
+
+                    Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
                 }
                 else
                 {
