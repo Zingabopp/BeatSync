@@ -133,7 +133,9 @@ namespace BeatSyncConsole
             Config.FillDefaults();
             if (!Config.CustomSongsPaths.Any(p => p.Enabled))
             {
-                if (Config.CustomSongsPaths.Count == 0)
+                if (Config.CustomSongsPaths.Count == 0
+                    || (Config.CustomSongsPaths.Count == 1 
+                         && string.IsNullOrEmpty(Config.CustomSongsPaths[0].BasePath)))
                 {
                     Console.WriteLine("No song paths found in BeatSync.json, should I search for game installs? (Y/N): ");
                     string response = Console.ReadLine();
@@ -167,7 +169,9 @@ namespace BeatSyncConsole
                     }
                 }
                 if (Config.CustomSongsPaths.Count > 0
-                    && Config.CustomSongsPaths.Where(p => !p.Enabled).Count() == Config.CustomSongsPaths.Count)
+                    && Config.CustomSongsPaths.Where(p => !p.Enabled).Count() == Config.CustomSongsPaths.Count
+                    && !((Config.CustomSongsPaths.Count == 1
+                         && string.IsNullOrEmpty(Config.CustomSongsPaths[0].BasePath))))
                 {
                     Console.WriteLine("No locations currently enabled.");
                     for (int i = 0; i < Config.CustomSongsPaths.Count; i++)
@@ -199,7 +203,7 @@ namespace BeatSyncConsole
                     }
                 }
             }
-            if (Config.CustomSongsPaths.Any(p => p.Enabled))
+            if (Config.CustomSongsPaths.Any(p => p.Enabled && !string.IsNullOrEmpty(p.BasePath)))
             {
                 Console.WriteLine("Using the following targets:");
                 foreach (SongLocation enabledLocation in Config.CustomSongsPaths.Where(p => p.Enabled))
@@ -209,7 +213,12 @@ namespace BeatSyncConsole
             }
             else
             {
-                Console.WriteLine("No enabled custom songs paths found, please manually enter a target directory for your songs in BeatSync.json.");
+                Console.WriteLine("No enabled custom songs paths found, please manually enter a target directory for your songs in config.json.");
+                if (Config.CustomSongsPaths.Count == 0)
+                {
+                    Config.CustomSongsPaths.Add(SongLocation.CreateEmptyLocation());
+                    Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
+                }
                 validConfig = false;
             }
             string? favoriteMappersPath = GetFavoriteMappersLocation(Config.CustomSongsPaths);

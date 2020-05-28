@@ -9,14 +9,14 @@ namespace BeatSyncConsole.Loggers
         {
             if (LoggingLevel > logLevel)
                 return;
-            Console.WriteLine(message);
+            Console.WriteLine($"[BeatSyncLib]: {message}");
         }
 
         public override void Log(Exception ex, LogLevel logLevel)
         {
             if (LoggingLevel > logLevel)
                 return;
-            Console.WriteLine(ex);
+            Console.WriteLine($"[BeatSyncLib]: {ex}");
         }
     }
 }
