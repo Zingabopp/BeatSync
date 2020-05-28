@@ -98,13 +98,13 @@ namespace BeatSyncConsole
                 if (c.Successful)
                 {
                     if (c.DownloadResult != null && c.DownloadResult.Status == DownloadResultStatus.Skipped)
-                        Console.WriteLine($"Job skipped: {c.Song} not wanted by any targets.");
+                        Console.WriteLine($"      Job skipped: {c.Song} not wanted by any targets.");
                     else
-                        Console.WriteLine($"Job completed successfully: {c.Song}");
+                        Console.WriteLine($"      Job completed successfully: {c.Song}");
                 }
                 else
                 {
-                    Console.WriteLine($"Job failed: {c.Song}");
+                    Console.WriteLine($"      Job failed: {c.Song}");
                 }
             });
             jobBuilder.SetDefaultJobFinishedAsyncCallback(jobFinishedCallback);
