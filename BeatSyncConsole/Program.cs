@@ -112,46 +112,6 @@ namespace BeatSyncConsole
 
         }
 
-        public static async Task DownloadSongsAsync(IEnumerable<ISong> songs)
-        {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            manager.Start(cts.Token);
-            HashSet<IJob> runningJobs = new HashSet<IJob>();
-            int completedJobs = 0;
-            foreach (ISong songToAdd in songs)
-            {
-                IJob job = JobBuilder.CreateJob(songToAdd);
-                job.JobProgressChanged += (s, p) =>
-                {
-                    IJob j = (IJob)s;
-                    runningJobs.Add(j);
-
-                    //if (stageUpdates > 4)
-                    //    cts.Cancel();
-                    if (p.JobProgressType == JobProgressType.Finished)
-                    {
-                        int finished = ++completedJobs;
-                        Console.WriteLine($"({finished} finished) Completed {j}: {p}");
-                    }
-                    else
-                        Console.WriteLine($"({runningJobs.Count} jobs seen) Progress on {j}: {p}");
-                };
-                if (!manager.TryPostJob(job, out IJob j))
-                {
-                    Console.WriteLine($"Couldn't post duplicate: {j}");
-                }
-            }
-
-            try
-            {
-                await manager.CompleteAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
-
         static async Task<bool> InitializeConfigAsync()
         {
             bool validConfig = true;
@@ -473,8 +433,11 @@ namespace BeatSyncConsole
             foreach (ScrapedSong song in feedResult.Songs.Values)
             {
                 Job newJob = JobBuilder.CreateJob(song);
-                manager.TryPostJob(newJob, out IJob postedJob);
-                jobs.Add(postedJob);
+                manager.TryPostJob(newJob, out IJob? postedJob);
+                if (postedJob != null)
+                    jobs.Add(postedJob);
+                else
+                    Console.WriteLine($"Posted job is null for {song}, this shouldn't happen.");
             }
             return jobs;
         }
