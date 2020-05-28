@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -46,7 +45,7 @@ namespace BeatSyncLib.Utilities
         /// </summary>
         /// <param name="ba">the byte array</param>
         /// <returns>the hex form of the array</returns>
-        public static string ByteArrayToString(byte[] ba)
+        public static string? ByteArrayToString(byte[] ba)
         {
             if (ba == null)
                 return null;
@@ -68,7 +67,7 @@ namespace BeatSyncLib.Utilities
         /// <returns></returns>
         public static string TimeSpanToString(TimeSpan timeSpan)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (timeSpan.Days > 0)
                 if (timeSpan.Days == 1)
                     sb.Append("1 day ");
@@ -100,7 +99,7 @@ namespace BeatSyncLib.Utilities
             int byteUnitInt = (int)byteUnit;
             int startingUnitInt = (int)startingUnit;
             double newVal = byteVal;
-            while(startingUnitInt < byteUnitInt)
+            while (startingUnitInt < byteUnitInt)
             {
                 newVal /= 1024;
                 startingUnitInt++;
@@ -141,7 +140,7 @@ namespace BeatSyncLib.Utilities
         /// </summary>
         /// <returns>Hash of the song files. Null if the info.dat file doesn't exist</returns>
         /// <exception cref="DirectoryNotFoundException"></exception>
-        public static string GenerateHash(string songDirectory, string existingHash = "")
+        public static string? GenerateHash(string songDirectory, string existingHash = "")
         {
             if (!Directory.Exists(songDirectory))
                 throw new DirectoryNotFoundException($"Directory doesn't exist: '{songDirectory}'");
@@ -150,21 +149,27 @@ namespace BeatSyncLib.Utilities
             if (!File.Exists(infoFile))
                 return null;
             combinedBytes = combinedBytes.Concat(File.ReadAllBytes(infoFile)).ToArray();
-            var token = JToken.Parse(File.ReadAllText(infoFile));
-            var beatMapSets = token["_difficultyBeatmapSets"];
-            int numChars = beatMapSets.Children().Count();
+            JToken? token = JToken.Parse(File.ReadAllText(infoFile));
+            JToken? beatMapSets = token["_difficultyBeatmapSets"];
+            int numChars = beatMapSets?.Children().Count() ?? 0;
             for (int i = 0; i < numChars; i++)
             {
-                var diffs = beatMapSets.ElementAt(i);
-                int numDiffs = diffs["_difficultyBeatmaps"].Children().Count();
+                JToken? diffs = beatMapSets.ElementAt(i);
+                int numDiffs = diffs["_difficultyBeatmaps"]?.Children().Count() ?? 0; 
                 for (int i2 = 0; i2 < numDiffs; i2++)
                 {
-                    var diff = diffs["_difficultyBeatmaps"].ElementAt(i2);
-                    string beatmapPath = Path.Combine(songDirectory, diff["_beatmapFilename"].Value<string>());
-                    if (File.Exists(beatmapPath))
-                        combinedBytes = combinedBytes.Concat(File.ReadAllBytes(beatmapPath)).ToArray();
+                    JToken? diff = diffs["_difficultyBeatmaps"].ElementAt(i2);
+                    string? beatmapFile = diff["_beatmapFilename"]?.Value<string>();
+                    if (beatmapFile != null)
+                    {
+                        string beatmapPath = Path.Combine(songDirectory, beatmapFile);
+                        if (File.Exists(beatmapPath))
+                            combinedBytes = combinedBytes.Concat(File.ReadAllBytes(beatmapPath)).ToArray();
+                        else
+                            Logger.log?.Debug($"Missing difficulty file {beatmapPath.Split('\\', '/').LastOrDefault()}");
+                    }
                     else
-                        Logger.log?.Debug($"Missing difficulty file {beatmapPath.Split('\\', '/').LastOrDefault()}");
+                        Logger.log?.Warn($"_beatmapFilename property is null in {infoFile}");
                 }
             }
 
@@ -183,13 +188,11 @@ namespace BeatSyncLib.Utilities
         /// <returns>Sha1 hash of the byte array.</returns>
         public static string CreateSha1FromBytes(byte[] input)
         {
-            using (var sha1 = SHA1.Create())
-            {
-                var inputBytes = input;
-                var hashBytes = sha1.ComputeHash(inputBytes);
+            using SHA1 sha1 = SHA1.Create();
+            byte[] inputBytes = input;
+            byte[] hashBytes = sha1.ComputeHash(inputBytes);
 
-                return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-            }
+            return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
         }
 
         /// <summary>
@@ -208,7 +211,7 @@ namespace BeatSyncLib.Utilities
             if (!directoryInfo.Exists)
                 throw new DirectoryNotFoundException($"GenerateDirectoryHash couldn't find {path}");
             long dirHash = 0L;
-            foreach (var file in directoryInfo.GetFiles())
+            foreach (FileInfo file in directoryInfo.GetFiles())
             {
                 dirHash ^= file.CreationTimeUtc.ToFileTimeUtc();
                 dirHash ^= file.LastWriteTimeUtc.ToFileTimeUtc();
@@ -220,10 +223,15 @@ namespace BeatSyncLib.Utilities
         }
         #endregion
 
-        public static string GetSongDirectoryName(string songKey, string songName, string levelAuthorName)
+        public static string GetSongDirectoryName(string? songKey, string songName, string levelAuthorName)
         {
             // BeatSaverDownloader's method of naming the directory.
-            string basePath = songKey + " (" + string.Join(" - ", songName, levelAuthorName) + ")";
+            string basePath;
+            songKey = songKey?.Trim();
+            if (songKey != null && songKey.Length > 0)
+                basePath = songKey + " (" + string.Join(" - ", songName, levelAuthorName) + ")";
+            else
+                basePath = string.Join(" - ", songName, levelAuthorName);
             basePath = string.Join("", basePath.Trim().Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
             return basePath;
         }
@@ -249,7 +257,7 @@ namespace BeatSyncLib.Utilities
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        internal static string ParseKey(string key)
+        internal static string? ParseKey(string key)
         {
             if (string.IsNullOrEmpty(key))
                 return null;
@@ -278,13 +286,12 @@ namespace BeatSyncLib.Utilities
         {
             if (string.IsNullOrEmpty(base64Str))
             {
-                return null;
+                return Array.Empty<byte>();
             }
             int tagIndex = base64Str.IndexOf(Base64Prefix);
             if (tagIndex >= 0)
             {
                 int firstNonWhitespace = 0;
-                int startIndex = 0;
                 for (int i = 0; i <= tagIndex; i++)
                 {
                     firstNonWhitespace = i;
@@ -293,7 +300,7 @@ namespace BeatSyncLib.Utilities
                 }
                 if (firstNonWhitespace == tagIndex)
                 {
-                    startIndex = tagIndex + Base64Prefix.Length;
+                    int startIndex = tagIndex + Base64Prefix.Length;
                     for (int i = startIndex; i < base64Str.Length; i++)
                     {
                         startIndex = i;
@@ -320,8 +327,8 @@ namespace BeatSyncLib.Utilities
         {
             try
             {
-                var resource = GetResource(Assembly.GetCallingAssembly(), imagePath);
-                if(resource.Length == 0)
+                byte[] resource = GetResource(Assembly.GetCallingAssembly(), imagePath);
+                if (resource.Length == 0)
                 {
                     Logger.log?.Warn($"Unable to load image from path: {imagePath}");
                     return string.Empty;
@@ -347,12 +354,10 @@ namespace BeatSyncLib.Utilities
         {
             try
             {
-                using (Stream stream = asm.GetManifestResourceStream(ResourceName))
-                {
-                    byte[] data = new byte[stream.Length];
-                    stream.Read(data, 0, (int)stream.Length);
-                    return data;
-                }
+                using Stream stream = asm.GetManifestResourceStream(ResourceName);
+                byte[] data = new byte[stream.Length];
+                stream.Read(data, 0, (int)stream.Length);
+                return data;
             }
             catch (NullReferenceException)
             {
