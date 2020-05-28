@@ -1,6 +1,8 @@
 ﻿using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
+using SongFeedReaders;
 using SongFeedReaders.Data;
+using SongFeedReaders.Readers.BeatSaver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,6 +135,14 @@ namespace BeatSyncLib.Downloader
                 cancellationToken.ThrowIfCancellationRequested();
                 if (pendingTargets.Count > 0)
                 {
+                    if (string.IsNullOrEmpty(Song.Key))
+                    {
+                        var result = await BeatSaverReader.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
+                        if (result.Successful)
+                        {
+                            Song.Key = result.Songs.FirstOrDefault()?.Key;
+                        }
+                    }
                     _downloadJob.JobProgressChanged += _downloadJob_JobProgressChanged;
                     DownloadResult = await _downloadJob.RunAsync(cancellationToken).ConfigureAwait(false);
                     downloadContainer = DownloadResult.DownloadContainer;
