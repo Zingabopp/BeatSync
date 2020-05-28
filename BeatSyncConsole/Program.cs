@@ -303,6 +303,8 @@ namespace BeatSyncConsole
         static async Task GetScoreSaberAsync()
         {
             ScoreSaberConfig config = Config.BeatSyncConfig.ScoreSaber;
+            if (!config.Enabled)
+                return;
             ScoreSaberReader reader = new ScoreSaberReader();
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { config.TopRanked, config.LatestRanked, config.Trending, config.TopPlayed };
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
@@ -318,7 +320,9 @@ namespace BeatSyncConsole
 
         static async Task GetBeastSaberAsync()
         {
-            BeastSaberConfig config = Config.BeatSyncConfig.BeastSaber;
+            BeastSaberConfig config = Config.BeatSyncConfig.BeastSaber; 
+            if (!config.Enabled)
+                return;
             BeastSaberReader reader = new BeastSaberReader(config.Username, config.MaxConcurrentPageChecks);
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { config.Bookmarks, config.Follows, config.CuratorRecommended };
             List<IPlaylist> playlists = new List<IPlaylist>();
@@ -335,6 +339,8 @@ namespace BeatSyncConsole
         static async Task GetBeatSaverAsync()
         {
             BeatSaverConfig config = Config.BeatSyncConfig.BeatSaver;
+            if (!config.Enabled)
+                return;
             BeatSaverReader reader = new BeatSaverReader(config.MaxConcurrentPageChecks);
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { config.Hot, config.Downloads };
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
