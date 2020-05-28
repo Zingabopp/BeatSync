@@ -62,7 +62,7 @@ namespace BeatSyncPlaylists
         /// <inheritdoc/>
         public virtual IPlaylistSong? Add(ISong song)
         {
-            if (AllowDuplicates || (!_songs.Any(s => s.Hash == song.Hash || s.Key == song.Key)))
+            if (AllowDuplicates || !_songs.Any(s => s.Hash == song.Hash || (song.Key != null && s.Key == song.Key)))
             {
                 T playlistSong = ConvertFrom(song);
                 _songs.Add(playlistSong);
