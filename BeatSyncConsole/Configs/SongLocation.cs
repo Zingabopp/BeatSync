@@ -43,19 +43,32 @@ namespace BeatSyncConsole.Configs
             SetDefaultPaths(newLocation);
             return newLocation;
         }
+
+        public static SongLocation CreateEmptyLocation()
+        {
+            return new SongLocation()
+            {
+                BasePath = string.Empty,
+                LocationType = InstallType.Custom,
+                PlaylistDirectory = "Playlists",
+                HistoryPath = "BeatSyncHistory.json"
+            };
+        }
+
         internal SongLocation() { }
         public SongLocation(string basePath, InstallType locationType)
         {
-            if (string.IsNullOrEmpty(basePath))
-                throw new ArgumentNullException(nameof(basePath), $"{nameof(basePath)} cannot be null or empty.");
-            BasePath = Path.GetFullPath(basePath);
+            if (!string.IsNullOrEmpty(basePath))
+                BasePath = Path.GetFullPath(basePath);
+            else
+                BasePath = string.Empty;
             LocationType = locationType;
             SetDefaultPaths(this);
         }
         [JsonIgnore]
-        private string _songsDirectory;
+        private string? _songsDirectory;
         [JsonIgnore]
-        private string _historyPath;
+        private string? _historyPath;
 
         [JsonProperty("Enabled", Order = 0)]
         public bool Enabled { get; set; }
@@ -64,7 +77,7 @@ namespace BeatSyncConsole.Configs
         public string BasePath { get; set; }
 
         [JsonProperty("LocationType", Order = 10)]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(Converters.InstallTypeConverter))]
         public InstallType LocationType { get; set; }
 
         [JsonProperty("SongsDirectory", Order = 15)]
