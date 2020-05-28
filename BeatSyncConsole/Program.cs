@@ -490,7 +490,7 @@ namespace BeatSyncConsole
                 Console.Read();
                 return;
             }
-            SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
+            SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
             string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
             SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/" + version);
             manager = new JobManager(Config.BeatSyncConfig.MaxConcurrentDownloads);
