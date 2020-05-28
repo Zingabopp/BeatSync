@@ -132,7 +132,14 @@ namespace BeatSyncLib.Downloader
             }
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested(); if (string.IsNullOrEmpty(Song.Key))
+                {
+                    var result = await BeatSaverReader.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
+                    if (result.Successful)
+                    {
+                        Song.Key = result.Songs.FirstOrDefault()?.Key;
+                    }
+                }
                 if (pendingTargets.Count > 0)
                 {
                     if (string.IsNullOrEmpty(Song.Key))
