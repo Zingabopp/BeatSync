@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8BA75F87-831D-4420-915E-D7EC5F8953D3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BeatSyncLibTests</RootNamespace>
+    <AssemblyName>BeatSyncLibTests</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
+    <IsCodedUITest>False</IsCodedUITest>
+    <TestProjectType>UnitTest</TestProjectType>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Blister">
+      <HintPath>..\Refs\Blister.dll</HintPath>
+    </Reference>
+    <Reference Include="Blister.Conversion">
+      <HintPath>..\Refs\Blister.Conversion.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="HistoryManager_Tests\ContainsKey_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\HistoryTestData.cs" />
+    <Compile Include="HistoryManager_Tests\Initialize_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryAdd_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryGetValue_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
+    <Compile Include="HistoryManager_Tests\WriteToFile_Tests.cs" />
+    <Compile Include="SongHasher_Tests\AddMissingHashes_Tests.cs" />
+    <Compile Include="SongHasher_Tests\GetSongHashData_Tests.cs" />
+    <Compile Include="SongHasher_Tests\LoadCachedSongHashesAsync_Test.cs" />
+    <Compile Include="TestSetup.cs" />
+    <Compile Include="UnitTest1.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Util_Tests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MSTest.TestAdapter">
+      <Version>1.3.2</Version>
+    </PackageReference>
+    <PackageReference Include="MSTest.TestFramework">
+      <Version>1.3.2</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BeatSyncLib\BeatSyncLib.csproj">
+      <Project>{e2a07bdb-7085-48a3-aa50-b6e0856a7cca}</Project>
+      <Name>BeatSyncLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BeatSyncPlaylists\BeatSyncPlaylists.csproj">
+      <Project>{e1981ae8-0750-4d39-98a5-b60fbf010c32}</Project>
+      <Name>BeatSyncPlaylists</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj">
+      <Project>{460a61bc-c89a-433d-a9e2-37447694d76c}</Project>
+      <Name>SongFeedReaders</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
+      <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
+      <Name>WebUtilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\Config\FutureLastRun.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_Empty.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_Expected.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_NewLineAtEnd.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_NewLineAtMiddle.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_NewLineAtStart.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_PostfixedSpaces.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\FavoriteMappers\FavoriteMappers_PrefixedSpaces.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\HistoryManager\BeatSyncHistory-TestCol1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\HistoryManager\BeatSyncHistory-TestCol2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\HistoryManager\TestSongsHistory.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\BeatSyncBSaberBookmarks.blist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\BeatSyncBSaberFollows.blist" />
+    <None Include="Data\Playlists\BeatSyncScoreSaberLatestRanked.blist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\BeatSyncScoreSaberTopRanked.blist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\ScoreSaberTopRanked.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\SyncSaberBookmarksPlaylist.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\SyncSaberCuratorRecommendedPlaylist.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\SyncSaberFollowingsPlaylist.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\SyncSaberPlaylist.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\SongHashData.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\SongHashData_DuplicateEntries.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\SongHashData_DuplicateSong.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\TestSongsHashData.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\TestSongsHashData_NonMatchingHash.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongHashData\TestSongsHashData_Partial.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing ExpectedDiff%29\info.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing ExpectedDiff%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing Info.dat%29\Expert.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\0 %28Missing Info.dat%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\Expert.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\Expert.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\Super Mario Bros Theme.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Easy.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Expert.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\ExpertPlus.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Hard.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\Normal.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d02 %28Sail - baxter395%29\song.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\ExpertPlus.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\newgame.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\ExpertPlus.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\info.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\song.egg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongZips\5d28-LongEntry.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongZips\5dd6-NestedDir.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\SongZips\DuplicateFiles.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Data\Songs\0 %28Missing ExpectedDiff%29\cover.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\0 %28Missing Info.dat%29\cover.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29 %282%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\29 %28Super Mario Bros Theme - redknight%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5d02 %28Sail - baxter395%29\baxter.png.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5d02 %28Sail - baxter395%29\sail.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5d8d %28New Game - Nitro Fun - Fafurion%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\Songs\5dbf %28The Diary of Jane - Breaking Benjamin - Heisenberg%29\cover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

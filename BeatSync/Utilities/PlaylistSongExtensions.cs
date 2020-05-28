@@ -9,6 +9,7 @@ using BeatSync.Playlists;
 using SongFeedReaders;
 using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Readers;
+using SongFeedReaders.Data;
 
 namespace BeatSync.Utilities
 {

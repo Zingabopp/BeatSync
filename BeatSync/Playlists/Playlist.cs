@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
+using static BeatSync.Utilities.Util;
+using static IPA.Utilities.Utils;
 
 namespace BeatSync.Playlists
 {
@@ -12,14 +15,31 @@ namespace BeatSync.Playlists
     {
         [JsonIgnore]
         public bool IsDirty { get; private set; }
+
+        public Blister.Types.Playlist _blisterPlaylist;
+        public Blister.Types.Playlist BlisterPlaylist
+        {
+            get
+            {
+                if(_blisterPlaylist == null)
+                {
+                    _blisterPlaylist = new Blister.Types.Playlist() { Maps = new List<Blister.Types.Beatmap>() };
+                }
+                return _blisterPlaylist;
+            }
+            set
+            {
+                _blisterPlaylist = value;
+            }
+        }
         public Playlist() { }
-        public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor)//, string image)
+        public Playlist(string playlistFileName, string playlistTitle, string playlistAuthor, string image)
         {
             FileName = playlistFileName;
             Title = playlistTitle;
             Author = playlistAuthor;
-            //Image = image;
-            Songs = new List<PlaylistSong>();
+            Cover = Convert.FromBase64String(image);
+            Beatmaps = new List<Blister.Types.Beatmap>();
             IsDirty = true;
         }
 
@@ -28,8 +48,9 @@ namespace BeatSync.Playlists
             FileName = playlistFileName;
             Title = playlistTitle;
             Author = playlistAuthor;
-            ImageLoader = imageLoader;
-            Songs = new List<PlaylistSong>();
+            //ImageLoader = imageLoader;
+            Cover = Convert.FromBase64String(imageLoader.Value);
+            Beatmaps = new List<Blister.Types.Beatmap>();
             IsDirty = true;
         }
 
@@ -38,23 +59,26 @@ namespace BeatSync.Playlists
         /// </summary>
         /// <param name="song"></param>
         /// <returns>True if the song was added.</returns>
-        public bool TryAdd(PlaylistSong song)
+        public bool TryAdd(Blister.Types.Beatmap song)
         {
-            if (!Songs.Any(s => s.Hash.Equals(song.Hash)))
+            string songHash = ByteArrayToString(song.Hash);
+            if (!Beatmaps.Any(s => ByteArrayToString(s.Hash).Equals(songHash, StringComparison.OrdinalIgnoreCase)))
             {
-                Songs.Add(song);
+                //Logger.log.Info($"Adding song with hash {songHash}");
+                Beatmaps.Add(song);
                 IsDirty = true;
                 return true;
             }
+            //Logger.log?.Warn($"Unable to add duplicate song hash {songHash}");
             return false;
         }
 
         public bool TryRemove(string songHash)
         {
             songHash = songHash.ToUpper();
-            if (Songs.Any(s => songHash.Equals(s.Hash)))
+            if (Beatmaps.Any(s => ByteArrayToString(s.Hash).Equals(songHash, StringComparison.OrdinalIgnoreCase)))
             {
-                int songsRemoved = Songs.RemoveAll(s => songHash.Equals(s.Hash));
+                int songsRemoved = Beatmaps.RemoveAll(s => ByteArrayToString(s.Hash).Equals(songHash, StringComparison.OrdinalIgnoreCase));
                 IsDirty = true;
                 return true;
             }
@@ -75,7 +99,22 @@ namespace BeatSync.Playlists
         /// <returns>True if the song was added.</returns>
         public bool TryAdd(string songHash, string songName, string songKey, string mapper)
         {
-            return TryAdd(new PlaylistSong(songHash, songName, songKey, mapper));
+            songKey = ParseKey(songKey);
+            uint? keyInt = null;
+            if(!string.IsNullOrEmpty(songKey))
+                keyInt = Convert.ToUInt32(songKey, 16);
+            return TryAdd(new Blister.Types.Beatmap 
+            { Hash = StringToByteArray(songHash),  DateAdded = DateTime.Now, Type = Blister.Types.BeatmapType.Hash, Key = keyInt});
+        }
+
+        public bool TryAdd(PlaylistSong song)
+        {
+            var songKey = ParseKey(song.Key);
+            uint? keyInt = null;
+            if (!string.IsNullOrEmpty(songKey))
+                keyInt = Convert.ToUInt32(songKey, 16);
+            return TryAdd(new Blister.Types.Beatmap
+            { Hash = StringToByteArray(song.Hash), DateAdded = song.DateAdded ?? DateTime.Now, Type = Blister.Types.BeatmapType.Hash, Key = keyInt });
         }
 
         /// <summary>
@@ -88,24 +127,11 @@ namespace BeatSync.Playlists
             //{
             //    Songs.Remove(song);
             //}
-            var count = Songs.Count;
-            Songs = Songs.Distinct().ToList();
-            if (count != Songs.Count)
+            var count = Beatmaps.Count;
+            Beatmaps = Beatmaps.Distinct().ToList();
+            if (count != Beatmaps.Count)
             {
                 Logger.log?.Warn($"Duplicate songs detected in playlist {Title}.");
-                IsDirty = true;
-            }
-        }
-
-        /// <summary>
-        /// Removes songs that don't have a Hash from the playlist.
-        /// </summary>
-        public void RemoveInvalidSongs()
-        {
-            var oldSongs = Songs.Where(s => string.IsNullOrEmpty(s.Hash));
-            foreach (var song in oldSongs)
-            {
-                Songs.Remove(song);
                 IsDirty = true;
             }
         }
@@ -115,9 +141,9 @@ namespace BeatSync.Playlists
         /// </summary>
         public void Clear()
         {
-            if (Songs.Count == 0)
+            if (Beatmaps.Count == 0)
                 return;
-            Songs.Clear();
+            Beatmaps.Clear();
             IsDirty = true;
         }
 
@@ -135,7 +161,7 @@ namespace BeatSync.Playlists
         /// <returns></returns>
         public bool TryWriteFile(out Exception exception)
         {
-            if (Songs.Count == 0)
+            if (Beatmaps.Count == 0)
             {
                 exception = new InvalidOperationException($"Playlist {Title} has no songs.");
                 return false;
@@ -144,7 +170,7 @@ namespace BeatSync.Playlists
             exception = null;
             try
             {
-                Songs = Songs.OrderByDescending(s => s.DateAdded).ToList();
+                Beatmaps = Beatmaps.OrderByDescending(s => s.DateAdded).ToList();
                 FileIO.WritePlaylist(this);
                 IsDirty = false;
                 return true;
@@ -169,69 +195,46 @@ namespace BeatSync.Playlists
         }
 
         [JsonProperty("playlistTitle", Order = -10)]
-        public string Title { get; set; }
+        public string Title
+        {
+            get { return BlisterPlaylist.Title; }
+            set
+            {
+                if (BlisterPlaylist.Title == value) return;
+                BlisterPlaylist.Title = value;
+                IsDirty = true;
+            }
+        }
         [JsonProperty("playlistAuthor", Order = -5)]
-        public string Author { get; set; }
+        public string Author
+        {
+            get { return BlisterPlaylist.Author; }
+            set
+            {
+                if (BlisterPlaylist.Author == value) return;
+                BlisterPlaylist.Author = value;
+                IsDirty = true;
+            }
+        }
+
+        public string Description
+        {
+            get { return BlisterPlaylist.Description; }
+            set
+            {
+                if (BlisterPlaylist.Description == value) return;
+                BlisterPlaylist.Description = value;
+                IsDirty = true;
+            }
+        }
+
         [JsonProperty("image", Order = 10)]
-        public string Image
+        public byte[] Cover
         {
-            get
-            {
-                string loadedImage = _image;
-                if (string.IsNullOrEmpty(_image) || _image == "1")
-                    loadedImage = ImageLoader?.Value ?? "1";
-                if (loadedImage != _image)
-                {
-                    _image = loadedImage;
-                    IsDirty = true;
-                }
-                return _image;
-            }
-            //set
-            //{
-            //    //if (_image == value)
-            //    //    return;
-            //    //_image = value;
-            //    //IsDirty = true;
-            //}
-        }
-
-        [JsonIgnore]
-        private string _image;
-
-        [JsonIgnore]
-        private Lazy<string> _imageLoader;
-
-        [JsonIgnore]
-        public Lazy<string> ImageLoader
-        {
-            get { return _imageLoader; }
+            get { return BlisterPlaylist.Cover; }
             set
             {
-                if (value == null || _imageLoader == value)
-                    return;
-                _imageLoader = value;
-                _image = string.Empty;
-            }
-        }
-
-        [JsonProperty("songs")]
-        public List<PlaylistSong> Songs
-        {
-            get
-            {
-                if (_songs == null)
-                {
-                    _songs = new List<PlaylistSong>();
-                    IsDirty = true;
-                }
-                return _songs;
-            }
-            set
-            {
-                if (_songs == value)
-                    return;
-                _songs = value;
+                BlisterPlaylist.Cover = value;
                 IsDirty = true;
             }
         }
@@ -255,8 +258,37 @@ namespace BeatSync.Playlists
                     _fileName = value;
             }
         }
+
+        public bool AddSong(Blister.Types.Beatmap beatmap)
+        {
+            if (Beatmaps.Any(b => b.Hash == beatmap.Hash))
+                return false;
+            Beatmaps.Add(beatmap);
+            IsDirty = true;
+            return true;
+        }
+
+        public int RemoveAll(Predicate<Blister.Types.Beatmap> match)
+        {
+            int numRemoved = Beatmaps.RemoveAll(match);
+            if (numRemoved > 0)
+                IsDirty = true;
+            return numRemoved;
+        }
+
+        public int Count => Beatmaps.Count;
+
         [JsonIgnore]
-        private List<PlaylistSong> _songs;
+        public List<Blister.Types.Beatmap> Beatmaps
+        {
+            get 
+            {
+                if (BlisterPlaylist.Maps == null)
+                    BlisterPlaylist.Maps = new List<Blister.Types.Beatmap>();
+                return BlisterPlaylist.Maps; 
+            }
+            set { BlisterPlaylist.Maps = value; }
+        }
 
     }
 }

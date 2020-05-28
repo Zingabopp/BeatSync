@@ -34,7 +34,7 @@ namespace BeatSyncTests
                 process.StartInfo.RedirectStandardOutput = true;
                 process.Start();
                 var outText = process.StandardOutput.ReadToEnd();
-                if(outText.Length >= 7)
+                if (outText.Length >= 7)
                     CommitShortHash = outText.Substring(0, 7);
                 //return true;
             }
@@ -48,15 +48,19 @@ namespace BeatSyncTests
             return true;
         }
 
-        private string PluginVersion;
-        private string AssemblyVersion;
-        private string GameVersion;
+        public string PluginVersion;
+        public string AssemblyVersion;
+        public string GameVersion;
         [TestMethod]
         public bool GetManifestInfo()
         {
             try
             {
                 string manifestFile = "manifest.json";
+                string manifest_gameVerStart = "\"gameVersion\"";
+                string manifest_versionStart = "\"version\"";
+                string manifest_gameVerLine = null;
+                string manifest_versionLine = null;
                 string assemblyFile = "Properties\\AssemblyInfo.cs";
                 string startString = "[assembly: AssemblyVersion(\"";
                 string secondStartString = "[assembly: AssemblyFileVersion(\"";
@@ -76,19 +80,37 @@ namespace BeatSyncTests
                 {
                     throw new FileNotFoundException("Could not find AssemblyInfo: " + Path.GetFullPath(assemblyFile));
                 }
-                JToken manifestJson = JsonConvert.DeserializeObject<JToken>(File.ReadAllText(manifestFile));
-                if (manifestJson["version"] != null)
-                {
-                    string version = manifestJson["version"].Value<string>();
-                    PluginVersion = string.IsNullOrEmpty(version) ? "E.R.R" : version;
-                }
-                if (manifestJson["gameVersion"] != null)
-                {
-                    string gameVersion = manifestJson["gameVersion"].Value<string>();
-                    GameVersion = string.IsNullOrEmpty(gameVersion) ? "E.R.R" : gameVersion;
-                }
-
                 string line;
+                using (StreamReader manifestStream = new StreamReader(manifestFile))
+                {
+                    while ((line = manifestStream.ReadLine()) != null && (manifest_versionLine == null || manifest_gameVerLine == null))
+                    {
+                        line = line.Trim();
+                        if (line.StartsWith(manifest_gameVerStart))
+                        {
+                            manifest_gameVerLine = line;
+                        }
+                        else if (line.StartsWith(manifest_versionStart))
+                        {
+                            manifest_versionLine = line;
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(manifest_versionLine))
+                {
+                    PluginVersion = manifest_versionLine.Substring(manifest_versionStart.Length).Replace(":","").Replace("\"", "").Trim();
+                }
+                else
+                    PluginVersion = "E.R.R";
+
+                if (!string.IsNullOrEmpty(manifest_gameVerLine))
+                {
+                    GameVersion = manifest_gameVerLine.Substring(manifest_gameVerStart.Length).Replace(":", "").Replace("\"", "").Trim();
+                }
+                else
+                    GameVersion = "E.R.R";
+
+                line = null;
                 using (StreamReader assemblyStream = new StreamReader(assemblyFile))
                 {
                     while ((line = assemblyStream.ReadLine()) != null)
@@ -154,7 +176,9 @@ namespace BeatSyncTests
             catch (Exception ex)
             {
                 throw;
+#pragma warning disable CS0162 // Unreachable code detected
                 Log.LogErrorFromException(ex);
+#pragma warning restore CS0162 // Unreachable code detected
                 return false;
             }
 

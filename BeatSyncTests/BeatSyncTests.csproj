@@ -38,23 +38,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Blister, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\BeatSync\References\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\Refs\Blister.dll</HintPath>
+    </Reference>
+    <Reference Include="Blister.Conversion, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Refs\Blister.Conversion.dll</HintPath>
+    </Reference>
+    <Reference Include="MainAssembly, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Refs\MainAssembly.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="SongCore, Version=2.7.5.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\BeatSync\References\Plugins\SongCore.dll</HintPath>
+      <HintPath>..\Refs\SongCore.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\BeatSync\References\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config_Tests\FavoriteMappers_Tests\ReadFromFile_Tests.cs" />
@@ -70,6 +74,7 @@
     <Compile Include="DownloadManager_Tests\MockDownloadJob.cs" />
     <Compile Include="FileIO_Tests\DownloadFileAsync_Tests.cs" />
     <Compile Include="FileLock_Tests\TryLock_Tests.cs" />
+    <Compile Include="Playlist_Tests\BlisterTests.cs" />
     <Compile Include="SongDownloader_Tests\ProcessJob_Tests.cs" />
     <Compile Include="FileIO_Tests\ExtractZipAsync_Tests.cs" />
     <Compile Include="HistoryManager_Tests\TryRemove_Tests.cs" />
@@ -136,6 +141,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Data\HistoryManager\TestSongsHistory.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\BeatSyncBSaberBookmarks.blist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\BeatSyncBSaberFollows.blist" />
+    <None Include="Data\Playlists\BeatSyncScoreSaberLatestRanked.blist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Data\Playlists\BeatSyncScoreSaberTopRanked.blist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Data\Playlists\ScoreSaberTopRanked.json">

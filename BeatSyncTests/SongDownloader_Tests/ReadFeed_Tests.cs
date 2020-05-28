@@ -105,7 +105,8 @@ namespace BeatSyncTests.SongDownloader_Tests
             var songDownloader = new SongDownloader(config, null, null, SONGSPATH);
             var reader = new BeatSaverReader();
             var settings = (BeatSaverFeedSettings)feedConfig.ToFeedSettings();
-            settings.Criteria = "Ruckus";
+            var queryBuilder = new SearchQueryBuilder(BeatSaverSearchType.author, "Ruckus");
+            settings.SearchQuery = queryBuilder.GetQuery();
             CancellationTokenSource cts = new CancellationTokenSource(150);
             var resultTask = songDownloader.ReadFeed(reader, settings, 0, null, PlaylistStyle.Append, cts.Token);
 

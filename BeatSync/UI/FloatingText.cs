@@ -1,10 +1,10 @@
 ﻿using BeatSync.Utilities;
-using CustomUI.BeatSaber;
 using TMPro;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using BeatSaberMarkupLanguage;
 
 namespace BeatSync.UI
 {

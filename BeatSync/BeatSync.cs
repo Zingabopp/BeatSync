@@ -86,7 +86,7 @@ namespace BeatSync
             if (recentPlaylist != null && Plugin.config.Value.RecentPlaylistDays > 0)
             {
                 var minDate = DateTime.Now - new TimeSpan(Plugin.config.Value.RecentPlaylistDays, 0, 0, 0);
-                int removedCount = recentPlaylist.Songs.RemoveAll(s => s.DateAdded < minDate);
+                int removedCount = recentPlaylist.RemoveAll(s => s.DateAdded < minDate);
 
                 if (removedCount > 0)
                 {
@@ -209,7 +209,7 @@ namespace BeatSync
         public static IEnumerator<WaitUntil> UpdateLevelPacks()
         {
             yield return WaitForUnPause;
-            BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
+            //BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
             if (!SongCore.Loader.AreSongsLoaded)
             {
                 yield break;

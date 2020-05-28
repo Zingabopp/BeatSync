@@ -45,9 +45,8 @@ namespace BeatSync
 
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
-            IPA.Logging.StandardLogger.PrintFilter = IPA.Logging.Logger.LogLevel.InfoUp;
             Logger.log = new BeatSyncIPALogger(logger);
-            Logger.log?.Debug("Logger initialied.");
+            Logger.log?.Debug("Logger initialized.");
             configProvider = cfgProvider;
             config = configProvider.MakeLink<PluginConfig>((p, v) =>
             {
@@ -102,8 +101,8 @@ namespace BeatSync
             // Check if CustomUI is installed.
             try
             {
-                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
-                CustomUI.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
 
                 // Called to set the WebClient SongFeedReaders uses
                 if (!SongFeedReaders.WebUtils.IsInitialized)
@@ -133,6 +132,7 @@ namespace BeatSync
             CancelAllSource.Dispose();
             CancelAllSource = null;
             Logger.log?.Critical($"Disabling BeatSync...");
+            
             SharedCoroutineStarter.instance.StartCoroutine(BeatSyncController.DestroyAfterFinishing());
             GameObject.Destroy(StatusController);
             BeatSyncController = null;
@@ -195,7 +195,7 @@ namespace BeatSync
                 //}
 
                 Logger.log?.Debug("Creating BeatSync's UI");
-                UI.BeatSync_UI.CreateUI();
+                //UI.BeatSync_UI.CreateUI();
                 config.Value.ResetConfigChanged();
                 config.Value.FillDefaults();
                 var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();

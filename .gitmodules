@@ -1,3 +1,6 @@
 [submodule "Libs/BeatSaberDataProvider"]
 	path = Libs/BeatSaberDataProvider
 	url = https://github.com/Zingabopp/BeatSaberDataProvider.git
+[submodule "BS-Plugin-BuildTools"]
+	path = BS-Plugin-BuildTools
+	url = https://github.com/Zingabopp/BS-Plugin-BuildTools.git

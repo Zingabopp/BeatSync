@@ -1,0 +1,26 @@
+::from ./bsinstalldir.txt
+"Beat Saber_Data/
+""Managed/
+"""Unity.TextMeshPro.dll
+"""UnityEngine.
+""""dll
+""""CoreModule.dll
+""""ImageConversionModule.dll
+""""UI
+""""".dll
+"""""ElementsModule.dll
+"""""Module.dll
+"""HMLib.dll?virt
+"""HMUI.dll?virt
+"""MainAssembly.dll?virt
+"""IPA.
+""""Loader.dll
+"Libs/
+""0Harmony.1.2.0.1.dll
+""Blister.dll
+""Blister.Conversion.dll
+""SemVer.1.2.0.0.dll
+"Plugins/
+""BS_Utils.dll
+""BSML.dll
+""SongCore.dll
