@@ -6,7 +6,7 @@ using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
-using BeatSyncLib.Playlists;
+using BeatSyncPlaylists;
 using Newtonsoft.Json;
 using SongFeedReaders.Data;
 using SongFeedReaders.Readers;
@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities;
@@ -28,9 +29,11 @@ namespace BeatSyncConsole
         internal static readonly string HistoryPath = "history.json";
         internal static readonly string ConfigBackupPath = "config.json.bak";
 
-        internal static JobManager manager = new JobManager(1);
+        internal static JobManager manager = new JobManager(2);
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         internal static IJobBuilder JobBuilder;
         internal static Config Config;
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public static IJobBuilder CreateJobBuilder()
         {
             string tempDirectory = "Temp";
@@ -83,19 +86,22 @@ namespace BeatSyncConsole
             }
             JobFinishedAsyncCallback jobFinishedCallback = new JobFinishedAsyncCallback(async (JobResult c) =>
             {
+                HistoryEntry entry = c.CreateHistoryEntry();
+                foreach (SongTarget target in jobBuilder.SongTargets)
+                {
+                    // Add entry to history, this should only succeed for jobs that didn't get to the targets.
+                    if (target is ITargetWithHistory targetWithHistory && targetWithHistory.HistoryManager != null)
+                        targetWithHistory.HistoryManager.TryAdd(c.Song.Hash, entry);
+                }
                 if (c.Successful)
                 {
-                    Console.WriteLine($"Job completed successfully: {c.Song}");
+                    if (c.DownloadResult != null && c.DownloadResult.Status == DownloadResultStatus.Skipped)
+                        Console.WriteLine($"Job skipped: {c.Song} not wanted by any targets.");
+                    else
+                        Console.WriteLine($"Job completed successfully: {c.Song}");
                 }
                 else
                 {
-                    HistoryEntry entry = c.CreateHistoryEntry();
-                    foreach (SongTarget target in jobBuilder.SongTargets)
-                    {
-                        // Add entry to history, this should only succeed for jobs that didn't get to the targets.
-                        if (target is ITargetWithHistory targetWithHistory && targetWithHistory.HistoryManager != null)
-                            targetWithHistory.HistoryManager.TryAdd(c.Song.Hash, entry);
-                    }
                     Console.WriteLine($"Job failed: {c.Song}");
                 }
             });
@@ -143,7 +149,6 @@ namespace BeatSyncConsole
                 Console.WriteLine(ex);
             }
         }
-
 
         static async Task<bool> InitializeConfigAsync()
         {
@@ -245,7 +250,14 @@ namespace BeatSyncConsole
                 Console.WriteLine("No enabled custom songs paths found, please manually enter a target directory for your songs in BeatSync.json.");
                 validConfig = false;
             }
-
+            string? favoriteMappersPath = GetFavoriteMappersLocation(Config.CustomSongsPaths);
+            if (favoriteMappersPath != null)
+            {
+                FavoriteMappers favoriteMappers = new FavoriteMappers(favoriteMappersPath);
+                List<string> mappers = favoriteMappers.ReadFromFile();
+                if (mappers.Count > 0)
+                    Config.BeatSyncConfig.BeatSaver.FavoriteMappers.Mappers = mappers.ToArray();
+            }
             if (Config.ConfigChanged)
             {
                 try
@@ -265,110 +277,152 @@ namespace BeatSyncConsole
             return validConfig;
         }
 
+        public static string? GetFavoriteMappersLocation(IEnumerable<SongLocation> songLocations)
+        {
+            string fileName = "FavoriteMappers.ini";
+            if (File.Exists(fileName))
+                return Path.GetFullPath(fileName);
+            foreach (var location in songLocations.Where(l => l.LocationType != InstallType.Custom))
+            {
+                string path = Path.Combine(location.BasePath, "UserData", fileName);
+                if (File.Exists(path))
+                    return path;
+            }
+            foreach (var location in songLocations.Where(l => l.LocationType == InstallType.Custom))
+            {
+                string path = Path.Combine(location.BasePath, fileName);
+                if (File.Exists(path))
+                    return path;
+            }
+            return null;
+        }
+
         static async Task GetBeatSaverAsync()
         {
             BeatSyncLib.Configs.BeatSaverConfig config = Config.BeatSyncConfig.BeatSaver;
             BeatSaverReader reader = new SongFeedReaders.Readers.BeatSaver.BeatSaverReader(config.MaxConcurrentPageChecks);
-            List<BuiltInPlaylist> playlists = new List<BuiltInPlaylist>();
+            List<IPlaylist> playlists = new List<IPlaylist>();
             if (config.Hot.Enabled)
             {
                 Console.WriteLine("  Starting Hot feed...");
                 playlists.Clear();
-                if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
-                    playlists.Add(BuiltInPlaylist.BeatSyncAll);
-                if (config.Hot.CreatePlaylist)
-                    playlists.Add(BuiltInPlaylist.BeatSaverHot);
+                foreach (var targetWithPlaylist in JobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
+                {
+                    PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
+                    if (playlistManager != null)
+                    {
+                        if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
+                            playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
+                        if (config.Hot.CreatePlaylist)
+                            playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverHot));
+                    }
+                }
                 FeedResult results = await reader.GetSongsFromFeedAsync(config.Hot.ToFeedSettings()).ConfigureAwait(false);
-                ProcessResults(results, playlists);
+                IEnumerable<IJob>? jobs = CreateJobs(results);
+                await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                ProcessFinishedJobs(jobs, playlists);
             }
             if (config.Downloads.Enabled)
             {
                 Console.WriteLine("  Starting Downloads feed...");
                 playlists.Clear();
-                if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
-                    playlists.Add(BuiltInPlaylist.BeatSyncAll);
-                if (config.Downloads.CreatePlaylist)
-                    playlists.Add(BuiltInPlaylist.BeatSaverDownloads);
-                ProcessResults(await reader.GetSongsFromFeedAsync(config.Downloads.ToFeedSettings()).ConfigureAwait(false), playlists);
+                foreach (var targetWithPlaylist in JobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
+                {
+                    PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
+                    if (playlistManager != null)
+                    {
+                        if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
+                            playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
+                        if (config.Downloads.CreatePlaylist)
+                            playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverDownloads));
+                    }
+                }
+                FeedResult results = await reader.GetSongsFromFeedAsync(config.Hot.ToFeedSettings()).ConfigureAwait(false);
+                IEnumerable<IJob>? jobs = CreateJobs(results);
+                await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                ProcessFinishedJobs(jobs, playlists);
             }
+
+            string[] mappers = config.FavoriteMappers.Mappers ?? Array.Empty<string>();
             if (config.FavoriteMappers.Enabled)
             {
-                Console.WriteLine("  Starting FavoriteMappers feed...");
-                playlists.Clear();
-                if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
-                    playlists.Add(BuiltInPlaylist.BeatSyncAll);
-                if (config.FavoriteMappers.CreatePlaylist && !config.FavoriteMappers.SeparateMapperPlaylists)
-                    playlists.Add(BuiltInPlaylist.BeatSaverFavoriteMappers);
-                //foreach (var author in FavoriteMappers)
-                //{
-
-                //}
-            }
-        }
-
-        public static void AddSongToPlaylists(PlaylistManager playlistManager, IEnumerable<BuiltInPlaylist> playlists, ISong song)
-        {
-            foreach (BuiltInPlaylist playlist in playlists)
-            {
-                playlistManager.GetPlaylist(playlist).TryAdd(song.Hash, song.Name, song.Key, song.LevelAuthorName);
-            }
-        }
-
-        public static void ProcessResults(FeedResult feedResult, IEnumerable<BuiltInPlaylist> playlists)
-        {
-            if (!feedResult.Successful)
-                return;
-            if (feedResult.Songs.Count == 0)
-            {
-                Console.WriteLine("No songs");
-                return;
-            }
-            if (playlists == null)
-                playlists = Array.Empty<BuiltInPlaylist>();
-            void JobFinishedCallback(object sender, JobResult jobResult)
-            {
-                if (jobResult.Successful)
+                if (mappers.Length > 0)
                 {
-                    ISong song = jobResult.Song;
-                    Console.WriteLine($"Downloaded {song} successfully.");
-                    PlaylistManager[] playlistManagers = jobResult.TargetResults.Where(r => r.Success && r.Target is ITargetWithPlaylists).Select(r => ((ITargetWithPlaylists)r.Target).PlaylistManager).ToArray();
-                    foreach (BuiltInPlaylist playlist in playlists)
+                    Console.WriteLine("  Starting FavoriteMappers feed...");
+
+                    foreach (var mapper in mappers)
                     {
-                        foreach (PlaylistManager playlistManager in playlistManagers)
+                        playlists.Clear();
+                        foreach (var targetWithPlaylist in JobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
                         {
-                            playlistManager.GetPlaylist(playlist).TryAdd(song);
+                            PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
+                            if (playlistManager != null)
+                            {
+                                if (Config.BeatSyncConfig.AllBeatSyncSongsPlaylist)
+                                    playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
+                                if (config.FavoriteMappers.CreatePlaylist)
+                                {
+                                    if (config.FavoriteMappers.SeparateMapperPlaylists)
+                                        playlists.Add(playlistManager.GetOrCreateAuthorPlaylist(mapper));
+                                    else
+                                        playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverFavoriteMappers));
+                                }
+                            }
                         }
+                        FeedResult results = await reader.GetSongsFromFeedAsync(config.FavoriteMappers.ToFeedSettings(mapper)).ConfigureAwait(false);
+                        IEnumerable<IJob>? jobs = CreateJobs(results);
+                        await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                        ProcessFinishedJobs(jobs, playlists);
                     }
                 }
                 else
-                    Console.WriteLine($"Failed to download {jobResult.Song}.");
-            }
-            foreach (ScrapedSong song in feedResult.Songs.Values)
-            {
-                //if (HistoryManager.TryGetValue(song.Hash, out HistoryEntry existing))
-                //{
-                //    if (!existing.AllowRetry)
-                //    {
-                //        Console.WriteLine($"Skipping song: {song}");
-                //        if (existing.Flag == HistoryFlag.Downloaded)
-                //        {
-                //            foreach (BuiltInPlaylist playlist in playlists)
-                //            {
-                //                playlist.TryAdd(song.Hash, song.Name, song.Key, song.LevelAuthorName);
-                //            }
-                //        }
-                //        continue;
-                //    }
-                //}
-                Job newJob = JobBuilder.CreateJob(song);
-                manager.TryPostJob(newJob, out IJob postedJob);
-                postedJob.JobFinished += JobFinishedCallback; // TODO: Race condition here, might run callback twice.
-                if (postedJob.JobState == JobState.Finished)
                 {
-                    postedJob.JobFinished -= JobFinishedCallback;
-                    JobFinishedCallback(postedJob, postedJob.Result);
+                    Console.WriteLine("  No FavoriteMappers found, skipping...");
                 }
             }
+        }
+
+        public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<IPlaylist> playlists)
+        {
+            DateTime addedTime = DateTime.Now;
+            TimeSpan offset = new TimeSpan(0, 0, 0, 0, 1);
+            foreach (var job in jobs.Where(j => j.DownloadResult != null && j.DownloadResult.Status != DownloadResultStatus.NetNotFound))
+            {
+                foreach (var playlist in playlists)
+                {
+                    IPlaylistSong? addedSong = playlist.Add(job.Song);
+                    if (addedSong != null)
+                    {
+                        addedSong.DateAdded = addedTime;
+                        addedTime -= offset;
+                    }
+                }
+            }
+            foreach (var playlist in playlists)
+            {
+                playlist.Sort();
+                playlist.RaisePlaylistChanged();
+            }
+        }
+
+        public static IEnumerable<IJob>? CreateJobs(FeedResult feedResult)
+        {
+            if (!feedResult.Successful)
+                return null;
+            if (feedResult.Songs.Count == 0)
+            {
+                Console.WriteLine("No songs");
+                return Array.Empty<IJob>();
+            }
+            List<IJob> jobs = new List<IJob>(feedResult.Count);
+
+            foreach (ScrapedSong song in feedResult.Songs.Values)
+            {
+                Job newJob = JobBuilder.CreateJob(song);
+                manager.TryPostJob(newJob, out IJob postedJob);
+                jobs.Add(postedJob);
+            }
+            return jobs;
         }
 
         static async Task Main(string[] args)
@@ -382,7 +436,8 @@ namespace BeatSyncConsole
                 return;
             }
             SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
-            SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/0.0.1");
+            string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+            SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/" + version);
             manager = new JobManager(Config.BeatSyncConfig.MaxConcurrentDownloads);
             manager.Start(CancellationToken.None);
             JobBuilder = CreateJobBuilder();
@@ -394,7 +449,7 @@ namespace BeatSyncConsole
             {
                 if (target is ITargetWithPlaylists targetWithPlaylists)
                 {
-                    targetWithPlaylists.PlaylistManager?.WriteAllPlaylists();
+                    targetWithPlaylists.PlaylistManager?.StoreAllPlaylists();
                 }
                 if (target is ITargetWithHistory targetWithHistory)
                 {

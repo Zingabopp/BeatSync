@@ -44,10 +44,14 @@ namespace BeatSyncLib.Configs
             }
         }
 
+        [JsonIgnore]
+        public string[]? Mappers { get; set; }
+
         public override void FillDefaults()
         {
             base.FillDefaults();
-            var _ = SeparateMapperPlaylists;
+            _ = SeparateMapperPlaylists;
+            Mappers = Array.Empty<string>();
         }
 
         public override IFeedSettings ToFeedSettings()
@@ -56,6 +60,26 @@ namespace BeatSyncLib.Configs
             {
                 MaxSongs = this.MaxSongs
             };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mapperName"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <returns></returns>
+        public IFeedSettings ToFeedSettings(string mapperName)
+        {
+            mapperName = mapperName.Trim();
+            if (string.IsNullOrEmpty(mapperName))
+                throw new ArgumentNullException(nameof(mapperName), "mapperName cannot be a null or empty string.");
+            var queryBuilder = new SearchQueryBuilder(BeatSaverSearchType.author, mapperName);
+            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Author)
+            {
+                MaxSongs = this.MaxSongs,
+                SearchQuery = queryBuilder.GetQuery()
+            };
+
         }
 
         public override bool ConfigMatches(ConfigBase other)

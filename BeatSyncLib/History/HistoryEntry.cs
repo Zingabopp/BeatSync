@@ -3,6 +3,7 @@ using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
+using BeatSyncLib.Configs.Converters;
 
 namespace BeatSyncLib.History
 {
@@ -37,6 +38,7 @@ namespace BeatSyncLib.History
         [JsonProperty("SongInfo")]
         public string SongInfo { get; set; }
         [JsonProperty("Flag")]
+        [JsonConverter(typeof(HistoryFlagConverter))]
         public HistoryFlag Flag { get; set; }
         [JsonProperty("Date")]
         public DateTime Date { get; set; }
@@ -46,12 +48,17 @@ namespace BeatSyncLib.History
         {
             get
             {
-                if (Flag == HistoryFlag.Downloaded
-                    || Flag == HistoryFlag.Deleted
-                    || Flag == HistoryFlag.Missing
-                    || Flag == HistoryFlag.BeatSaverNotFound)
-                    return false;
-                return true;
+                return Flag switch
+                {
+                    HistoryFlag.None => true,
+                    HistoryFlag.Downloaded => false,
+                    HistoryFlag.Deleted => false,
+                    HistoryFlag.Missing => false,
+                    HistoryFlag.PreExisting => false,
+                    HistoryFlag.Error => true,
+                    HistoryFlag.BeatSaverNotFound => false,
+                    _ => true
+                };
             }
         }
     }

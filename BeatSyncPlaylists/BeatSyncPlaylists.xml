@@ -58,16 +58,6 @@
             </summary>
             <param name="stream"></param>
         </member>
-        <member name="P:BeatSyncPlaylists.IPlaylist.IsDirty">
-            <summary>
-            True if the <see cref="T:BeatSyncPlaylists.IPlaylist"/> was changed.
-            </summary>
-        </member>
-        <member name="M:BeatSyncPlaylists.IPlaylist.MarkDirty(System.Boolean)">
-            <summary>
-            Marks the playlist as changed.
-            </summary>
-        </member>
         <member name="P:BeatSyncPlaylists.IPlaylist.AllowDuplicates">
             <summary>
             Allow duplicate songs in the playlist.
@@ -80,6 +70,7 @@
             Converts the <see cref="T:SongFeedReaders.Data.ISong"/> if needed.
             </summary>
             <param name="song"></param>
+            <returns>The added IPlaylistSong, null if nothing was added.</returns>
         </member>
         <member name="M:BeatSyncPlaylists.IPlaylist.Add(System.String,System.String,System.String,System.String)">
             <summary>
@@ -90,6 +81,7 @@
             <param name="songName"></param>
             <param name="songKey"></param>
             <param name="mapper"></param>
+            <returns>The added IPlaylistSong, null if nothing was added.</returns>
         </member>
         <member name="M:BeatSyncPlaylists.IPlaylist.TryRemoveByHash(System.String)">
             <summary>
@@ -110,9 +102,138 @@
             Removes all duplicate songs from the playlist.
             </summary>
         </member>
+        <member name="E:BeatSyncPlaylists.IPlaylist.PlaylistChanged">
+            <summary>
+            Raised when <see cref="M:BeatSyncPlaylists.IPlaylist.RaisePlaylistChanged"/> is called.
+            </summary>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.RaisePlaylistChanged">
+            <summary>
+            Raises the PlaylistChanged event.
+            </summary>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.Sort">
+            <summary>
+            Sorts the playlist in descending order of DateAdded.
+            </summary>
+        </member>
+        <member name="T:BeatSyncPlaylists.Playlist`1">
+            <summary>
+            Base class for a Playlist.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1._songs">
+            <summary>
+            List of songs in the playlist.
+            </summary>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.Item(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="E:BeatSyncPlaylists.Playlist`1.PlaylistChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.RemoveAll(System.Func{`0,System.Boolean})">
+            <summary>
+            Removes all playlists that match the provided delegate.
+            </summary>
+            <param name="match"></param>
+            <returns></returns>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.Title">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.Author">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.Description">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.Filename">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.SuggestedExtension">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.AllowDuplicates">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.Count">
+            <inheritdoc/>
+        </member>
+        <member name="P:BeatSyncPlaylists.Playlist`1.IsReadOnly">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Add(SongFeedReaders.Data.ISong)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Add(System.String,System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Add(BeatSyncPlaylists.IPlaylistSong)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Clear">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Sort">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Contains(BeatSyncPlaylists.IPlaylistSong)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.CopyTo(BeatSyncPlaylists.IPlaylistSong[],System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.GetCoverStream">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.IndexOf(BeatSyncPlaylists.IPlaylistSong)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Insert(System.Int32,BeatSyncPlaylists.IPlaylistSong)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.RaisePlaylistChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.Remove(BeatSyncPlaylists.IPlaylistSong)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.RemoveAt(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.RemoveDuplicates">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.SetCover(System.Byte[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.SetCover(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.SetCover(System.IO.Stream)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.TryRemoveByHash(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.TryRemoveByKey(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.System#Collections#Generic#IEnumerable{BeatSyncPlaylists#IPlaylistSong}#GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.System#Collections#Generic#ICollection{BeatSyncPlaylists#IPlaylistSong}#Add(BeatSyncPlaylists.IPlaylistSong)">
+            <inheritdoc/>
+        </member>
         <member name="F:BeatSyncPlaylists.PlaylistManager.CustomPlaylists">
             <summary>
-            Key is the file name in lowercase.
+            Key is the file name in uppercase.
             </summary>
         </member>
         <member name="M:BeatSyncPlaylists.PlaylistManager.RemoveSongFromAll(System.String)">
@@ -127,18 +248,19 @@
             </summary>
             <param name="song"></param>
         </member>
-        <member name="M:BeatSyncPlaylists.PlaylistManager.StorePlaylist(BeatSyncPlaylists.IPlaylist)">
+        <member name="M:BeatSyncPlaylists.PlaylistManager.StorePlaylist(BeatSyncPlaylists.IPlaylist,System.Boolean)">
             <summary>
             
             </summary>
             <param name="playlist"></param>
+            <param name="removeFromChanged"></param>
             <exception cref="T:System.InvalidOperationException"></exception>
         </member>
         <member name="M:BeatSyncPlaylists.PlaylistManager.GetPlaylist(System.String)">
             <summary>
             Retrieves the specified playlist. If the playlist doesn't exist, returns null.
             </summary>
-            <param name="builtInPlaylist"></param>
+            <param name="playlistFileName"></param>
             <returns></returns>
             <exception cref="T:System.InvalidOperationException"></exception>
         </member>

@@ -32,7 +32,15 @@ namespace BeatSyncLib.Downloader.Targets
         public override async Task<SongState> CheckSongExistsAsync(string songHash)
         {
             SongState state = SongState.Wanted;
-            if (HistoryManager != null)
+
+            if (SongHasher != null)
+            {
+                if (!SongHasher.Initialized)
+                    await SongHasher.InitializeAsync().ConfigureAwait(false);
+                if (SongHasher.ExistingSongs.ContainsKey(songHash))
+                    state = SongState.Exists;
+            }
+            if (state == SongState.Wanted && HistoryManager != null)
             {
                 if (!HistoryManager.IsInitialized)
                     HistoryManager.Initialize();
@@ -40,19 +48,10 @@ namespace BeatSyncLib.Downloader.Targets
                 {
                     if (!entry.AllowRetry)
                     {
-                        if (entry.Flag == HistoryFlag.Downloaded)
-                            state = SongState.Exists;
-                        else
-                            state = SongState.NotWanted;
+                        state = SongState.NotWanted;
+                        entry.Flag = HistoryFlag.Deleted;
                     }
                 }
-            }
-            if (SongHasher != null)
-            {
-                if (!SongHasher.Initialized)
-                    await SongHasher.InitializeAsync().ConfigureAwait(false);
-                if (SongHasher.ExistingSongs.ContainsKey(songHash))
-                    state = SongState.Exists;
             }
             return state;
         }

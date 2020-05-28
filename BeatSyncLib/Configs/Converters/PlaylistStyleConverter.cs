@@ -5,21 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace BeatSyncLib.Configs
+namespace BeatSyncLib.Configs.Converters
 {
     internal class PlaylistStyleConverter : JsonConverter
     {
         public override bool CanConvert(Type t) => t == typeof(PlaylistStyle) || t == typeof(PlaylistStyle?);
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null) return null;
-            var value = serializer.Deserialize<string>(reader);
-            switch (value.ToLower())
+            string? value = serializer.Deserialize<string>(reader);
+            if (value == null)
+                return null;
+            switch (value.ToUpper())
             {
-                case "append":
+                case "APPEND":
                     return PlaylistStyle.Append;
-                case "replace":
+                case "REPLACE":
                     return PlaylistStyle.Replace;
                 case "0":
                     return PlaylistStyle.Append;
@@ -31,7 +33,7 @@ namespace BeatSyncLib.Configs
             //throw new Exception("Cannot unmarshal type PlaylistStyle");
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             if (value == null)
             {

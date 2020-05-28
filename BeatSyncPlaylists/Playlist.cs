@@ -60,16 +60,19 @@ namespace BeatSyncPlaylists
         protected abstract T ConvertFrom(ISong song);
 
         /// <inheritdoc/>
-        public virtual void Add(ISong song)
+        public virtual IPlaylistSong? Add(ISong song)
         {
             if (AllowDuplicates || (!_songs.Any(s => s.Hash == song.Hash || s.Key == song.Key)))
             {
-                _songs.Add(ConvertFrom(song));
+                T playlistSong = ConvertFrom(song);
+                _songs.Add(playlistSong);
+                return playlistSong;
             }
+            return null;
         }
 
         /// <inheritdoc/>
-        public virtual void Add(string songHash, string? songName, string? songKey, string? mapper) =>
+        public virtual IPlaylistSong? Add(string songHash, string? songName, string? songKey, string? mapper) =>
             Add(new T() {
                 Hash = songHash, 
                 Name = songName,
@@ -78,12 +81,18 @@ namespace BeatSyncPlaylists
             });
 
         /// <inheritdoc/>
-        public virtual void Add(IPlaylistSong item) => Add((ISong)item);
+        public virtual IPlaylistSong? Add(IPlaylistSong item) => Add((ISong)item);
 
         /// <inheritdoc/>
         public virtual void Clear()
         {
             _songs.Clear();
+        }
+
+        /// <inheritdoc/>
+        public virtual void Sort()
+        {
+            _songs = _songs.OrderByDescending(s => s.DateAdded).ToList();
         }
 
         /// <inheritdoc/>
@@ -194,6 +203,12 @@ namespace BeatSyncPlaylists
         {
             var thing = (IList<IPlaylistSong>)_songs;
             return thing.GetEnumerator();
+        }
+
+        /// <inheritdoc/>
+        void ICollection<IPlaylistSong>.Add(IPlaylistSong item)
+        {
+            Add(item);
         }
     }
 }

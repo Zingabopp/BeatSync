@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using BeatSyncLib.Configs.Converters;
 
 namespace BeatSyncLib.History
 {
@@ -76,9 +77,9 @@ namespace BeatSyncLib.History
                     var token = JToken.Parse(histStr);
                     foreach (JObject entry in token.Children())
                     {
+                        string keyHash = entry["Key"].Value<string>();
                         HistoryEntry historyEntry = entry["Value"].ToObject<HistoryEntry>();
                         //var historyEntry = new HistoryEntry();
-                        string keyHash = entry["Key"].Value<string>();
                         //historyEntry.Hash = entry["Value"]["Hash"].Value<string>();
                         //historyEntry.SongName = entry["Value"]["SongName"].Value<string>();
                         //historyEntry.Mapper = entry["Value"]["Mapper"].Value<string>();

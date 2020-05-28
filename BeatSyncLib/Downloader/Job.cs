@@ -15,11 +15,11 @@ namespace BeatSyncLib.Downloader
         public bool CanPause { get; private set; }
         public void Pause() { }
         public void Unpause() { }
-        public Exception Exception { get; private set; }
+        public Exception? Exception { get; private set; }
         public ISong Song { get; private set; }
-        public event EventHandler JobStarted;
-        public event EventHandler<JobResult> JobFinished;
-        public event EventHandler<JobProgress> JobProgressChanged;
+        public event EventHandler? JobStarted;
+        public event EventHandler<JobResult>? JobFinished;
+        public event EventHandler<JobProgress>? JobProgressChanged;
 
         public JobResult Result { get; private set; }
 
@@ -28,11 +28,11 @@ namespace BeatSyncLib.Downloader
 
         private readonly IDownloadJob _downloadJob;
         private readonly SongTarget[] _targets;
-        private JobFinishedAsyncCallback JobFinishedAsyncCallback;
-        private JobFinishedCallback JobFinishedCallback;
+        private JobFinishedAsyncCallback? JobFinishedAsyncCallback;
+        private JobFinishedCallback? JobFinishedCallback;
         private readonly IProgress<JobProgress> _progress;
-        public DownloadResult DownloadResult { get; private set; }
-        public TargetResult[] TargetResults { get; private set; }
+        public DownloadResult? DownloadResult { get; private set; }
+        public IEnumerable<TargetResult> TargetResults { get; private set; } = Array.Empty<TargetResult>();
         private CancellationToken CancellationToken = CancellationToken.None;
         public void RegisterCancellationToken(CancellationToken cancellationToken)
         {
@@ -53,7 +53,8 @@ namespace BeatSyncLib.Downloader
             JobFinishedCallback = jobFinishedCallback;
             JobFinishedAsyncCallback = null;
         }
-
+        protected TaskCompletionSource<JobResult> TaskCompletionSource = new TaskCompletionSource<JobResult>();
+        public Task<JobResult> JobTask => TaskCompletionSource.Task;
         private Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, IProgress<JobProgress> progress)
         {
             Song = song;
@@ -64,6 +65,7 @@ namespace BeatSyncLib.Downloader
             JobState = JobState.Ready;
             _totalStages = 1 + _targets.Length + 1;
             _stageIndex = 0;
+            
         }
         public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
             : this(song, downloadJob, targets, progress)
@@ -100,7 +102,6 @@ namespace BeatSyncLib.Downloader
             return completedTargets.ToArray();
 
         }
-
         public async Task RunAsync(CancellationToken cancellationToken)
         {
             JobState = JobState.Running;
@@ -114,7 +115,7 @@ namespace BeatSyncLib.Downloader
             JobStage = JobStage.Downloading;
             Exception? exception = null;
             bool canceled = false;
-            EventHandler handler = JobStarted;
+            EventHandler? handler = JobStarted;
             handler?.Invoke(this, null);
             DownloadContainer? downloadContainer = null;
             List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
@@ -216,7 +217,7 @@ namespace BeatSyncLib.Downloader
             //throw new NotImplementedException();
         }
 
-        protected virtual void FinishJob(bool canceled = false, Exception exception = null)
+        protected virtual void FinishJob(bool canceled = false, Exception? exception = null)
         {
             Exception = exception;
             if (canceled || exception is OperationCanceledException)
@@ -234,11 +235,13 @@ namespace BeatSyncLib.Downloader
                 TargetResults = TargetResults.ToArray(),
                 Exception = exception
             };
-            EventHandler<JobResult> handler = JobFinished;
+            JobStage = JobStage.Finished;
+            EventHandler<JobResult>? handler = JobFinished;
             handler?.Invoke(this, Result);
             ReportProgress(JobProgress.CreateJobFinished(CurrentProgress));
-            JobFinishedCallback callback = JobFinishedCallback;
+            JobFinishedCallback? callback = JobFinishedCallback;
             callback?.Invoke(Result);
+            TaskCompletionSource.SetResult(Result);
         }
 
         public Task RunAsync()

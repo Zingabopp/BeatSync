@@ -61,7 +61,8 @@ namespace BeatSyncPlaylists
         /// Converts the <see cref="ISong"/> if needed.
         /// </summary>
         /// <param name="song"></param>
-        void Add(ISong song);
+        /// <returns>The added IPlaylistSong, null if nothing was added.</returns>
+        IPlaylistSong? Add(ISong song);
         /// <summary>
         /// Creates a new <see cref="IPlaylistSong"/> and adds it to the playlist.
         /// Does nothing if <see cref="AllowDuplicates"/> is false and the song is already in the playlist. 
@@ -70,7 +71,8 @@ namespace BeatSyncPlaylists
         /// <param name="songName"></param>
         /// <param name="songKey"></param>
         /// <param name="mapper"></param>
-        void Add(string songHash, string? songName, string? songKey, string? mapper);
+        /// <returns>The added IPlaylistSong, null if nothing was added.</returns>
+        IPlaylistSong? Add(string songHash, string? songName, string? songKey, string? mapper);
         /// <summary>
         /// Tries to remove all songs with the given hash from the playlist. Returns true if successful.
         /// </summary>
@@ -95,6 +97,11 @@ namespace BeatSyncPlaylists
         /// Raises the PlaylistChanged event.
         /// </summary>
         void RaisePlaylistChanged();
+
+        /// <summary>
+        /// Sorts the playlist in descending order of DateAdded.
+        /// </summary>
+        void Sort();
     }
 
     public interface IPlaylist<T> : IPlaylist

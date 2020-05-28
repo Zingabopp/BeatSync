@@ -11,7 +11,7 @@ namespace BeatSyncLib.Configs
     {
         private static readonly string DefaultFilePath = Path.GetFullPath(Path.Combine("UserData", "FavoriteMappers.ini"));
         public string FilePath { get; private set; }
-        private List<string> _mappers;
+        private List<string>? _mappers;
         public List<string> Mappers
         {
             get
@@ -22,9 +22,9 @@ namespace BeatSyncLib.Configs
             }
         }
 
-        public FavoriteMappers(string filePath = null)
+        public FavoriteMappers(string? filePath = null)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (filePath == null || filePath == string.Empty)
                 filePath = DefaultFilePath;
             FilePath = filePath;
         }
@@ -49,9 +49,12 @@ namespace BeatSyncLib.Configs
                     while (!sr.EndOfStream)
                     {
                         var line = sr.ReadLine();
-                        line = line?.Trim();
-                        if (!string.IsNullOrEmpty(line))
-                            mapperList.Add(line);
+                        if (line != null)
+                        {
+                            line = line.Trim();
+                            if (!string.IsNullOrEmpty(line))
+                                mapperList.Add(line);
+                        }
                     }
                 }
                 Logger.log?.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");

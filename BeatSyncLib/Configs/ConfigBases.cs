@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using SongFeedReaders.Readers;
 using BeatSyncPlaylists;
+using BeatSyncLib.Configs.Converters;
 
 namespace BeatSyncLib.Configs
 {

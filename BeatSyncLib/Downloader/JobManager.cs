@@ -27,7 +27,7 @@ namespace BeatSyncLib.Downloader
         private bool _running = false;
         private int _concurrentDownloads = 1;
         private CancellationToken _externalCancellation;
-        private CancellationTokenSource _cancellationSource;
+        private CancellationTokenSource? _cancellationSource;
         private Task[] _tasks;
 
         public int ActiveJobs => _activeJobs.Count;
@@ -93,7 +93,8 @@ namespace BeatSyncLib.Downloader
             for (int i = 0; i < ConcurrentDownloads; i++)
             {
                 int taskId = i; // Apparently using 'i' directly for HandlerStartAsync doesn't work well...
-                _tasks[i] = Task.Run(() => HandlerStartAsync(taskId, _cancellationSource.Token));
+                TaskFactory tf = new TaskFactory(TaskCreationOptions.LongRunning, TaskContinuationOptions.None);
+                _tasks[i] = tf.StartNew(() => HandlerStartAsync(taskId, _cancellationSource.Token)).Unwrap();
             }
         }
 
@@ -101,9 +102,12 @@ namespace BeatSyncLib.Downloader
         {
             //_queuedJobs.CompleteAdding();
             _running = false;
-            _cancellationSource.Cancel();
-            _cancellationSource.Dispose();
-            _cancellationSource = null;
+            if (_cancellationSource != null)
+            {
+                _cancellationSource.Cancel();
+                _cancellationSource.Dispose();
+                _cancellationSource = null;
+            }
         }
 
         public Task StopAsync()

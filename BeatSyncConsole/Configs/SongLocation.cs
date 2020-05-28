@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 using static BeatSyncConsole.Utilities.Paths;
+using Newtonsoft.Json.Converters;
 
 namespace BeatSyncConsole.Configs
 {
@@ -63,6 +64,7 @@ namespace BeatSyncConsole.Configs
         public string BasePath { get; set; }
 
         [JsonProperty("LocationType", Order = 10)]
+        [JsonConverter(typeof(StringEnumConverter))]
         public InstallType LocationType { get; set; }
 
         [JsonProperty("SongsDirectory", Order = 15)]

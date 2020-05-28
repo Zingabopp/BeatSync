@@ -21,19 +21,20 @@ namespace BeatSyncLib.Downloader
 
     public interface IJob
     {
-        event EventHandler JobStarted;
-        event EventHandler<JobProgress> JobProgressChanged;
-        event EventHandler<JobResult> JobFinished;
+        event EventHandler? JobStarted;
+        event EventHandler<JobProgress>? JobProgressChanged;
+        event EventHandler<JobResult>? JobFinished;
         bool CanPause { get; }
         void Pause();
         void Unpause();
-        Exception Exception { get; }
+        Exception? Exception { get; }
         ISong Song { get; }
         JobResult Result { get; }
         JobStage JobStage { get; }
         JobState JobState { get; }
-        DownloadResult DownloadResult { get; }
-        TargetResult[] TargetResults { get; }
+        Task<JobResult> JobTask { get; }
+        DownloadResult? DownloadResult { get; }
+        IEnumerable<TargetResult> TargetResults { get; }
         void SetJobFinishedCallback(JobFinishedAsyncCallback jobFinishedAsyncCallback);
         void SetJobFinishedCallback(JobFinishedCallback jobFinishedCallback);
         Task RunAsync(CancellationToken cancellationToken);
