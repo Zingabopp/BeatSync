@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,8 +29,8 @@ namespace BeatSyncLib.Downloader
         private int _concurrentDownloads = 1;
         private CancellationToken _externalCancellation;
         private CancellationTokenSource? _cancellationSource;
-        private Task[] _tasks;
-
+        //private Task[] _tasks;
+        private Thread[] _threads;
         public int ActiveJobs => _activeJobs.Count;
 
         public void Pause()
@@ -79,7 +80,9 @@ namespace BeatSyncLib.Downloader
         {
             ConcurrentDownloads = concurrentDownloads;
             _acceptingJobs = true;
-            _tasks = new Task[ConcurrentDownloads];
+            //_tasks = new Task[ConcurrentDownloads];
+            _threads = new Thread[ConcurrentDownloads];
+            _threadCompletionSource = new TaskCompletionSource<bool>[ConcurrentDownloads];
         }
 
         public void Start(CancellationToken cancellationToken)
@@ -93,11 +96,14 @@ namespace BeatSyncLib.Downloader
             for (int i = 0; i < ConcurrentDownloads; i++)
             {
                 int taskId = i; // Apparently using 'i' directly for HandlerStartAsync doesn't work well...
-                TaskFactory tf = new TaskFactory(TaskCreationOptions.LongRunning, TaskContinuationOptions.None);
-                _tasks[i] = tf.StartNew(() => HandlerStartAsync(taskId, _cancellationSource.Token)).Unwrap();
+                //TaskFactory tf = new TaskFactory(TaskCreationOptions.LongRunning, TaskContinuationOptions.None);
+                //_tasks[i] = tf.StartNew(() => HandlerStartAsync(taskId, _cancellationSource.Token)).Unwrap();
+                _threadCompletionSource[i] = new TaskCompletionSource<bool>();
+                _threads[i] = new Thread(new ParameterizedThreadStart(ThreadStart));
+                _threads[i].Start(taskId);
             }
         }
-
+        private TaskCompletionSource<bool>[] _threadCompletionSource;
         public void Stop()
         {
             //_queuedJobs.CompleteAdding();
@@ -113,8 +119,10 @@ namespace BeatSyncLib.Downloader
         public Task StopAsync()
         {
             Stop();
-            return Task.WhenAll(_tasks);
+            return WaitForThreadStopAsync();
         }
+
+        private Task WaitForThreadStopAsync() => Task.WhenAll(_threadCompletionSource.Select(tcs => tcs.Task));
 
         /// <summary>
         /// 
@@ -133,24 +141,10 @@ namespace BeatSyncLib.Downloader
         public async Task CompleteAsync()
         {
             Complete();
-            //if (cancellationToken.IsCancellationRequested)
-            //{
-            //    _running = false;
-            //    return;
-            //}
             try
             {
-                if(_running)
-                    await SongFeedReaders.Utilities.WaitUntil(() => _queuedJobs.Count == 0);
-                //if (cancellationToken.CanBeCanceled)
-                //{
-                //    var cancelTask = cancellationToken.AsTask();
-                //    await Task.WhenAny(Task.WhenAll(_tasks), cancelTask).ConfigureAwait(false);
-                //}
-                //else
-                //{
-                    await Task.WhenAll(_tasks).ConfigureAwait(false);
-                //}
+                if (_running)
+                    await WaitForThreadStopAsync();
             }
             catch { }
             _running = false;
@@ -162,13 +156,13 @@ namespace BeatSyncLib.Downloader
         /// </summary>
         /// <param name="job"></param>
         /// <returns></returns>
-        public bool TryPostJob(IJob job, out IJob postedOrExistingJob)
+        public bool TryPostJob(IJob job, out IJob? postedOrExistingJob)
         {
             if (_acceptingJobs && _existingJobs.TryAdd(job.Song.Hash, job) && _queuedJobs.TryAdd(job))
             {
-                    job.JobFinished += Job_OnJobFinished;
-                    postedOrExistingJob = job;
-                    return true;
+                job.JobFinished += Job_OnJobFinished;
+                postedOrExistingJob = job;
+                return true;
             }
             else if (_existingJobs.TryGetValue(job.Song.Hash, out var existingJob))
             {
@@ -185,7 +179,7 @@ namespace BeatSyncLib.Downloader
         private void Job_OnJobFinished(object sender, JobResult e)
         {
             IJob finishedJob = (IJob)sender;
-            if(!_activeJobs.TryRemove(e.Song.Hash, out _))
+            if (!_activeJobs.TryRemove(e.Song.Hash, out _))
             {
                 Logger.log?.Warn($"Couldn't remove {finishedJob.ToString()} from _activeJobs, this shouldn't happen.");
             }
@@ -205,22 +199,25 @@ namespace BeatSyncLib.Downloader
                 _running = false;
         }
 
-        private async Task HandlerStartAsync(int taskId, CancellationToken cancellationToken)
+        private async void ThreadStart(object threadId)
         {
+            CancellationToken cancellationToken = _cancellationSource?.Token ?? CancellationToken.None;
+            int taskId = (int)threadId;
             try
             {
                 foreach (var job in _queuedJobs.GetConsumingEnumerable(cancellationToken))
                 {
-                    if(!_activeJobs.TryAdd(job.Song.Hash, job))
+                    if (!_activeJobs.TryAdd(job.Song.Hash, job))
                     {
-                        Logger.log?.Warn($"Couldn't add {job.ToString()} to _activeJobs, this shouldn't happen.");
+                        Logger.log?.Warn($"Couldn't add {job} to _activeJobs, this shouldn't happen.");
                     }
                     if (Paused && job.CanPause)
                         job.Pause();
                     await job.RunAsync(cancellationToken).ConfigureAwait(false);
                 }
+                _threadCompletionSource[taskId].TrySetResult(true);
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 Logger.log?.Warn($"DownloadManager task {taskId} canceled.");
             }
@@ -229,14 +226,12 @@ namespace BeatSyncLib.Downloader
                 Logger.log?.Warn($"Exception in DownloadManager task {taskId}:{ex.Message}");
                 Logger.log?.Debug($"Exception in DownloadManager task {taskId}:{ex.StackTrace}");
             }
+            _threadCompletionSource[taskId].TrySetResult(false);
         }
 
         public bool TryGetJob(string songHash, out IJob job)
         {
             return _existingJobs.TryGetValue(songHash, out job);
         }
-
-
-
     }
 }

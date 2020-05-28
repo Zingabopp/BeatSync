@@ -1,8 +1,9 @@
-﻿using System;
+﻿using BeatSyncLib.Logging;
+using System;
 
-namespace BeatSyncLib.Logging
+namespace BeatSyncConsole.Loggers
 {
-    public class BeatSyncConsoleLogger : BeatSyncLoggerBase
+    public class BeatSyncLibLogger : BeatSyncLoggerBase
     {
         public override void Log(string message, LogLevel logLevel)
         {

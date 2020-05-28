@@ -475,6 +475,7 @@ namespace BeatSyncConsole
 
         static async Task Main(string[] args)
         {
+            BeatSyncLib.Logger.log = new Loggers.BeatSyncLibLogger();
             bool validConfig = await InitializeConfigAsync().ConfigureAwait(false);
             if (!validConfig)
             {
