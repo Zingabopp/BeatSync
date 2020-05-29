@@ -12,9 +12,9 @@ namespace BeatSyncConsole.Utilities
         public const string Path_CustomLevels = @"Beat Saber_Data\CustomLevels";
         public const string Path_Playlists = @"Playlists";
         public const string Path_History = @"UserData\BeatSyncHistory.json";
-        public static SongLocation ToSongLocation(this BeatSaberInstall install)
+        public static BeatSaberInstallLocation ToSongLocation(this BeatSaberInstall install)
         {
-            return SongLocation.CreateGameLocation(install.InstallPath, install.InstallType);
+            return new BeatSaberInstallLocation(install.InstallPath);
         }
     }
 }
