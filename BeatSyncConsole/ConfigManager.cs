@@ -25,6 +25,21 @@ namespace BeatSyncConsole
             Directory.CreateDirectory(ConfigDirectory);
         }
 
+        public IEnumerable<ISongLocation> GetValidEnabledLocations() {
+            List<ISongLocation> songLocations = new List<ISongLocation>();
+            songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.Enabled && l.IsValid()));
+            songLocations.AddRange(Config.CustomSongsPaths.Where(l => l.Enabled && l.IsValid()));
+            return songLocations;
+        }
+
+        public IEnumerable<ISongLocation> GetValidLocations()
+        {
+            List<ISongLocation> songLocations = new List<ISongLocation>();
+            songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.IsValid()));
+            songLocations.AddRange(Config.CustomSongsPaths.Where(l => l.IsValid()));
+            return songLocations;
+        }
+
         public async Task<bool> InitializeConfigAsync()
         {
             Directory.CreateDirectory(ConfigDirectory);
@@ -70,11 +85,11 @@ namespace BeatSyncConsole
                 Config.BeatSyncConfig = new BeatSyncConfig(true);
             }
             Config.FillDefaults();
-            if (!Config.CustomSongsPaths.Any(p => p.Enabled))
+            ISongLocation[] enabledPaths = GetValidEnabledLocations().ToArray();
+            ISongLocation[] validPaths = GetValidLocations().ToArray();
+            if (enabledPaths.Length == 0)
             {
-                if (Config.CustomSongsPaths.Count == 0
-                    || (Config.CustomSongsPaths.Count == 1
-                         && string.IsNullOrEmpty(Config.CustomSongsPaths[0].BasePath)))
+                if (validPaths.Length == 0)
                 {
                     Console.WriteLine("No song paths found in BeatSync.json, should I search for game installs? (Y/N): ");
                     string response = Console.ReadLine();
@@ -104,15 +119,14 @@ namespace BeatSyncConsole
                         }
                     }
                 }
-                if (Config.CustomSongsPaths.Count > 0
-                    && Config.CustomSongsPaths.Where(p => !p.Enabled).Count() == Config.CustomSongsPaths.Count
-                    && !((Config.CustomSongsPaths.Count == 1
-                         && string.IsNullOrEmpty(Config.CustomSongsPaths[0].BasePath))))
+                enabledPaths = GetValidEnabledLocations().ToArray();
+                validPaths = GetValidLocations().ToArray();
+                if (enabledPaths.Length == 0 && validPaths.Length > 0)
                 {
                     Console.WriteLine("No locations currently enabled.");
-                    for (int i = 0; i < Config.CustomSongsPaths.Count; i++)
+                    for (int i = 0; i < validPaths.Length; i++)
                     {
-                        Console.WriteLine($"  {i}: {Config.CustomSongsPaths[i]}");
+                        Console.WriteLine($"  {i}: {validPaths[i]}");
                     }
                     Console.WriteLine($"Enter the numbers of the installs you wish to enable, separated by commas.");
                     string response = Console.ReadLine();
@@ -128,10 +142,10 @@ namespace BeatSyncConsole
                     for (int i = 0; i < selectionInts.Length; i++)
                     {
                         int current = selectionInts[i];
-                        if (current > -1 && current < Config.CustomSongsPaths.Count)
+                        if (current > -1 && current < validPaths.Length)
                         {
-                            Config.CustomSongsPaths[current].Enabled = true;
-                            Console.WriteLine($"Enabling {Config.CustomSongsPaths[current]}.");
+                            validPaths[current].Enabled = true;
+                            Console.WriteLine($"Enabling {validPaths[current]}.");
                             Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
                         }
                         else
@@ -139,10 +153,11 @@ namespace BeatSyncConsole
                     }
                 }
             }
-            if (Config.CustomSongsPaths.Any(p => p.Enabled && !string.IsNullOrEmpty(p.BasePath)))
+            enabledPaths = GetValidEnabledLocations().ToArray();
+            if (enabledPaths.Length > 0)
             {
                 Console.WriteLine("Using the following targets:");
-                foreach (CustomSongLocation enabledLocation in Config.CustomSongsPaths.Where(p => p.Enabled))
+                foreach (ISongLocation enabledLocation in enabledPaths)
                 {
                     Console.WriteLine($"  {enabledLocation}");
                 }
@@ -150,11 +165,6 @@ namespace BeatSyncConsole
             else
             {
                 Console.WriteLine("No enabled custom songs paths found, please manually enter a target directory for your songs in config.json.");
-                if (Config.CustomSongsPaths.Count == 0)
-                {
-                    Config.CustomSongsPaths.Add(CustomSongLocation.CreateEmptyLocation());
-                    Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
-                }
                 validConfig = false;
             }
             string? favoriteMappersPath = GetFavoriteMappersLocation(Config.CustomSongsPaths);

@@ -115,10 +115,6 @@ namespace BeatSyncConsole
 
         }
 
-        
-        
-
-
         static async Task GetScoreSaberAsync()
         {
             ScoreSaberConfig config = Config.BeatSyncConfig.ScoreSaber;

@@ -12,6 +12,8 @@ namespace BeatSyncConsole.Configs
     {
         #region Private Fields
         [JsonIgnore]
+        private BeatSyncConfig? _beatSyncConfig;
+        [JsonIgnore]
         private List<BeatSaberInstallLocation>? _beatSaberInstallLocations;
         [JsonIgnore]
         private List<CustomSongLocation>? _customSongsPaths;
@@ -49,7 +51,7 @@ namespace BeatSyncConsole.Configs
         {
             get
             {
-                if(_customSongsPaths == null)
+                if (_customSongsPaths == null)
                 {
                     _customSongsPaths = new List<CustomSongLocation>() { CustomSongLocation.CreateEmptyLocation() };
                     SetConfigChanged();
@@ -65,7 +67,11 @@ namespace BeatSyncConsole.Configs
             }
         }
         [JsonIgnore]
-        public BeatSyncConfig? BeatSyncConfig { get; set; }
+        public BeatSyncConfig BeatSyncConfig
+        {
+            get => _beatSyncConfig ??= new BeatSyncConfig(true);
+            set => _beatSyncConfig = value;
+        }
 
         #endregion
         public override bool ConfigMatches(ConfigBase other)
@@ -86,10 +92,7 @@ namespace BeatSyncConsole.Configs
                 BeatSaberInstallLocations.Add(BeatSaberInstallLocation.CreateEmptyLocation());
             if (CustomSongsPaths.Count == 0)
                 CustomSongsPaths.Add(CustomSongLocation.CreateEmptyLocation());
-            if (BeatSyncConfig == null)
-                BeatSyncConfig = new BeatSyncConfig(true);
-            else
-                BeatSyncConfig.FillDefaults();
+            BeatSyncConfig.FillDefaults();
         }
 
 
