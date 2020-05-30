@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using BeatSyncLib.Configs;
@@ -10,6 +11,7 @@ namespace BeatSyncConsole.Configs
 {
     public class Config : ConfigBase
     {
+        private static readonly string DefaultBeatSyncConfigPath = Path.Combine("%CONFIG", "BeatSync.json");
         #region Private Fields
         [JsonIgnore]
         private BeatSyncConfig? _beatSyncConfig;
@@ -17,6 +19,8 @@ namespace BeatSyncConsole.Configs
         private List<BeatSaberInstallLocation>? _beatSaberInstallLocations;
         [JsonIgnore]
         private List<CustomSongLocation>? _customSongsPaths;
+        private string? _beatSyncConfigPath;
+
         public static Config GetDefaultConfig()
         {
             Config config = new Config();
@@ -25,14 +29,32 @@ namespace BeatSyncConsole.Configs
         }
         #endregion
         #region Public Properties
-        [JsonProperty(nameof(BeatSaberInstallLocations), Order = 0)]
+        [JsonProperty(nameof(BeatSyncConfigPath), Order = 10)]
+        public string BeatSyncConfigPath 
+        {
+            get
+            {
+                if (_beatSyncConfigPath == null || _beatSyncConfigPath.Length == 0)
+                    return DefaultBeatSyncConfigPath;
+                return _beatSyncConfigPath;
+            }
+            set
+            {
+                if (_beatSyncConfigPath == value)
+                    return;
+                _beatSyncConfigPath = value;
+                SetConfigChanged();
+            }
+        }
+
+        [JsonProperty(nameof(BeatSaberInstallLocations), Order = 10)]
         public List<BeatSaberInstallLocation> BeatSaberInstallLocations
         {
             get
             {
                 if (_beatSaberInstallLocations == null)
                 {
-                    _beatSaberInstallLocations = new List<BeatSaberInstallLocation>() { BeatSaberInstallLocation.CreateEmptyLocation() };
+                    _beatSaberInstallLocations = new List<BeatSaberInstallLocation>();
                     SetConfigChanged();
                 }
                 return _beatSaberInstallLocations;
@@ -46,14 +68,14 @@ namespace BeatSyncConsole.Configs
             }
         }
 
-        [JsonProperty(nameof(CustomSongsPaths), Order = 10)]
+        [JsonProperty(nameof(CustomSongsPaths), Order = 20)]
         public List<CustomSongLocation> CustomSongsPaths
         {
             get
             {
                 if (_customSongsPaths == null)
                 {
-                    _customSongsPaths = new List<CustomSongLocation>() { CustomSongLocation.CreateEmptyLocation() };
+                    _customSongsPaths = new List<CustomSongLocation>();
                     SetConfigChanged();
                 }
                 return _customSongsPaths;
@@ -88,6 +110,8 @@ namespace BeatSyncConsole.Configs
 
         public override void FillDefaults()
         {
+            if (string.IsNullOrEmpty(BeatSyncConfigPath))
+                BeatSyncConfigPath = Path.Combine("%CONFIG%", "BeatSync.json");
             if (BeatSaberInstallLocations.Count == 0)
                 BeatSaberInstallLocations.Add(BeatSaberInstallLocation.CreateEmptyLocation());
             if (CustomSongsPaths.Count == 0)

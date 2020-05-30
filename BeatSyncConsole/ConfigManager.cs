@@ -13,10 +13,10 @@ namespace BeatSyncConsole
 {
     public class ConfigManager
     {
-        internal const string BeatSyncConsoleConfigPath = "BeatSyncConsole.json";
-        internal const string BeatSyncConfigPath = "BeatSync.json";
+        internal const string BeatSyncConsoleConfigName = "BeatSyncConsole.json";
+        //internal const string BeatSyncConfigName = "BeatSync.json";
         public readonly string ConfigDirectory;
-        public Config Config { get; private set; }
+        public Config? Config { get; private set; }
         public ConfigManager(string configDirectory)
         {
             if (string.IsNullOrEmpty(configDirectory))
@@ -25,7 +25,19 @@ namespace BeatSyncConsole
             Directory.CreateDirectory(ConfigDirectory);
         }
 
-        public IEnumerable<ISongLocation> GetValidEnabledLocations() {
+        public string BeatSyncConfigPath
+        {
+            get
+            {
+                return Config?.BeatSyncConfigPath?.Replace("%CONFIG%", ConfigDirectory, StringComparison.OrdinalIgnoreCase) 
+                    ?? Path.Combine(ConfigDirectory, "BeatSync.json");
+            }
+        }
+
+        public IEnumerable<ISongLocation> GetValidEnabledLocations()
+        {
+            if (Config == null)
+                throw new InvalidOperationException("Config is null.");
             List<ISongLocation> songLocations = new List<ISongLocation>();
             songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.Enabled && l.IsValid()));
             songLocations.AddRange(Config.CustomSongsPaths.Where(l => l.Enabled && l.IsValid()));
@@ -34,6 +46,8 @@ namespace BeatSyncConsole
 
         public IEnumerable<ISongLocation> GetValidLocations()
         {
+            if (Config == null)
+                throw new InvalidOperationException("Config is null.");
             List<ISongLocation> songLocations = new List<ISongLocation>();
             songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.IsValid()));
             songLocations.AddRange(Config.CustomSongsPaths.Where(l => l.IsValid()));
@@ -43,8 +57,7 @@ namespace BeatSyncConsole
         public async Task<bool> InitializeConfigAsync()
         {
             Directory.CreateDirectory(ConfigDirectory);
-            string consoleConfigPath = Path.Combine(ConfigDirectory, BeatSyncConsoleConfigPath);
-            string beatSyncConfigPath = Path.Combine(ConfigDirectory, BeatSyncConfigPath);
+            string consoleConfigPath = Path.Combine(ConfigDirectory, BeatSyncConsoleConfigName);
             bool validConfig = true;
             try
             {
@@ -64,12 +77,14 @@ namespace BeatSyncConsole
                 Console.WriteLine($"Invalid BeatSyncConsole.json file, using defaults: {ex.Message}");
                 Config = Config.GetDefaultConfig();
             }
+            string beatSyncConfigPath = Config.BeatSyncConfigPath.Replace("%CONFIG%", ConfigDirectory, StringComparison.OrdinalIgnoreCase);
+
             try
             {
                 if (File.Exists(beatSyncConfigPath))
                 {
+                    Console.WriteLine($"Using BeatSync config '{beatSyncConfigPath}'.");
                     Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(await File.ReadAllTextAsync(beatSyncConfigPath).ConfigureAwait(false));
-
                 }
                 else
                 {
@@ -95,7 +110,8 @@ namespace BeatSyncConsole
                     string response = Console.ReadLine();
                     if (response == "Y" || response == "y")
                     {
-                        Utilities.BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
+                        //BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
+                        BeatSaberInstall[] gameInstalls = Array.Empty<BeatSaberInstall>();
                         if (gameInstalls.Length > 0)
                         {
                             Config.BeatSaberInstallLocations.Clear();
@@ -168,9 +184,10 @@ namespace BeatSyncConsole
                 validConfig = false;
             }
             string? favoriteMappersPath = GetFavoriteMappersLocation(Config.CustomSongsPaths);
-            if (favoriteMappersPath != null)
+            if (validConfig && favoriteMappersPath != null)
             {
                 FavoriteMappers favoriteMappers = new FavoriteMappers(favoriteMappersPath);
+                Console.WriteLine($"Getting FavoriteMappers from '{favoriteMappersPath.Replace(Directory.GetCurrentDirectory(), ".")}'.");
                 List<string> mappers = favoriteMappers.ReadFromFile();
                 if (mappers.Count > 0)
                     Config.BeatSyncConfig.BeatSaver.FavoriteMappers.Mappers = mappers.ToArray();
@@ -215,6 +232,17 @@ namespace BeatSyncConsole
         public string? GetFavoriteMappersLocation(IEnumerable<ISongLocation> songLocations)
         {
             string fileName = "FavoriteMappers.ini";
+            string? inBeatSyncConfigPath = null;
+            try
+            {
+                string? beatSyncConfigDirectory = Path.GetDirectoryName(BeatSyncConfigPath);
+                if (beatSyncConfigDirectory != null)
+                    inBeatSyncConfigPath = Path.GetFullPath(Path.Combine(beatSyncConfigDirectory, fileName));
+            }
+            catch { }
+            if(inBeatSyncConfigPath != null && File.Exists(inBeatSyncConfigPath))
+                return inBeatSyncConfigPath;
+
             string inConfigDirPath = Path.GetFullPath(Path.Combine(ConfigDirectory, fileName));
             if (File.Exists(inConfigDirPath))
                 return inConfigDirPath;
