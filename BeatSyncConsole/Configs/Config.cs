@@ -11,7 +11,7 @@ namespace BeatSyncConsole.Configs
 {
     public class Config : ConfigBase
     {
-        private static readonly string DefaultBeatSyncConfigPath = Path.Combine("%CONFIG", "BeatSync.json");
+        private static readonly string DefaultBeatSyncConfigPath = Path.Combine("%CONFIG%", "BeatSync.json");
         #region Private Fields
         [JsonIgnore]
         private BeatSyncConfig? _beatSyncConfig;
