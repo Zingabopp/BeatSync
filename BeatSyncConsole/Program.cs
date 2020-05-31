@@ -138,6 +138,11 @@ namespace BeatSyncConsole
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Bookmarks, sourceConfig.Follows, sourceConfig.CuratorRecommended };
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
+                if(string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
+                {
+                    Console.WriteLine($"  {feedConfig.GetType().Name} feed not available without a valid username.");
+                    continue;
+                }
                 Console.WriteLine($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);

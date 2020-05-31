@@ -3,6 +3,7 @@ using BeatSyncLib.Downloader.Targets;
 using SongFeedReaders;
 using SongFeedReaders.Data;
 using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,7 +68,7 @@ namespace BeatSyncLib.Downloader
             JobState = JobState.Ready;
             _totalStages = 1 + _targets.Length + 1;
             _stageIndex = 0;
-            
+
         }
         public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
             : this(song, downloadJob, targets, progress)
@@ -93,7 +94,7 @@ namespace BeatSyncLib.Downloader
         protected async Task<TargetResult[]> TransferToTargets(IEnumerable<SongTarget> targets, DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
             List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
-            foreach (var target in targets)
+            foreach (SongTarget? target in targets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 TargetResult result = await target.TransferAsync(Song, downloadContainer.GetResultStream(), cancellationToken).ConfigureAwait(false);
@@ -122,7 +123,7 @@ namespace BeatSyncLib.Downloader
             DownloadContainer? downloadContainer = null;
             List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
             List<SongTarget> pendingTargets = new List<SongTarget>(_targets.Length);
-            foreach (var target in _targets)
+            foreach (SongTarget? target in _targets)
             {
                 SongState songState = await target.CheckSongExistsAsync(Song).ConfigureAwait(false);
                 if (songState != SongState.Wanted)
@@ -132,24 +133,17 @@ namespace BeatSyncLib.Downloader
             }
             try
             {
-                cancellationToken.ThrowIfCancellationRequested(); if (string.IsNullOrEmpty(Song.Key))
+                cancellationToken.ThrowIfCancellationRequested();
+                if (string.IsNullOrEmpty(Song.Key))
                 {
-                    var result = await BeatSaverReader.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
-                    if (result.Successful)
+                    SongInfoResponse? result = await WebUtils.SongInfoManager.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
+                    if (result.Success)
                     {
-                        Song.Key = result.Songs.FirstOrDefault()?.Key;
+                        Song.Key = result.Song?.Key;
                     }
                 }
                 if (pendingTargets.Count > 0)
                 {
-                    if (string.IsNullOrEmpty(Song.Key))
-                    {
-                        var result = await BeatSaverReader.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
-                        if (result.Successful)
-                        {
-                            Song.Key = result.Songs.FirstOrDefault()?.Key;
-                        }
-                    }
                     _downloadJob.JobProgressChanged += _downloadJob_JobProgressChanged;
                     DownloadResult = await _downloadJob.RunAsync(cancellationToken).ConfigureAwait(false);
                     downloadContainer = DownloadResult.DownloadContainer;
@@ -158,7 +152,7 @@ namespace BeatSyncLib.Downloader
                     _stageIndex = 1;
                     ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, DownloadResult));
                     JobStage = JobStage.TransferringToTargets;
-                    foreach (var targetResult in completedTargets)
+                    foreach (TargetResult? targetResult in completedTargets)
                     {
                         _stageIndex++;
                         ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
@@ -171,7 +165,7 @@ namespace BeatSyncLib.Downloader
                     _stageIndex = 1;
                     _downloadJob_JobProgressChanged(this, new DownloadJobProgressChangedEventArgs(DownloadJobStatus.Finished));
                     JobStage = JobStage.TransferringToTargets;
-                    foreach (var targetResult in completedTargets)
+                    foreach (TargetResult? targetResult in completedTargets)
                     {
                         _stageIndex++;
                         ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
@@ -213,7 +207,7 @@ namespace BeatSyncLib.Downloader
                 downloadContainer?.Dispose();
             }
             catch { }
-            if(DownloadResult == null)
+            if (DownloadResult == null)
             {
 
             }

@@ -17,11 +17,11 @@ namespace BeatSyncLib.Utilities
     {
         public static async Task<bool> UpdateSongKeyAsync(this IPlaylistSong song, bool overwrite = false)
         {
-            if (string.IsNullOrEmpty(song?.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
+            if (song?.Hash == null || string.IsNullOrEmpty(song?.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
                 return false;
 
-            var result = await BeatSaverReader.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
-            var scrapedSong = result?.Songs?.FirstOrDefault();
+            var result = await WebUtils.SongInfoManager.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
+            var scrapedSong = result.Song;
             if (scrapedSong == null)
                 return false;
             song.Key = scrapedSong.Key;
