@@ -106,6 +106,7 @@ namespace BeatSyncConsole
             {
                 if (validPaths.Length == 0)
                 {
+#if !NOREGISTRY
                     Console.WriteLine("No song paths found in BeatSync.json, should I search for game installs? (Y/N): ");
                     string response = Console.ReadLine();
                     if (response == "Y" || response == "y")
@@ -134,6 +135,7 @@ namespace BeatSyncConsole
                             Config.SetConfigChanged(true, nameof(Config.BeatSaberInstallLocations));
                         }
                     }
+#endif
                 }
                 enabledPaths = GetValidEnabledLocations().ToArray();
                 validPaths = GetValidLocations().ToArray();

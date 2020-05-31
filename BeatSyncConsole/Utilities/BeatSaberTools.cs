@@ -1,4 +1,6 @@
-﻿using Microsoft.Win32;
+﻿#if !NOREGISTRY
+using Microsoft.Win32;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,6 +20,7 @@ namespace BeatSyncConsole.Utilities
         private static readonly string OCULUS_LM_KEY = Path.Combine("SOFTWARE", "WOW6432Node", "Oculus VR, LLC", "Oculus", "Config");
         private static readonly string OCULUS_CU_KEY = Path.Combine("SOFTWARE", "Oculus VR, LLC", "Oculus", "Libraries");
         //private const string OCULUS_REG_KEY = @"SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus\Config";
+#if !NOREGISTRY
         public static BeatSaberInstall[] GetBeatSaberPathsFromRegistry()
         {
             var installList = new List<BeatSaberInstall>();
@@ -39,7 +42,7 @@ namespace BeatSyncConsole.Utilities
             }
             return installList.ToArray();
         }
-
+#endif
         public static string FindBeatSaberInOculusLibrary(string oculusLibraryPath)
         {
             string possibleLocation = Path.Combine(oculusLibraryPath, "hyperbolic-magnetism-beat-saber");
@@ -57,7 +60,7 @@ namespace BeatSyncConsole.Utilities
             }
             return matchedLocation;
         }
-
+#if !NOREGISTRY
         public static string[] GetOculusLibraryPaths()
         {
             List<string> paths = new List<string>();
@@ -92,7 +95,7 @@ namespace BeatSyncConsole.Utilities
             }
             return paths.ToArray();
         }
-
+#endif
         public static readonly char[] IllegalCharacters = new char[]
             {
                 '<', '>', ':', '/', '\\', '|', '?', '*', '"',
