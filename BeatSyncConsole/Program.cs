@@ -1,4 +1,5 @@
 ﻿using BeatSyncConsole.Configs;
+using BeatSyncConsole.Loggers;
 using BeatSyncConsole.Utilities;
 using BeatSyncLib.Configs;
 using BeatSyncLib.Downloader;
@@ -65,7 +66,7 @@ namespace BeatSyncConsole
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Unable to initialize HistoryManager at '{historyPath}': {ex.Message}");
+                        Logger.log.Info($"Unable to initialize HistoryManager at '{historyPath}': {ex.Message}");
                     }
                 }
                 if (!string.IsNullOrEmpty(location.PlaylistDirectory))
@@ -82,8 +83,7 @@ namespace BeatSyncConsole
                 Directory.CreateDirectory(songsDirectory);
                 songHasher = new SongHasher<SongHashData>(songsDirectory);
                 await songHasher.InitializeAsync().ConfigureAwait(false);
-                Console.WriteLine($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)}.");
-                Directory.CreateDirectory(songsDirectory);
+                Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)}.");
                 SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
                 //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);
@@ -101,14 +101,14 @@ namespace BeatSyncConsole
                 {
                     if (c.DownloadResult != null && c.DownloadResult.Status == DownloadResultStatus.Skipped)
                     {
-                        //Console.WriteLine($"      Job skipped: {c.Song} not wanted by any targets.");
+                        //Logger.log.Info($"      Job skipped: {c.Song} not wanted by any targets.");
                     }
                     else
-                        Console.WriteLine($"      Job completed successfully: {c.Song}");
+                        Logger.log.Info($"      Job completed successfully: {c.Song}");
                 }
                 else
                 {
-                    Console.WriteLine($"      Job failed: {c.Song}");
+                    Logger.log.Info($"      Job failed: {c.Song}");
                 }
             });
             jobBuilder.SetDefaultJobFinishedAsyncCallback(jobFinishedCallback);
@@ -124,19 +124,24 @@ namespace BeatSyncConsole
                 return sourceStats;
             ScoreSaberReader reader = new ScoreSaberReader();
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.TopRanked, sourceConfig.LatestRanked, sourceConfig.Trending, sourceConfig.TopPlayed };
+            if (!feedConfigs.Any(f => f.Enabled))
+            {
+                Logger.log.Info($"No feeds enabled for {reader.Name}");
+                return sourceStats;
+            }
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
-                Console.WriteLine($"  Starting {feedConfig.GetType().Name} feed...");
+                Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
                 JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
                 sourceStats += feedStats;
             }
 
-            Console.WriteLine($"  Finished ScoreSaber reading: ({sourceStats}).");
+            Logger.log.Info($"  Finished ScoreSaber reading: ({sourceStats}).");
             return sourceStats;
         }
 
@@ -148,23 +153,28 @@ namespace BeatSyncConsole
                 return sourceStats;
             BeastSaberReader reader = new BeastSaberReader(sourceConfig.Username, sourceConfig.MaxConcurrentPageChecks);
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Bookmarks, sourceConfig.Follows, sourceConfig.CuratorRecommended };
+            if (!feedConfigs.Any(f => f.Enabled))
+            {
+                Logger.log.Info($"No feeds enabled for {reader.Name}");
+                return sourceStats;
+            }
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 if (string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
                 {
-                    Console.WriteLine($"  {feedConfig.GetType().Name} feed not available without a valid username.");
+                    Logger.log.Warn($"  {feedConfig.GetType().Name} feed not available without a valid username.");
                     continue;
                 }
-                Console.WriteLine($"  Starting {feedConfig.GetType().Name} feed...");
+                Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
                 JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
                 sourceStats += feedStats;
             }
-            Console.WriteLine($"  Finished BeastSaber reading: ({sourceStats}).");
+            Logger.log.Info($"  Finished BeastSaber reading: ({sourceStats}).");
             return sourceStats;
         }
 
@@ -177,16 +187,21 @@ namespace BeatSyncConsole
 
             BeatSaverReader reader = new BeatSaverReader(sourceConfig.MaxConcurrentPageChecks);
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads };
+            if (!(feedConfigs.Any(f => f.Enabled) || sourceConfig.FavoriteMappers.Enabled))
+            {
+                Logger.log.Info($"No feeds enabled for {reader.Name}");
+                return sourceStats;
+            }
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
-                Console.WriteLine($"  Starting {feedConfig.GetType().Name} feed...");
+                Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
                 await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
                 sourceStats += feedStats;
             }
 
@@ -196,14 +211,14 @@ namespace BeatSyncConsole
                 FeedConfigBase feedConfig = sourceConfig.FavoriteMappers;
                 if (mappers.Length > 0)
                 {
-                    Console.WriteLine("  Starting FavoriteMappers feed...");
+                    Logger.log.Info("  Starting FavoriteMappers feed...");
                     List<IPlaylist> playlists = new List<IPlaylist>();
                     List<IPlaylist> feedPlaylists = new List<IPlaylist>();
                     JobStats feedStats = new JobStats();
                     foreach (var mapper in mappers)
                     {
 
-                        Console.WriteLine($"  Getting songs by {mapper}...");
+                        Logger.log.Info($"  Getting songs by {mapper}...");
                         playlists.Clear();
                         foreach (var targetWithPlaylist in jobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
                         {
@@ -239,18 +254,18 @@ namespace BeatSyncConsole
                         }
                         ProcessFinishedJobs(jobs, playlists);
 
-                        Console.WriteLine($"  Finished getting songs by {mapper}: ({mapperStats}).");
+                        Logger.log.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
                     }
                     sourceStats += feedStats;
-                    Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                    Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
                 }
                 else
                 {
-                    Console.WriteLine("  No FavoriteMappers found, skipping...");
+                    Logger.log.Warn("  No FavoriteMappers found, skipping...");
                 }
             }
 
-            Console.WriteLine($"  Finished BeatSaver reading: ({sourceStats}).");
+            Logger.log.Info($"  Finished BeatSaver reading: ({sourceStats}).");
             return sourceStats;
         }
 
@@ -357,7 +372,7 @@ namespace BeatSyncConsole
                 return null;
             if (feedResult.Songs.Count == 0)
             {
-                Console.WriteLine("No songs");
+                Logger.log.Info("No songs");
                 return Array.Empty<IJob>();
             }
             List<IJob> jobs = new List<IJob>(feedResult.Count);
@@ -369,63 +384,108 @@ namespace BeatSyncConsole
                 if (postedJob != null)
                     jobs.Add(postedJob);
                 else
-                    Console.WriteLine($"Posted job is null for {song}, this shouldn't happen.");
+                    Logger.log.Info($"Posted job is null for {song}, this shouldn't happen.");
             }
             return jobs;
         }
         private static ConfigManager? ConfigManager;
+
+        private static void SetupLogging()
+        {
+            var consoleWriter = new ConsoleLogWriter();
+            consoleWriter.LogLevel = BeatSyncLib.Logging.LogLevel.Info;
+            LogManager.AddLogWriter(consoleWriter);
+            BeatSyncLib.Logger.log = new BeatSyncLogger("BeatSyncLib");
+            try
+            {
+                string logFilePath = Path.Combine("logs", "log.txt");
+                Directory.CreateDirectory("logs");
+                LogManager.AddLogWriter(new FileLogWriter(logFilePath));
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error($"Error creating FileLogWriter: {ex.Message}");
+            }
+        }
+
         static async Task Main(string[] args)
         {
-            BeatSyncLib.Logger.log = new Loggers.BeatSyncLibLogger();
-            ConfigManager = new ConfigManager(ConfigDirectory);
-            bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
-            Config? config = ConfigManager.Config;
-            if (!validConfig || config == null)
+            try
             {
-                Console.WriteLine("BeatSyncConsole cannot run without a valid config, exiting.");
-                Console.WriteLine("Press any key to continue...");
+                SetupLogging();
+                string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+                Logger.log.Info($"Starting BeatSyncConsole v{version}");
+                ConfigManager = new ConfigManager(ConfigDirectory);
+                bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
+                Config? config = ConfigManager.Config;
+                if (validConfig && config != null)
+                {
+                    SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
+                    SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/" + version);
+                    JobManager manager = new JobManager(config.BeatSyncConfig.MaxConcurrentDownloads);
+                    manager.Start(CancellationToken.None);
+                    IJobBuilder jobBuilder = await CreateJobBuilderAsync(config).ConfigureAwait(false);
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    Task<JobStats>[] tasks = new Task<JobStats>[]
+                    {
+                        GetBeatSaverAsync(config.BeatSyncConfig, jobBuilder, manager),
+                        GetBeastSaberAsync(config.BeatSyncConfig, jobBuilder, manager),
+                        GetScoreSaberAsync(config.BeatSyncConfig, jobBuilder, manager)
+                    };
+                    JobStats beatSyncStats = (await Task.WhenAll(tasks).ConfigureAwait(false)).Aggregate((a, b) => a + b);
+                    await manager.CompleteAsync().ConfigureAwait(false);
+                    foreach (var target in jobBuilder.SongTargets)
+                    {
+                        if (target is ITargetWithPlaylists targetWithPlaylists)
+                        {
+                            targetWithPlaylists.PlaylistManager?.StoreAllPlaylists();
+                        }
+                        if (target is ITargetWithHistory targetWithHistory)
+                        {
+                            try
+                            {
+                                targetWithHistory.HistoryManager?.WriteToFile();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.log.Info($"Unable to save history at '{targetWithHistory.HistoryManager?.HistoryPath}': {ex.Message}");
+                            }
+                        }
+                    }
+                    sw.Stop();
+                    Logger.log.Info($"Finished after {sw.Elapsed.TotalSeconds}s: {beatSyncStats}");
+                }
+                else
+                {
+                    Logger.log.Info("BeatSyncConsole cannot run without a valid config, exiting.");
+                }
+                LogManager.GetUserInput("Press Enter to continue...");
+            }
+            catch (Exception ex)
+            {
+                string message = $"Fatal Error in BeatSyncConsole: {ex.Message}";
+                if (LogManager.IsAlive && LogManager.HasWriters && Logger.log != null)
+                {
+                    Logger.log.Error(message);
+                    Logger.log.Error(ex);
+                }
+                else
+                {
+                    ConsoleColor previousColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(message);
+                    Console.WriteLine(ex);
+                    Console.ForegroundColor = previousColor;
+                }
+                LogManager.Stop();
+                Console.WriteLine("Press Enter to continue...");
                 Console.Read();
-                return;
             }
-            SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
-            string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
-            SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/" + version);
-            JobManager manager = new JobManager(config.BeatSyncConfig.MaxConcurrentDownloads);
-            manager.Start(CancellationToken.None);
-            IJobBuilder jobBuilder = await CreateJobBuilderAsync(config).ConfigureAwait(false);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Task<JobStats>[] tasks = new Task<JobStats>[]
+            finally
             {
-                GetBeatSaverAsync(config.BeatSyncConfig, jobBuilder, manager),
-                GetBeastSaberAsync(config.BeatSyncConfig, jobBuilder, manager),
-                GetScoreSaberAsync(config.BeatSyncConfig, jobBuilder, manager)
-            };
-            JobStats beatSyncStats = (await Task.WhenAll(tasks).ConfigureAwait(false)).Aggregate((a, b) => a + b);
-            await manager.CompleteAsync().ConfigureAwait(false);
-            foreach (var target in jobBuilder.SongTargets)
-            {
-                if (target is ITargetWithPlaylists targetWithPlaylists)
-                {
-                    targetWithPlaylists.PlaylistManager?.StoreAllPlaylists();
-                }
-                if (target is ITargetWithHistory targetWithHistory)
-                {
-                    try
-                    {
-                        targetWithHistory.HistoryManager?.WriteToFile();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Unable to save history at '{targetWithHistory.HistoryManager?.HistoryPath}': {ex.Message}");
-                    }
-                }
+                LogManager.Stop();
             }
-            sw.Stop();
-            Console.WriteLine($"Finished after {sw.Elapsed.TotalSeconds}s: {beatSyncStats}");
-
-            Console.WriteLine("Press any key to continue...");
-            Console.Read();
         }
     }
 }

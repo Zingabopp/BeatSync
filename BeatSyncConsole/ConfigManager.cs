@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BeatSyncConsole.Configs;
+using BeatSyncConsole.Loggers;
 using BeatSyncConsole.Utilities;
 using BeatSyncLib.Configs;
 using Newtonsoft.Json;
@@ -68,13 +69,13 @@ namespace BeatSyncConsole
                 }
                 else
                 {
-                    Console.WriteLine($"{consoleConfigPath} not found, creating a new one.");
+                    Logger.log.Info($"{consoleConfigPath} not found, creating a new one.");
                     Config = Config.GetDefaultConfig();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Invalid BeatSyncConsole.json file, using defaults: {ex.Message}");
+                Logger.log.Info($"Invalid BeatSyncConsole.json file, using defaults: {ex.Message}");
                 Config = Config.GetDefaultConfig();
             }
             string beatSyncConfigPath = Config.BeatSyncConfigPath.Replace("%CONFIG%", ConfigDirectory, StringComparison.OrdinalIgnoreCase);
@@ -83,17 +84,17 @@ namespace BeatSyncConsole
             {
                 if (File.Exists(beatSyncConfigPath))
                 {
-                    Console.WriteLine($"Using BeatSync config '{beatSyncConfigPath}'.");
+                    Logger.log.Info($"Using BeatSync config '{beatSyncConfigPath}'.");
                     Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(await File.ReadAllTextAsync(beatSyncConfigPath).ConfigureAwait(false));
                 }
                 else
                 {
-                    Console.WriteLine($"{beatSyncConfigPath} not found, creating a new one.");
+                    Logger.log.Info($"{beatSyncConfigPath} not found, creating a new one.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Invalid BeatSync.json file, using defaults: {ex.Message}");
+                Logger.log.Info($"Invalid BeatSync.json file, using defaults: {ex.Message}");
             }
             if (Config.BeatSyncConfig == null)
             {
@@ -107,8 +108,7 @@ namespace BeatSyncConsole
                 if (validPaths.Length == 0)
                 {
 #if !NOREGISTRY
-                    Console.WriteLine("No song paths found in BeatSync.json, should I search for game installs? (Y/N): ");
-                    string response = Console.ReadLine();
+                    string? response = LogManager.GetUserInput("No song paths found in BeatSync.json, should I search for game installs? (Y/N): ");
                     if (response == "Y" || response == "y")
                     {
                         BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
@@ -118,19 +118,19 @@ namespace BeatSyncConsole
                             Config.BeatSaberInstallLocations.Clear();
                             for (int i = 0; i < gameInstalls.Length; i++)
                             {
-                                Console.WriteLine($"  {gameInstalls[i]}");
+                                Logger.log.Info($"  {gameInstalls[i]}");
                                 BeatSaberInstallLocation newLocation = gameInstalls[i].ToSongLocation();
                                 newLocation.Enabled = false;
                                 Config.BeatSaberInstallLocations.Add(newLocation);
                             }
                             if (gameInstalls.Length == 1)
                             {
-                                Console.WriteLine($"Found 1 game install, enabling for BeatSyncConsole: {gameInstalls[0]}");
+                                Logger.log.Info($"Found 1 game install, enabling for BeatSyncConsole: {gameInstalls[0]}");
                                 Config.BeatSaberInstallLocations[0].Enabled = true; ;
                             }
                             else
                             {
-                                Console.WriteLine($"Found {gameInstalls.Length} game installs:");
+                                Logger.log.Info($"Found {gameInstalls.Length} game installs:");
                             }
                             Config.SetConfigChanged(true, nameof(Config.BeatSaberInstallLocations));
                         }
@@ -141,13 +141,13 @@ namespace BeatSyncConsole
                 validPaths = GetValidLocations().ToArray();
                 if (enabledPaths.Length == 0 && validPaths.Length > 0)
                 {
-                    Console.WriteLine("No locations currently enabled.");
+                    Logger.log.Info("No locations currently enabled.");
                     for (int i = 0; i < validPaths.Length; i++)
                     {
-                        Console.WriteLine($"  {i}: {validPaths[i]}");
+                        Logger.log.Info($"  {i}: {validPaths[i]}");
                     }
-                    Console.WriteLine($"Enter the numbers of the locations you wish to enable, separated by commas.");
-                    string response = Console.ReadLine();
+                    string? response = LogManager.GetUserInput($"Enter the numbers of the locations you wish to enable, separated by commas.")
+                        ?? string.Empty;
                     string[] selectionResponse = response.Split(',');
                     int[] selectionInts = selectionResponse.Select(r =>
                     {
@@ -163,33 +163,33 @@ namespace BeatSyncConsole
                         if (current > -1 && current < validPaths.Length)
                         {
                             validPaths[current].Enabled = true;
-                            Console.WriteLine($"Enabling {validPaths[current]}.");
+                            Logger.log.Info($"Enabling {validPaths[current]}.");
                             Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
                         }
                         else
-                            Console.WriteLine($"'{selectionResponse[i]}' is invalid.");
+                            Logger.log.Info($"'{selectionResponse[i]}' is invalid.");
                     }
                 }
             }
             enabledPaths = GetValidEnabledLocations().ToArray();
             if (enabledPaths.Length > 0)
             {
-                Console.WriteLine("Using the following targets:");
+                Logger.log.Info("Using the following targets:");
                 foreach (ISongLocation enabledLocation in enabledPaths)
                 {
-                    Console.WriteLine($"  {enabledLocation}");
+                    Logger.log.Info($"  {enabledLocation}");
                 }
             }
             else
             {
-                Console.WriteLine("No enabled custom songs paths found, please manually enter a target directory for your songs in config.json.");
+                Logger.log.Info("No enabled custom songs paths found, please manually enter a target directory for your songs in config.json.");
                 validConfig = false;
             }
             string? favoriteMappersPath = GetFavoriteMappersLocation(Config.CustomSongsPaths);
             if (validConfig && favoriteMappersPath != null)
             {
                 FavoriteMappers favoriteMappers = new FavoriteMappers(favoriteMappersPath);
-                Console.WriteLine($"Getting FavoriteMappers from '{favoriteMappersPath.Replace(Directory.GetCurrentDirectory(), ".")}'.");
+                Logger.log.Info($"Getting FavoriteMappers from '{favoriteMappersPath.Replace(Directory.GetCurrentDirectory(), ".")}'.");
                 List<string> mappers = favoriteMappers.ReadFromFile();
                 if (mappers.Count > 0)
                     Config.BeatSyncConfig.BeatSaver.FavoriteMappers.Mappers = mappers.ToArray();
@@ -207,8 +207,8 @@ namespace BeatSyncConsole
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error updating config file.");
-                    Console.WriteLine(ex);
+                    Logger.log.Info("Error updating config file.");
+                    Logger.log.Info(ex);
                 }
             }
             if (Config.BeatSyncConfig.ConfigChanged)
@@ -224,8 +224,8 @@ namespace BeatSyncConsole
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error updating config file.");
-                    Console.WriteLine(ex);
+                    Logger.log.Info("Error updating config file.");
+                    Logger.log.Info(ex);
                 }
             }
             return validConfig;
