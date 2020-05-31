@@ -45,7 +45,7 @@ namespace BeatSyncLib.Hashing
             DirectoryInfo songDir = new DirectoryInfo(CustomLevelsPath);
             if (!songDir.Exists)
                 throw new DirectoryNotFoundException($"Song Hasher's song directory doesn't exist: {songDir.FullName}");
-            Logger.log?.Info($"SongDir is {songDir.FullName}");
+            //Logger.log?.Info($"SongDir is {songDir.FullName}");
             int hashedSongs = 0;
             var tasks = songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().Select(async d =>
             {
