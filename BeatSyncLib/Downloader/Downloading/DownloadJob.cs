@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities;
 using static SongFeedReaders.Utilities;
+using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Downloader.Downloading
 {

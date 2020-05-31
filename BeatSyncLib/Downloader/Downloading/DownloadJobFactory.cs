@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WebUtilities;
+using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Downloader.Downloading
 {

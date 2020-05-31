@@ -1,30 +1,21 @@
 ﻿using BeatSyncConsole.Configs;
 using BeatSyncConsole.Loggers;
 using BeatSyncConsole.Utilities;
-using BeatSyncLib.Configs;
 using BeatSyncLib.Downloader;
 using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
 using BeatSyncPlaylists;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json;
-using SongFeedReaders.Data;
-using SongFeedReaders.Readers;
-using SongFeedReaders.Readers.BeastSaber;
-using SongFeedReaders.Readers.BeatSaver;
-using SongFeedReaders.Readers.ScoreSaber;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using WebUtilities;
+using WebUtilities.DownloadContainers;
 
 namespace BeatSyncConsole
 {
@@ -116,13 +107,13 @@ namespace BeatSyncConsole
 
         }
 
-       
+
 
         private static ConfigManager? ConfigManager;
 
         private static void SetupLogging()
         {
-            var consoleWriter = new ConsoleLogWriter
+            ConsoleLogWriter? consoleWriter = new ConsoleLogWriter
             {
                 LogLevel = BeatSyncLib.Logging.LogLevel.Info
             };
@@ -163,7 +154,7 @@ namespace BeatSyncConsole
                     JobStats[] sourceStats = await songDownloader.RunAsync(config, jobBuilder, manager).ConfigureAwait(false);
                     JobStats beatSyncStats = sourceStats.Aggregate((a, b) => a + b);
                     await manager.CompleteAsync().ConfigureAwait(false);
-                    foreach (var target in jobBuilder.SongTargets)
+                    foreach (SongTarget? target in jobBuilder.SongTargets)
                     {
                         if (target is ITargetWithPlaylists targetWithPlaylists)
                         {

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using BeatSyncLib.Downloader;
 using WebUtilities;
 using BeatSyncLib.Downloader.Downloading;
+using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Utilities
 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using WebUtilities;
+using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Downloader.Downloading
 {

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities;
+using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Downloader
 {
