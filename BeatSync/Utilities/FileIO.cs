@@ -1,6 +1,4 @@
-﻿using BeatSync.Playlists;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -26,7 +24,7 @@ namespace BeatSync.Utilities
         public static string LoadStringFromFile(string path)
         {
             string text;
-            var bakFile = new FileInfo(path + ".bak");
+            FileInfo bakFile = new FileInfo(path + ".bak");
             if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
             {
                 try
@@ -61,103 +59,6 @@ namespace BeatSync.Utilities
             File.Delete(path + ".bak");
         }
 
-        /// <summary>
-        /// Writes a playlist to a file.
-        /// </summary>
-        /// <param name="playlist"></param>
-        /// <returns></returns>
-        /// <exception cref="IOException">Thrown when there's a problem writing to the file.</exception>
-        public static string WritePlaylist(Playlist playlist)
-        {
-            var path = Path.Combine(PlaylistManager.PlaylistPath,
-                playlist.FileName + (playlist.FileName.ToLower().EndsWith(".blist")
-                || playlist.FileName.ToLower().EndsWith(".json") ? "" : ".blist"));
-
-            if (File.Exists(path))
-            {
-                File.Copy(path, path + ".bak", true);
-                File.Delete(path);
-            }
-            Logger.log?.Debug($"Writing playlist {playlist.FileName} with {playlist.Count} songs.");
-            //using (var memStream = Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist))
-            using (var sw = File.CreateText(path))
-            {
-                Blister.PlaylistLib.SerializeStream(playlist.BlisterPlaylist, sw.BaseStream);
-                //memStream.CopyTo(sw.BaseStream);
-            }
-            File.Delete(path + ".bak");
-            return path;
-        }
-
-        /// <summary>
-        /// Updates an existing playlist from a file.
-        /// </summary>
-        /// <param name="playlist"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">Thrown if the provided playlist is null.</exception>
-        public static Playlist ReadPlaylist(Playlist playlist)
-        {
-            if (playlist == null)
-                throw new ArgumentNullException(nameof(playlist), "playlist cannot be null for FileIO.ReadPlaylist().");
-            var path = GetPlaylistFilePath(playlist.FileName);
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-                return playlist;
-            JsonConvert.PopulateObject(LoadStringFromFile(path), playlist);
-            return playlist;
-        }
-
-        /// <summary>
-        /// Creates a new Playlist from a file.
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        /// <exception cref="IOException">Thrown if there's a problem copying/deleting an associated .bak file </exception>
-        public static Playlist ReadPlaylist(string fileName)
-        {
-            var path = GetPlaylistFilePath(fileName);
-            Playlist playlist = null;
-            var bakFile = new FileInfo(path + ".bak");
-            if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
-            {
-                Logger.log?.Debug($"Found backup playlist file {bakFile}, using this instead.");
-                bakFile.CopyTo(path, true);
-                bakFile.Delete();
-            }
-            using (var sr = File.OpenRead(path))
-            {
-                playlist = new Playlist() { BlisterPlaylist = Blister.PlaylistLib.Deserialize(sr) };
-            }
-            playlist.FileName = fileName;
-            Logger.log?.Debug($"ReadPlaylist(): Found Playlist {playlist.Title}");
-
-            return playlist;
-        }
-
-        /// <summary>
-        /// Gets the path to the provided playlist file name. TODO: This needs work
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
-        {
-            if (File.Exists(fileName))
-                return Path.GetFullPath(fileName);
-            var path = Path.Combine(PlaylistManager.PlaylistPath, fileName);
-            if (File.Exists(path))
-                return Path.GetFullPath(path);
-            else if (!getDisabled)
-                return null;
-
-            path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
-            if (string.IsNullOrEmpty(path))
-                return null;
-            if (File.Exists(path))
-                return path;
-            return null;
-
-        }
-
-
 
         /// <summary>
         /// Downloads a file from the specified URI to the specified path (path includes file name).
@@ -177,7 +78,7 @@ namespace BeatSync.Utilities
                 return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
             {
-                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, cancellationToken, 30, 2).ConfigureAwait(false))
+                using (IWebResponseMessage response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(uri, cancellationToken, 30, 2).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
 
@@ -208,7 +109,7 @@ namespace BeatSync.Utilities
             }
             catch (WebClientException ex)
             {
-                var faultedCode = ex.Response?.StatusCode ?? 0;
+                int faultedCode = ex.Response?.StatusCode ?? 0;
                 DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
                 if (faultedCode == 404)
                     downloadResultStatus = DownloadResultStatus.NetNotFound;
@@ -235,11 +136,11 @@ namespace BeatSync.Utilities
         /// <exception cref="PathTooLongException">Thrown if shortening the path enough is impossible.</exception>
         public static string GetValidPath(string extractDirectory, int longestEntryName, int padding = 0)
         {
-            var extLength = extractDirectory.Length;
-            var dir = new DirectoryInfo(extractDirectory);
+            int extLength = extractDirectory.Length;
+            DirectoryInfo dir = new DirectoryInfo(extractDirectory);
             int minLength = dir.Parent.FullName.Length + 2;
-            var dirName = dir.Name;
-            var diff = MaxFileSystemPathLength - extLength - longestEntryName - padding;
+            string dirName = dir.Name;
+            int diff = MaxFileSystemPathLength - extLength - longestEntryName - padding;
             if (diff < 0)
             {
 
@@ -282,16 +183,16 @@ namespace BeatSync.Utilities
             };
 
             string createdDirectory = null;
-            var createdFiles = new List<string>();
+            List<string> createdFiles = new List<string>();
             try
             {
                 //Logger.log?.Info($"ExtractDirectory is {extractDirectory}");
-                using (var fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
-                using (var zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
+                using (FileStream fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
+                using (ZipArchive zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
                 {
                     //Logger.log?.Info("Zip opened");
                     //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
-                    var longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
+                    int longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
                     try
                     {
                         extractDirectory = Path.GetFullPath(extractDirectory); // Could theoretically throw an exception: Argument/ArgumentNull/Security/NotSupported/PathTooLong
@@ -302,7 +203,7 @@ namespace BeatSync.Utilities
                             string finalPath;
                             do
                             {
-                                var append = $" ({pathNum})";
+                                string append = $" ({pathNum})";
                                 finalPath = GetValidPath(extractDirectory, longestEntryName, append.Length) + append; // padding ensures we aren't continuously cutting off the append value
                                 pathNum++;
                             } while (Directory.Exists(finalPath));
@@ -317,7 +218,7 @@ namespace BeatSync.Utilities
                     }
                     result.OutputDirectory = extractDirectory;
                     bool extractDirectoryExists = Directory.Exists(extractDirectory);
-                    var toBeCreated = extractDirectoryExists ? null : extractDirectory; // For cleanup
+                    string toBeCreated = extractDirectoryExists ? null : extractDirectory; // For cleanup
                     try { Directory.CreateDirectory(extractDirectory); }
                     catch (Exception ex)
                     {
@@ -329,12 +230,12 @@ namespace BeatSync.Utilities
                     result.CreatedOutputDirectory = !extractDirectoryExists;
                     createdDirectory = string.IsNullOrEmpty(toBeCreated) ? null : extractDirectory;
                     // TODO: Ordering so largest files extracted first. If the extraction is interrupted, theoretically the song's hash won't match Beat Saver's.
-                    foreach (var entry in zipArchive.Entries.OrderByDescending(e => e.Length))
+                    foreach (ZipArchiveEntry entry in zipArchive.Entries.OrderByDescending(e => e.Length))
                     {
                         if (!entry.FullName.Equals(entry.Name)) // If false, the entry is a directory or file nested in one
                             continue;
-                        var entryPath = Path.Combine(extractDirectory, entry.Name);
-                        var fileExists = File.Exists(entryPath);
+                        string entryPath = Path.Combine(extractDirectory, entry.Name);
+                        bool fileExists = File.Exists(entryPath);
                         if (overwriteTarget || !fileExists)
                         {
                             try
@@ -361,7 +262,7 @@ namespace BeatSync.Utilities
                             }
                             if (result.Exception != null)
                             {
-                                foreach (var file in createdFiles)
+                                foreach (string file in createdFiles)
                                 {
                                     TryDeleteAsync(file).Wait();
                                 }
@@ -394,7 +295,7 @@ namespace BeatSync.Utilities
                     }
                     else // TODO: What is this doing here...
                     {
-                        foreach (var file in createdFiles)
+                        foreach (string file in createdFiles)
                         {
                             File.Delete(file);
                         }
@@ -415,7 +316,7 @@ namespace BeatSync.Utilities
         public static string GetSafeDirectoryPath(string directory)
         {
             StringBuilder retStr = new StringBuilder(directory);
-            foreach (var character in Path.GetInvalidPathChars())
+            foreach (char character in Path.GetInvalidPathChars())
             {
                 retStr.Replace(character.ToString(), string.Empty);
             }
@@ -425,7 +326,7 @@ namespace BeatSync.Utilities
         public static string GetSafeFileName(string fileName)
         {
             StringBuilder retStr = new StringBuilder(fileName);
-            foreach (var character in Path.GetInvalidFileNameChars())
+            foreach (char character in Path.GetInvalidFileNameChars())
             {
                 retStr.Replace(character.ToString(), string.Empty);
             }
@@ -434,8 +335,8 @@ namespace BeatSync.Utilities
 
         public static Task<bool> TryDeleteAsync(string filePath)
         {
-            var timeoutSource = new CancellationTokenSource(3000);
-            var timeoutToken = timeoutSource.Token;
+            CancellationTokenSource timeoutSource = new CancellationTokenSource(3000);
+            CancellationToken timeoutToken = timeoutSource.Token;
             return SongFeedReaders.Utilities.WaitUntil(() =>
             {
                 try

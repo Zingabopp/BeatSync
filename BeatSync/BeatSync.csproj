@@ -18,6 +18,8 @@
     <ReferencePath>$(SolutionDir)Refs</ReferencePath>
     <FinalOutputAssembly>$(OutputPath)Merged\$(AssemblyName).dll</FinalOutputAssembly>
     <TargetFrameworkProfile />
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -162,27 +164,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeatSync.cs" />
-    <Compile Include="Configs\BeastSaberFeedConfigs.cs" />
-    <Compile Include="Configs\BeatSaverFeedConfigs.cs" />
-    <Compile Include="Configs\PlaylistStyleConverter.cs" />
-    <Compile Include="Configs\StatusUiConfig.cs" />
-    <Compile Include="Configs\SyncIntervalConfig.cs" />
-    <Compile Include="Downloader\DownloadJob.cs" />
-    <Compile Include="Downloader\DownloadManager.cs" />
-    <Compile Include="Downloader\IDownloadJob.cs" />
-    <Compile Include="Downloader\JobEventContainer.cs" />
-    <Compile Include="Downloader\JobResult.cs" />
-    <Compile Include="Downloader\DownloadStats.cs" />
-    <Compile Include="HistoryManager.cs" />
-    <Compile Include="Configs\ConfigBases.cs" />
-    <Compile Include="Configs\FavoriteMappers.cs" />
-    <Compile Include="Configs\ScoreSaberFeedConfigs.cs" />
-    <Compile Include="Configs\SourceConfigs.cs" />
     <Compile Include="Logging\BeatSyncConsoleLogger.cs" />
     <Compile Include="Logging\BeatSyncIPALogger.cs" />
     <Compile Include="Logging\IBeatSyncLogger.cs" />
-    <Compile Include="Downloader\SongDownloader.cs" />
-    <Compile Include="SongHasher.cs" />
     <Compile Include="UI\IStatusManager.cs" />
     <Compile Include="UI\PostText.cs" />
     <Compile Include="UI\TextMeshList.cs" />
@@ -190,17 +174,12 @@
     <Compile Include="Utilities\DictionaryExtensions.cs" />
     <Compile Include="Utilities\FileIO.cs" />
     <Compile Include="Logging\BeatSyncFeedReaderLogger.cs" />
-    <Compile Include="Playlists\Playlist.cs" />
-    <Compile Include="Playlists\PlaylistManager.cs" />
-    <Compile Include="Playlists\PlaylistSong.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Logging\Logger.cs" />
-    <Compile Include="Configs\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\BeatSync_UI.cs" />
     <Compile Include="UI\FloatingText.cs" />
     <Compile Include="Utilities\FileLock.cs" />
-    <Compile Include="Utilities\PlaylistSongExtensions.cs" />
     <Compile Include="Utilities\TaskExtensions.cs" />
     <Compile Include="Utilities\Util.cs" />
   </ItemGroup>
@@ -221,6 +200,14 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BeatSyncLib\BeatSyncLib.csproj">
+      <Project>{e2a07bdb-7085-48a3-aa50-b6e0856a7cca}</Project>
+      <Name>BeatSyncLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BeatSyncPlaylists\BeatSyncPlaylists.csproj">
+      <Project>{e1981ae8-0750-4d39-98a5-b60fbf010c32}</Project>
+      <Name>BeatSyncPlaylists</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj">
       <Project>{460a61bc-c89a-433d-a9e2-37447694d76c}</Project>
       <Name>SongFeedReaders</Name>
@@ -269,7 +256,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Icons\BeatSyncLogoSmall.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Configs\" />
+    <Folder Include="Downloader\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!--Build Targets-->
   <Target Name="CopyToPlugins" AfterTargets="Build" Condition="'$(NCrunch)' != '1'">
