@@ -110,14 +110,14 @@ namespace BeatSyncConsole
                     string response = Console.ReadLine();
                     if (response == "Y" || response == "y")
                     {
-                        //BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
-                        BeatSaberInstall[] gameInstalls = Array.Empty<BeatSaberInstall>();
+                        BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
+                        //BeatSaberInstall[] gameInstalls = Array.Empty<BeatSaberInstall>();
                         if (gameInstalls.Length > 0)
                         {
                             Config.BeatSaberInstallLocations.Clear();
                             for (int i = 0; i < gameInstalls.Length; i++)
                             {
-                                Console.WriteLine($"  {i}: {gameInstalls[i]}");
+                                Console.WriteLine($"  {gameInstalls[i]}");
                                 BeatSaberInstallLocation newLocation = gameInstalls[i].ToSongLocation();
                                 newLocation.Enabled = false;
                                 Config.BeatSaberInstallLocations.Add(newLocation);
@@ -144,7 +144,7 @@ namespace BeatSyncConsole
                     {
                         Console.WriteLine($"  {i}: {validPaths[i]}");
                     }
-                    Console.WriteLine($"Enter the numbers of the installs you wish to enable, separated by commas.");
+                    Console.WriteLine($"Enter the numbers of the locations you wish to enable, separated by commas.");
                     string response = Console.ReadLine();
                     string[] selectionResponse = response.Split(',');
                     int[] selectionInts = selectionResponse.Select(r =>

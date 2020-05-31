@@ -80,9 +80,9 @@ namespace BeatSyncConsole.Configs
         public override string ToString()
         {
             if (Enabled)
-                return $"Custom: {BasePath}";
+                return $"Custom: {ReplaceWorkingDirectory(BasePath)}";
             else
-                return $"(Disabled) Custom: {BasePath}";
+                return $"(Disabled) Custom: {ReplaceWorkingDirectory(BasePath)}";
         }
 
         public bool IsValid(out string? reason)

@@ -1,6 +1,7 @@
 ﻿using BeatSyncConsole.Configs;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,5 +17,7 @@ namespace BeatSyncConsole.Utilities
         {
             return new BeatSaberInstallLocation(install.InstallPath);
         }
+
+        public static string ReplaceWorkingDirectory(string fullPath) => fullPath.Replace(Directory.GetCurrentDirectory(), ".");
     }
 }
