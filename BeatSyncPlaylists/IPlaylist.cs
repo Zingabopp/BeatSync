@@ -102,11 +102,23 @@ namespace BeatSyncPlaylists
         /// Sorts the playlist in descending order of DateAdded.
         /// </summary>
         void Sort();
+
+        /// <summary>
+        /// Removes all songs matched by the predicate.
+        /// </summary>
+        /// <param name="match"></param>
+        /// <returns></returns>
+        int RemoveAll(Func<IPlaylistSong, bool> match);
     }
 
     public interface IPlaylist<T> : IPlaylist
         where T : IPlaylistSong, new()
     {
+        /// <summary>
+        /// Removes all songs matched by the predicate.
+        /// </summary>
+        /// <param name="match"></param>
+        /// <returns></returns>
         int RemoveAll(Func<T, bool> match);
     }
 }

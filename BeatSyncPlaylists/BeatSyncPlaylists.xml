@@ -117,6 +117,20 @@
             Sorts the playlist in descending order of DateAdded.
             </summary>
         </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist.RemoveAll(System.Func{BeatSyncPlaylists.IPlaylistSong,System.Boolean})">
+            <summary>
+            Removes all songs matched by the predicate.
+            </summary>
+            <param name="match"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BeatSyncPlaylists.IPlaylist`1.RemoveAll(System.Func{`0,System.Boolean})">
+            <summary>
+            Removes all songs matched by the predicate.
+            </summary>
+            <param name="match"></param>
+            <returns></returns>
+        </member>
         <member name="T:BeatSyncPlaylists.Playlist`1">
             <summary>
             Base class for a Playlist.
@@ -133,13 +147,6 @@
         </member>
         <member name="E:BeatSyncPlaylists.Playlist`1.PlaylistChanged">
             <inheritdoc/>
-        </member>
-        <member name="M:BeatSyncPlaylists.Playlist`1.RemoveAll(System.Func{`0,System.Boolean})">
-            <summary>
-            Removes all playlists that match the provided delegate.
-            </summary>
-            <param name="match"></param>
-            <returns></returns>
         </member>
         <member name="P:BeatSyncPlaylists.Playlist`1.Title">
             <inheritdoc/>
@@ -202,6 +209,12 @@
             <inheritdoc/>
         </member>
         <member name="M:BeatSyncPlaylists.Playlist`1.RemoveAt(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.RemoveAll(System.Func{BeatSyncPlaylists.IPlaylistSong,System.Boolean})">
+            <inheritdoc/>
+        </member>
+        <member name="M:BeatSyncPlaylists.Playlist`1.RemoveAll(System.Func{`0,System.Boolean})">
             <inheritdoc/>
         </member>
         <member name="M:BeatSyncPlaylists.Playlist`1.RemoveDuplicates">

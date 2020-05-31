@@ -33,12 +33,6 @@ namespace BeatSyncPlaylists
         /// <inheritdoc/>
         public event EventHandler? PlaylistChanged;
 
-        /// <summary>
-        /// Removes all playlists that match the provided delegate.
-        /// </summary>
-        /// <param name="match"></param>
-        /// <returns></returns>
-        public abstract int RemoveAll(Func<T, bool> match);
 
         /// <inheritdoc/>
         public abstract string Title { get; set; }
@@ -164,6 +158,22 @@ namespace BeatSyncPlaylists
         }
 
         /// <inheritdoc/>
+        public int RemoveAll(Func<IPlaylistSong, bool> match)
+        {
+            int songsRemoved = 0;
+            var toRemove = _songs.Where(s => match(s)).ToArray();
+            foreach (var song in toRemove)
+            {
+                if (_songs.Remove(song))
+                    songsRemoved++;
+            }
+            return songsRemoved;
+        }
+
+        /// <inheritdoc/>
+        public abstract int RemoveAll(Func<T, bool> match);
+
+        /// <inheritdoc/>
         public void RemoveDuplicates()
         {
             throw new NotImplementedException();
@@ -182,14 +192,14 @@ namespace BeatSyncPlaylists
         public bool TryRemoveByHash(string songHash)
         {
             songHash = songHash.ToUpper();
-            return RemoveAll(s => s.Hash == songHash) > 0;
+            return RemoveAll((IPlaylistSong s) => s.Hash == songHash) > 0;
         }
 
         /// <inheritdoc/>
         public bool TryRemoveByKey(string songKey)
         {
             songKey = songKey.ToLower();
-            return RemoveAll(s => s.Key == songKey) > 0;
+            return RemoveAll((IPlaylistSong s) => s.Key == songKey) > 0;
         }
 
         /// <inheritdoc/>
