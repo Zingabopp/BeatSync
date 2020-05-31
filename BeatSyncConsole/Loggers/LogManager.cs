@@ -56,6 +56,26 @@ namespace BeatSyncConsole.Loggers
             LogWriters = LogWriters.Append(logWriter).ToArray();
         }
 
+        public static void RemoveWriter(ILogWriter logWriter, string? reason = null, LogLevel logLevel = LogLevel.Info)
+        {
+            if (LogWriters.Contains(logWriter))
+            {
+                LogWriters = LogWriters.Where(w => w != logWriter).ToArray();
+                if (!string.IsNullOrEmpty(reason))
+                {
+                    string message = $"Removed {logWriter.GetType().Name}: {reason}";
+                    if (IsAlive && HasWriters)
+                    {
+                        QueueMessage(message, logLevel);
+                    }
+                    else
+                    {
+                        Console.WriteLine(message);
+                    }
+                }
+            }
+        }
+
         private static void Run()
         {
             IsAlive = true;
@@ -76,13 +96,9 @@ namespace BeatSyncConsole.Loggers
                 }
             }
             catch (OperationCanceledException) { }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ConsoleColor previousColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error in Logging thread: {ex.Message}");
-                Console.WriteLine(ex);
-                Console.ForegroundColor = previousColor;
+                ConsoleWriteError($"Error in Logging thread: {ex.Message}\n{ex.StackTrace}");
             }
             finally
             {
@@ -100,10 +116,18 @@ namespace BeatSyncConsole.Loggers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error writing to {typeof(Logger)}: {ex.Message}");
-                    Console.WriteLine($"Error writing to {typeof(Logger)}: {ex.StackTrace}");
+                    RemoveWriter(logger, "Caused error.", LogLevel.Error);
+                    ConsoleWriteError($"Error writing to {typeof(Logger)}: {ex.Message}\n{ex.StackTrace}");
                 }
             }
+        }
+
+        private static void ConsoleWriteError(string message)
+        {
+            ConsoleColor previousColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ForegroundColor = previousColor;
         }
 
         internal static void Stop()

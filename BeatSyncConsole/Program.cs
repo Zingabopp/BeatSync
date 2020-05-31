@@ -392,8 +392,10 @@ namespace BeatSyncConsole
 
         private static void SetupLogging()
         {
-            var consoleWriter = new ConsoleLogWriter();
-            consoleWriter.LogLevel = BeatSyncLib.Logging.LogLevel.Info;
+            var consoleWriter = new ConsoleLogWriter
+            {
+                LogLevel = BeatSyncLib.Logging.LogLevel.Info
+            };
             LogManager.AddLogWriter(consoleWriter);
             BeatSyncLib.Logger.log = new BeatSyncLogger("BeatSyncLib");
             try
@@ -464,18 +466,16 @@ namespace BeatSyncConsole
             }
             catch (Exception ex)
             {
-                string message = $"Fatal Error in BeatSyncConsole: {ex.Message}";
+                string message = $"Fatal Error in BeatSyncConsole: {ex.Message}\n{ex.StackTrace}";
                 if (LogManager.IsAlive && LogManager.HasWriters && Logger.log != null)
                 {
                     Logger.log.Error(message);
-                    Logger.log.Error(ex);
                 }
                 else
                 {
                     ConsoleColor previousColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(message);
-                    Console.WriteLine(ex);
                     Console.ForegroundColor = previousColor;
                 }
                 LogManager.Stop();
