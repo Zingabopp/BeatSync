@@ -7,6 +7,7 @@ using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
 using BeatSyncPlaylists;
+using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using SongFeedReaders.Data;
 using SongFeedReaders.Readers;
@@ -15,6 +16,7 @@ using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Readers.ScoreSaber;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -80,8 +82,10 @@ namespace BeatSyncConsole
                 Directory.CreateDirectory(songsDirectory);
                 songHasher = new SongHasher<SongHashData>(songsDirectory);
                 await songHasher.InitializeAsync().ConfigureAwait(false);
+                Console.WriteLine($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)}.");
                 Directory.CreateDirectory(songsDirectory);
                 SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
+                //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);
             }
             JobFinishedAsyncCallback jobFinishedCallback = new JobFinishedAsyncCallback(async (JobResult c) =>
@@ -96,7 +100,9 @@ namespace BeatSyncConsole
                 if (c.Successful)
                 {
                     if (c.DownloadResult != null && c.DownloadResult.Status == DownloadResultStatus.Skipped)
-                        Console.WriteLine($"      Job skipped: {c.Song} not wanted by any targets.");
+                    {
+                        //Console.WriteLine($"      Job skipped: {c.Song} not wanted by any targets.");
+                    }
                     else
                         Console.WriteLine($"      Job completed successfully: {c.Song}");
                 }
@@ -110,11 +116,12 @@ namespace BeatSyncConsole
 
         }
 
-        static async Task GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
+        static async Task<JobStats> GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
         {
             ScoreSaberConfig sourceConfig = config.ScoreSaber;
+            JobStats sourceStats = new JobStats();
             if (!sourceConfig.Enabled)
-                return;
+                return sourceStats;
             ScoreSaberReader reader = new ScoreSaberReader();
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.TopRanked, sourceConfig.LatestRanked, sourceConfig.Trending, sourceConfig.TopPlayed };
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
@@ -122,23 +129,28 @@ namespace BeatSyncConsole
                 Console.WriteLine($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
-                await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-
+                JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
+                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                sourceStats += feedStats;
             }
+
+            Console.WriteLine($"  Finished ScoreSaber reading: ({sourceStats}).");
+            return sourceStats;
         }
 
-        static async Task GetBeastSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
+        static async Task<JobStats> GetBeastSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
         {
             BeastSaberConfig sourceConfig = config.BeastSaber;
+            JobStats sourceStats = new JobStats();
             if (!sourceConfig.Enabled)
-                return;
+                return sourceStats;
             BeastSaberReader reader = new BeastSaberReader(sourceConfig.Username, sourceConfig.MaxConcurrentPageChecks);
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Bookmarks, sourceConfig.Follows, sourceConfig.CuratorRecommended };
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
-                if(string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
+                if (string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
                 {
                     Console.WriteLine($"  {feedConfig.GetType().Name} feed not available without a valid username.");
                     continue;
@@ -146,17 +158,23 @@ namespace BeatSyncConsole
                 Console.WriteLine($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
-                await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
+                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                sourceStats += feedStats;
             }
+            Console.WriteLine($"  Finished BeastSaber reading: ({sourceStats}).");
+            return sourceStats;
         }
 
-        static async Task GetBeatSaverAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
+        static async Task<JobStats> GetBeatSaverAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
         {
             BeatSaverConfig sourceConfig = config.BeatSaver;
+            JobStats sourceStats = new JobStats();
             if (!sourceConfig.Enabled)
-                return;
+                return sourceStats;
+
             BeatSaverReader reader = new BeatSaverReader(sourceConfig.MaxConcurrentPageChecks);
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads };
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
@@ -165,9 +183,11 @@ namespace BeatSyncConsole
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
                 IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
                 await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-
+                JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
+                Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                sourceStats += feedStats;
             }
 
             string[] mappers = sourceConfig.FavoriteMappers.Mappers ?? Array.Empty<string>();
@@ -179,6 +199,7 @@ namespace BeatSyncConsole
                     Console.WriteLine("  Starting FavoriteMappers feed...");
                     List<IPlaylist> playlists = new List<IPlaylist>();
                     List<IPlaylist> feedPlaylists = new List<IPlaylist>();
+                    JobStats feedStats = new JobStats();
                     foreach (var mapper in mappers)
                     {
 
@@ -205,8 +226,9 @@ namespace BeatSyncConsole
                         }
                         FeedResult results = await reader.GetSongsFromFeedAsync(sourceConfig.FavoriteMappers.ToFeedSettings(mapper)).ConfigureAwait(false);
                         IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
-                        await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-
+                        JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                        JobStats mapperStats = new JobStats(jobResults);
+                        feedStats += mapperStats;
                         if (jobs.Any(j => j.Result.Successful) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
                         {
                             foreach (var feedPlaylist in feedPlaylists)
@@ -217,17 +239,64 @@ namespace BeatSyncConsole
                         }
                         ProcessFinishedJobs(jobs, playlists);
 
-                        Console.WriteLine($"  Finished getting songs by {mapper}...");
+                        Console.WriteLine($"  Finished getting songs by {mapper}: ({mapperStats}).");
                     }
-
-                    Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed...");
+                    sourceStats += feedStats;
+                    Console.WriteLine($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
                 }
                 else
                 {
                     Console.WriteLine("  No FavoriteMappers found, skipping...");
                 }
             }
+
+            Console.WriteLine($"  Finished BeatSaver reading: ({sourceStats}).");
+            return sourceStats;
         }
+
+        struct JobStats
+        {
+            public int Jobs;
+            public int FailedJobs;
+            public int SkippedJobs;
+
+            public JobStats(int jobs, int failedJobs, int skippedJobs)
+            {
+                Jobs = jobs;
+                FailedJobs = failedJobs;
+                SkippedJobs = skippedJobs;
+            }
+
+            public JobStats(IEnumerable<JobResult> jobResults)
+            {
+                Jobs = 0;
+                FailedJobs = 0;
+                SkippedJobs = 0;
+                foreach (var result in jobResults)
+                {
+                    Jobs++;
+                    if (!result.Successful)
+                        FailedJobs++;
+                    else if (result.TargetResults.All(t => t.SongState != SongState.Wanted))
+                        SkippedJobs++;
+                }
+            }
+
+            public override string ToString()
+            {
+                if (SkippedJobs > 0)
+                    return $"{Jobs - FailedJobs}/{Jobs}, {SkippedJobs} skipped";
+                else
+                    return $"{Jobs - FailedJobs}/{Jobs}";
+            }
+
+            public static JobStats operator -(JobStats a) => new JobStats(-a.Jobs, -a.FailedJobs, -a.SkippedJobs);
+            public static JobStats operator +(JobStats a, JobStats b) =>
+                new JobStats(a.Jobs + b.Jobs, a.FailedJobs + b.FailedJobs, a.SkippedJobs + b.SkippedJobs);
+            public static JobStats operator -(JobStats a, JobStats b) => a + (-b);
+
+        }
+
         public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<SongTarget> songTargets, BeatSyncConfig beatSyncConfig, FeedConfigBase feedConfig)
         {
             List<IPlaylist> playlists = new List<IPlaylist>();
@@ -324,14 +393,15 @@ namespace BeatSyncConsole
             JobManager manager = new JobManager(config.BeatSyncConfig.MaxConcurrentDownloads);
             manager.Start(CancellationToken.None);
             IJobBuilder jobBuilder = await CreateJobBuilderAsync(config).ConfigureAwait(false);
-            Task[] tasks = new Task[]
-            { 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            Task<JobStats>[] tasks = new Task<JobStats>[]
+            {
                 GetBeatSaverAsync(config.BeatSyncConfig, jobBuilder, manager),
                 GetBeastSaberAsync(config.BeatSyncConfig, jobBuilder, manager),
                 GetScoreSaberAsync(config.BeatSyncConfig, jobBuilder, manager)
             };
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
+            JobStats beatSyncStats = (await Task.WhenAll(tasks).ConfigureAwait(false)).Aggregate((a, b) => a + b);
             await manager.CompleteAsync().ConfigureAwait(false);
             foreach (var target in jobBuilder.SongTargets)
             {
@@ -351,6 +421,8 @@ namespace BeatSyncConsole
                     }
                 }
             }
+            sw.Stop();
+            Console.WriteLine($"Finished after {sw.Elapsed.TotalSeconds}s: {beatSyncStats}");
 
             Console.WriteLine("Press any key to continue...");
             Console.Read();
