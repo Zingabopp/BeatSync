@@ -92,7 +92,7 @@ namespace BeatSync
             songHasher = new SongHasher<SongHashData>(CustomLevelsDirectory);
         }
 
-        public async Task<IJobBuilder> CreateJobBuilderAsync(BeatSyncConfig config)
+        public IJobBuilder CreateJobBuilder(BeatSyncConfig config)
         {
             //string tempDirectory = "Temp";
             //Directory.CreateDirectory(tempDirectory);
@@ -139,7 +139,7 @@ namespace BeatSync
 
 
 
-        public static IEnumerator<WaitUntil> UpdateLevelPacks()
+        public static IEnumerator<WaitUntil?> UpdateLevelPacks()
         {
             yield return WaitForUnPause;
             //BeatSaverDownloader.Misc.PlaylistsCollection.ReloadPlaylists(true);
@@ -197,19 +197,13 @@ namespace BeatSync
             Logger.log?.Debug("BeatSync Start()");
             IsRunning = true;
             SetupComponents();
-            if (songHasher != null)
-            {
-                await songHasher.InitializeAsync().ConfigureAwait(false);
-                Logger.log?.Info($"Hashed {songHasher.HashDictionary.Count} songs in {CustomLevelsDirectory}.");
-            }
-            else
-                Logger.log?.Error($"SongHasher was null.");
+
             if (playlistManager != null)
             {
-                var recentPlaylist = Plugin.config.Value.RecentPlaylistDays > 0 ? playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
-                if (recentPlaylist != null && Plugin.config.Value.RecentPlaylistDays > 0)
+                var recentPlaylist = Plugin.config.RecentPlaylistDays > 0 ? playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent) : null;
+                if (recentPlaylist != null && Plugin.config.RecentPlaylistDays > 0)
                 {
-                    var minDate = DateTime.Now - new TimeSpan(Plugin.config.Value.RecentPlaylistDays, 0, 0, 0);
+                    var minDate = DateTime.Now - new TimeSpan(Plugin.config.RecentPlaylistDays, 0, 0, 0);
                     int removedCount = recentPlaylist.RemoveAll(s => s.DateAdded < minDate);
                     if (removedCount > 0)
                     {
@@ -230,17 +224,30 @@ namespace BeatSync
 
                 }
             }
-            var syncInterval = new TimeSpan(Plugin.config.Value.TimeBetweenSyncs.Hours, Plugin.config.Value.TimeBetweenSyncs.Minutes, 0);
+            var syncInterval = new TimeSpan(Plugin.config.TimeBetweenSyncs.Hours, Plugin.config.TimeBetweenSyncs.Minutes, 0);
             var nowTime = DateTime.Now;
-            if (Plugin.config.Value.LastRun + syncInterval <= nowTime)
+            if (Plugin.config.LastRun + syncInterval <= nowTime)
             {
-                if (Plugin.config.Value.LastRun != DateTime.MinValue)
-                    Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago");
+                if (Plugin.config.LastRun != DateTime.MinValue)
+                    Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.LastRun)} ago");
+                if (songHasher != null)
+                {
+                    await songHasher.InitializeAsync().ConfigureAwait(false);
+                    Logger.log?.Info($"Hashed {songHasher.HashDictionary.Count} songs in {CustomLevelsDirectory}.");
+                }
+                else
+                    Logger.log?.Error($"SongHasher was null.");
                 // Start downloader
+                IJobBuilder jobBuilder = CreateJobBuilder(Plugin.config);
+                SongDownloader songDownloader = new SongDownloader();
+                JobManager JobManager = new JobManager(Plugin.config.MaxConcurrentDownloads);
+                JobManager.Start(CancelAllToken);
+                await songDownloader.RunAsync(Plugin.config, jobBuilder, JobManager); // TODO: CancellationToken
+                // If successful, update Plugin.config.LastRun
             }
             else
             {
-                Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.Value.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.config.Value.TimeBetweenSyncs}");
+                Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.config.TimeBetweenSyncs}");
             }
         }
 

@@ -59,16 +59,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Blister, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <Private>False</Private>
-      <HintPath>$(BeatSaberDir)\Libs\Blister.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="Blister.Conversion, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <Private>False</Private>
-      <HintPath>$(BeatSaberDir)\Libs\Blister.Conversion.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
     <Reference Include="BSML">
       <HintPath>$(BeatSaberDir)\Plugins\BSML.dll</HintPath>
       <Private>False</Private>
@@ -85,15 +75,16 @@
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MainAssembly">
-      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\MainAssembly.dll</HintPath>
+    <Reference Include="Main, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <Private>False</Private>
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Main.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="SemVer.1.2.0.0, Version=1.2.0.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BeatSaberDir)\Libs\SemVer.1.2.0.0.dll</HintPath>
+    <Reference Include="SemVer, Version=1.2.2.0, Culture=neutral, PublicKeyToken=a89bb7dc6f7a145c, processorArchitecture=MSIL">
       <Private>False</Private>
+      <HintPath>$(BeatSaberDir)\Libs\SemVer.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="SongCore, Version=2.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -216,45 +207,6 @@
       <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
       <Name>WebUtilities</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Icons\BeatSyncLogoBanner.png" />
-    <None Include="Icons\BeatSyncLogo.png" />
-    <Content Include="Icons\Playlists\BeastSaber\baseline_bookmarks_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSaver\baseline_bookmarks_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSaver\baseline_cloud_download_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSaver\baseline_event_available_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSaver\baseline_play_circle_outline_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSaver\baseline_visibility_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSaver\baseline_whatshot_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeatSync\baseline_event_available_black_18dp.png" />
-    <Content Include="Icons\Playlists\ScoreSaber\baseline_event_available_black_18dp.png" />
-    <Content Include="Icons\Playlists\ScoreSaber\baseline_play_circle_outline_black_18dp.png" />
-    <Content Include="Icons\Playlists\ScoreSaber\baseline_stars_black_18dp.png" />
-    <Content Include="Icons\Playlists\ScoreSaber\baseline_trending_up_black_18dp.png" />
-    <EmbeddedResource Include="Icons\Playlists\ScoreSaber\ScoreSaberLatestRanked.png" />
-    <EmbeddedResource Include="Icons\Playlists\ScoreSaber\ScoreSaberTopPlayed.png" />
-    <EmbeddedResource Include="Icons\Playlists\ScoreSaber\ScoreSaberTrending.png" />
-    <EmbeddedResource Include="Icons\Playlists\ScoreSaber\ScoreSaberTopRanked.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSync\BeatSyncRecent.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSync\BeatSyncAll.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSaverMapper.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSaverDownloads.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSaverPlays.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSaverHot.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSaverLatest.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeatSaver\BeatSaverFavoriteMappers.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberCurator.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberFollows.png" />
-    <Content Include="Icons\Playlists\BeastSaber\baseline_stars_black_18dp.png" />
-    <Content Include="Icons\Playlists\BeastSaber\baseline_visibility_black_18dp.png" />
-    <EmbeddedResource Include="Icons\Playlists\BeastSaber\BSaberBookmarks.png" />
-    <Content Include="Icons\Playlists\BeastSaber\BeatSyncBSaber.png" />
-    <None Include="Icons\Playlists\ScoreSaber\BeatSyncScoreSaber.png" />
-    <None Include="Icons\Playlists\BeatSaver\BeatSyncBeatSaver.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Icons\BeatSyncLogoSmall.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configs\" />

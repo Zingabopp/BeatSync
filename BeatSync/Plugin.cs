@@ -1,4 +1,4 @@
-﻿using BeatSync.Configs;
+﻿using BeatSyncLib.Configs;
 using BeatSync.Logging;
 using IPA;
 using IPA.Config;
@@ -17,7 +17,8 @@ using System.Threading;
 
 namespace BeatSync
 {
-    public class Plugin : IBeatSaberPlugin, IDisablablePlugin
+    [Plugin(RuntimeOptions.DynamicInit)]
+    public class Plugin
     {
         // From SongCore
         internal static readonly string CachedHashDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"..\LocalLow\Hyperbolic Magnetism\Beat Saber\SongHashData.dat");
@@ -34,7 +35,7 @@ namespace BeatSync
                 return _version;
             }
         }
-        internal static Ref<PluginConfig> config;
+        internal static BeatSyncConfig config;
         internal static IConfigProvider configProvider;
         internal static UI.UIController StatusController;
         internal static BeatSync BeatSyncController;
@@ -43,48 +44,35 @@ namespace BeatSync
         private static CancellationTokenSource CancelAllSource;
         //private bool beatSyncCreated = false;
 
+        [Init]
         public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
         {
             Logger.log = new BeatSyncIPALogger(logger);
             Logger.log?.Debug("Logger initialized.");
-            configProvider = cfgProvider;
-            config = configProvider.MakeLink<PluginConfig>((p, v) =>
-            {
-                // Build new config file if it doesn't exist or RegenerateConfig is true
 
-                if (v.Value == null || v.Value.RegenerateConfig)
-                {
-                    string reason = v.Value == null ? "BeatSync.json was not found." : "RegenerateConfig is true.";
-                    Logger.log?.Debug($"Creating new config because {reason}");
-                    p.Store(v.Value = new PluginConfig(true));
-                    v.Value.ResetFlags();
-                }
-                else
-                {
-                    //v.Value.RegenerateConfig = false;
-                    v.Value.ResetConfigChanged();
-                    v.Value.FillDefaults();
-                    if (v.Value.ConfigChanged)
-                    {
-                        Logger.log?.Debug("Plugin.Init(): Saving settings.");
-                        p.Store(v.Value);
-                        v.Value.ResetFlags();
-                    }
-                }
-                config = v;
-                StatusController?.UpdateSettings();
-            });
 
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             SongFeedReaders.Logging.LoggingController.DefaultLogger = readerLogger;
         }
 
-        public void OnApplicationStart()
+        public void SetEvents(bool enabled)
         {
+            if (enabled)
+            {
 
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
+                SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+                SceneManager.activeSceneChanged += OnActiveSceneChanged;
+            }
+            else
+            {
+                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
+                SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            }
         }
-        
 
+        [OnEnable]
         public void OnEnable()
         {
             if (CancelAllSource != null)
@@ -101,16 +89,14 @@ namespace BeatSync
             // Check if CustomUI is installed.
             try
             {
-                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
-                BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh += MenuLoadedFresh;
-
+                SetEvents(true);
                 // Called to set the WebClient SongFeedReaders uses
                 if (!SongFeedReaders.WebUtils.IsInitialized)
                 {
                     var userAgent = $"BeatSync/{PluginVersion}";
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
-                    SongFeedReaders.WebUtils.WebClient.Timeout = config.Value.DownloadTimeout * 1000;
+                    SongFeedReaders.WebUtils.WebClient.Timeout = config.DownloadTimeout * 1000;
                 }
                 BeatSync.Paused = false;
                 BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
@@ -126,13 +112,14 @@ namespace BeatSync
             }
         }
 
+        [OnDisable]
         public void OnDisable()
         {
             CancelAllSource.Cancel();
             CancelAllSource.Dispose();
             CancelAllSource = null;
             Logger.log?.Critical($"Disabling BeatSync...");
-            
+            SetEvents(false);
             SharedCoroutineStarter.instance.StartCoroutine(BeatSyncController.DestroyAfterFinishing());
             GameObject.Destroy(StatusController);
             BeatSyncController = null;
@@ -142,6 +129,7 @@ namespace BeatSync
 #endif
         }
 
+        [OnExit]
         public void OnApplicationQuit()
         {
             Logger.log?.Debug("OnApplicationQuit");
@@ -175,8 +163,6 @@ namespace BeatSync
                 Logger.log?.Error($"Error in Plugin.OnActiveSceneChanged:\n{ex}");
             }
         }
-
-        //private static bool customUIExists = false;
         /// <summary>
         /// Called when BSEvents.menuSceneLoadedFresh is triggered. UI creation is in here instead of
         /// OnSceneLoaded because some settings won't work otherwise.
@@ -185,19 +171,8 @@ namespace BeatSync
         {
             try
             {
-                //if (!customUIExists)
-                //    customUIExists = IPA.Loader.PluginManager.GetPluginFromId("Custom UI") != null;
-                //// If Custom UI is installed, create the UI
-                //if (!customUIExists)
-                //{
-                //    Logger.log?.Warn($"Couldn't find CustomUI, settings UI won't be created.");
-                //    return;
-                //}
-
-                Logger.log?.Debug("Creating BeatSync's UI");
-                //UI.BeatSync_UI.CreateUI();
-                config.Value.ResetConfigChanged();
-                config.Value.FillDefaults();
+                config.ResetConfigChanged();
+                config.FillDefaults();
                 var settingsMenu = GameObject.FindObjectOfType<SettingsFlowCoordinator>();
                 try
                 {
@@ -225,50 +200,18 @@ namespace BeatSync
         {
             try
             {
-                if (!config.Value.ConfigChanged && !config.Value.RegenerateConfig) // Don't skip if RegenerateConfig is true
+                if (!config.ConfigChanged && !config.RegenerateConfig) // Don't skip if RegenerateConfig is true
                 {
-                    Logger.log?.Debug($"BeatSync settings not changed.");
                     return;
                 }
                 if (finishAction != SettingsFlowCoordinator.FinishAction.Cancel)
                 {
-                    Logger.log?.Debug("Saving settings.");
-                    config.Value.RegenerateConfig = false;
-                    configProvider.Store(config.Value);
-                    config.Value.ResetFlags();
+
                 }
             }
             catch (Exception ex)
             {
                 Logger.log?.Critical($"Error saving settings.\n{ex.Message}\n{ex.StackTrace}");
-            }
-        }
-
-
-        /// <summary>
-        /// Runs at a fixed intervalue, generally used for physics calculations. 
-        /// </summary>
-        public void OnFixedUpdate()
-        {
-
-        }
-
-        /// <summary>
-        /// This is called every frame.
-        /// </summary>
-        public void OnUpdate()
-        {
-            if (Input.GetKeyDown(KeyCode.L))
-            {
-                GameObject.FindObjectsOfType<GameObject>()
-                    .Where(g => g.name.Contains("BeatSync"))
-                    .ToList()
-                    .ForEach(g =>
-                {
-                    Logger.log?.Warn(g.name);
-                });
-                //StatusController?.gameObject.SetActive(false);
-                //SharedCoroutineStarter.instance.StartCoroutine(TestDestroyed());
             }
         }
 
@@ -308,23 +251,5 @@ namespace BeatSync
                     Logger.log?.Warn($"Not destroyed: {item.name}");
             }
         }
-
-        /// <summary>
-        /// Called when the a scene's assets are loaded.
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="sceneMode"></param>
-        public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
-        {
-
-
-
-        }
-
-        public void OnSceneUnloaded(Scene scene)
-        {
-
-        }
-
     }
 }
