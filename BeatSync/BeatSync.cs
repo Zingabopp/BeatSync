@@ -20,9 +20,9 @@ namespace BeatSync
 {
     public class BeatSync : MonoBehaviour
     {
-        private static readonly string GamePath = IPA.Utilities.BeatSaber.InstallPath;
-        private static readonly string ConfigPath = IPA.Utilities.BeatSaber.UserDataPath;
-        private static readonly string CustomLevelsDirectory = Path.Combine(IPA.Utilities.BeatSaber.InstallPath, "Beat Saber_Data", "CustomLevels");
+        private static readonly string GamePath = IPA.Utilities.UnityGame.InstallPath;
+        private static readonly string ConfigPath = IPA.Utilities.UnityGame.UserDataPath;
+        private static readonly string CustomLevelsDirectory = Path.Combine(GamePath, "Beat Saber_Data", "CustomLevels");
         private static readonly string HistoryPath = Path.Combine(ConfigPath, "BeatSyncHistory.json");
         private static readonly string PlaylistDirectory = Path.Combine(GamePath, "Playlists");
         private HistoryManager? historyManager = null;
