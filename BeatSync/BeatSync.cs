@@ -60,7 +60,7 @@ namespace BeatSync
             }
         }
 
-        private static WaitUntil WaitForUnPause = new WaitUntil(() => !Paused);
+        private static readonly WaitUntil WaitForUnPause = new WaitUntil(() => !Paused);
         private bool _destroying;
         public CancellationToken CancelAllToken { get; set; }
 
@@ -224,7 +224,7 @@ namespace BeatSync
 
                 }
             }
-            var syncInterval = new TimeSpan(Plugin.config.TimeBetweenSyncs.Hours, Plugin.config.TimeBetweenSyncs.Minutes, 0);
+            var syncInterval = new TimeSpan(Plugin.modConfig.TimeBetweenSyncs.Hours, Plugin.modConfig.TimeBetweenSyncs.Minutes, 0);
             var nowTime = DateTime.Now;
             if (Plugin.config.LastRun + syncInterval <= nowTime)
             {
@@ -247,7 +247,7 @@ namespace BeatSync
             }
             else
             {
-                Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.config.TimeBetweenSyncs}");
+                Logger.log?.Info($"BeatSync ran {TimeSpanToString(nowTime - Plugin.config.LastRun)} ago, skipping because TimeBetweenSyncs is {Plugin.modConfig.TimeBetweenSyncs}");
             }
         }
 

@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeatSync.cs" />
+    <Compile Include="Configs\BeatSyncModConfig.cs" />
     <Compile Include="Logging\BeatSyncConsoleLogger.cs" />
     <Compile Include="Logging\BeatSyncIPALogger.cs" />
     <Compile Include="Logging\IBeatSyncLogger.cs" />
@@ -209,7 +210,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configs\" />
     <Folder Include="Downloader\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

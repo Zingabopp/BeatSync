@@ -25,7 +25,7 @@ namespace BeatSyncLib.Downloader
         public event EventHandler<JobResult>? JobFinished;
         public event EventHandler<JobProgress>? JobProgressChanged;
 
-        public JobResult Result { get; private set; }
+        public JobResult? Result { get; private set; }
 
         public JobStage JobStage { get; private set; }
         public JobState JobState { get; private set; }
@@ -86,12 +86,19 @@ namespace BeatSyncLib.Downloader
         private ProgressValue CurrentProgress => new ProgressValue(_stageIndex, _totalStages);
         private void ReportProgress(JobProgress progress)
         {
-            EventHandler<JobProgress> handler = JobProgressChanged;
+            EventHandler<JobProgress>? handler = JobProgressChanged;
             handler?.Invoke(this, progress);
             _progress?.Report(progress);
         }
 
-
+        /// <summary>
+        /// Transfer the downloaded song to the given <see cref="SongTarget"/>s.
+        /// </summary>
+        /// <param name="targets"></param>
+        /// <param name="downloadContainer"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="OperationCanceledException"></exception>
         protected async Task<TargetResult[]> TransferToTargets(IEnumerable<SongTarget> targets, DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
             List<TargetResult> completedTargets = new List<TargetResult>(_targets.Length);
@@ -106,6 +113,11 @@ namespace BeatSyncLib.Downloader
             return completedTargets.ToArray();
 
         }
+        /// <summary>
+        /// Starts the job.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task RunAsync(CancellationToken cancellationToken)
         {
             JobState = JobState.Running;
@@ -172,9 +184,13 @@ namespace BeatSyncLib.Downloader
                         ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
                     }
                 }
-
-                if (completedTargets.All(t => !t.Success))
-                    throw completedTargets.First(t => !t.Success).Exception;
+                TargetResult[] failedTargets = completedTargets.Where(t => !t.Success).ToArray();
+                if (failedTargets.Length > 0)
+                {
+                    Exception? firstException = failedTargets.FirstOrDefault(t => t.Exception != null)?.Exception;
+                    if (firstException != null)
+                        throw firstException;
+                }
                 TargetResults = completedTargets.ToArray();
             }
             catch (OperationCanceledException ex)
@@ -202,20 +218,21 @@ namespace BeatSyncLib.Downloader
             finally
             {
                 JobStage = JobStage.Finishing;
+                try
+                {
+                    downloadContainer?.Dispose();
+                }
+                catch { }
+                if (DownloadResult == null)
+                {
+                    // TODO: What was this for?
+                }
+                FinishJob(canceled, exception);
+                JobFinishedAsyncCallback? asyncCallback = JobFinishedAsyncCallback;
+                if (asyncCallback != null)
+                    await asyncCallback(Result).ConfigureAwait(false);
             }
-            try
-            {
-                downloadContainer?.Dispose();
-            }
-            catch { }
-            if (DownloadResult == null)
-            {
-
-            }
-            FinishJob(canceled, exception);
-            JobFinishedAsyncCallback asyncCallback = JobFinishedAsyncCallback;
-            if (asyncCallback != null)
-                await asyncCallback(Result).ConfigureAwait(false);
+            
         }
 
         private void _downloadJob_JobProgressChanged(object sender, DownloadJobProgressChangedEventArgs e)

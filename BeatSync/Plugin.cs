@@ -14,6 +14,7 @@ using UnityEngine.SceneManagement;
 using BeatSync.Utilities;
 using IPALogger = IPA.Logging.Logger;
 using System.Threading;
+using BeatSync.Configs;
 
 namespace BeatSync
 {
@@ -36,7 +37,7 @@ namespace BeatSync
             }
         }
         internal static BeatSyncConfig config;
-        internal static IConfigProvider configProvider;
+        internal static BeatSyncModConfig modConfig;
         internal static UI.UIController StatusController;
         internal static BeatSync BeatSyncController;
         internal static FileLock CustomLevelsLock = new FileLock(CustomLevelsPath);

@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BeatSyncLib.Downloader
@@ -20,18 +21,20 @@ namespace BeatSyncLib.Downloader
     public class SongDownloader
     {
         public event EventHandler<string>? SourceStarted;
-        public async Task<JobStats[]> RunAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager manager)
+        public Task<JobStats[]> RunAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager manager)
+            => RunAsync(config, jobBuilder, manager, CancellationToken.None);
+        public async Task<JobStats[]> RunAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager manager, CancellationToken cancellationToken)
         {
             Task<JobStats>[] downloadTasks = new Task<JobStats>[]
                     {
-                        GetBeatSaverAsync(config, jobBuilder, manager),
-                        GetBeastSaberAsync(config, jobBuilder, manager),
-                        GetScoreSaberAsync(config, jobBuilder, manager)
+                        GetBeatSaverAsync(config, jobBuilder, manager, cancellationToken),
+                        GetBeastSaberAsync(config, jobBuilder, manager, cancellationToken),
+                        GetScoreSaberAsync(config, jobBuilder, manager, cancellationToken)
                     };
             return await Task.WhenAll(downloadTasks).ConfigureAwait(false);
         }
 
-        public static IEnumerable<IJob>? CreateJobs(FeedResult feedResult, IJobBuilder jobBuilder, JobManager jobManager)
+        public static IEnumerable<IJob>? CreateJobs(FeedResult feedResult, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             if (!feedResult.Successful)
                 return null;
@@ -45,6 +48,7 @@ namespace BeatSyncLib.Downloader
             foreach (ScrapedSong song in feedResult.Songs.Values)
             {
                 Job newJob = jobBuilder.CreateJob(song);
+                newJob.RegisterCancellationToken(cancellationToken);
                 jobManager.TryPostJob(newJob, out IJob? postedJob);
                 if (postedJob != null)
                     jobs.Add(postedJob);
@@ -54,7 +58,7 @@ namespace BeatSyncLib.Downloader
             return jobs;
         }
 
-        static async Task<JobStats> GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
+        static async Task<JobStats> GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             ScoreSaberConfig sourceConfig = config.ScoreSaber;
             JobStats sourceStats = new JobStats();
@@ -71,7 +75,7 @@ namespace BeatSyncLib.Downloader
             {
                 Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
-                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
+                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
                 JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
@@ -83,7 +87,7 @@ namespace BeatSyncLib.Downloader
             return sourceStats;
         }
 
-        static async Task<JobStats> GetBeastSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
+        static async Task<JobStats> GetBeastSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             BeastSaberConfig sourceConfig = config.BeastSaber;
             JobStats sourceStats = new JobStats();
@@ -105,7 +109,7 @@ namespace BeatSyncLib.Downloader
                 }
                 Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
-                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
+                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
                 JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobStats feedStats = new JobStats(jobResults);
                 ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
@@ -116,7 +120,7 @@ namespace BeatSyncLib.Downloader
             return sourceStats;
         }
 
-        static async Task<JobStats> GetBeatSaverAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager)
+        static async Task<JobStats> GetBeatSaverAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             BeatSaverConfig sourceConfig = config.BeatSaver;
             JobStats sourceStats = new JobStats();
@@ -133,8 +137,8 @@ namespace BeatSyncLib.Downloader
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
-                FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
-                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
+                FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings(), cancellationToken).ConfigureAwait(false);
+                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
                 await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                 JobStats feedStats = new JobStats(jobResults);
@@ -178,7 +182,7 @@ namespace BeatSyncLib.Downloader
                             }
                         }
                         FeedResult results = await reader.GetSongsFromFeedAsync(sourceConfig.FavoriteMappers.ToFeedSettings(mapper)).ConfigureAwait(false);
-                        IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager);
+                        IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
                         JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                         JobStats mapperStats = new JobStats(jobResults);
                         feedStats += mapperStats;
