@@ -1,4 +1,4 @@
-<img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSync/Icons/BeatSyncLogoBanner.png" height="150">
+<img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSyncLib/Icons/BeatSyncLogoBanner.png" height="150">
 
 Beat Saber plugin to automatically download songs.
 The following sources and feeds are currently supported:
