@@ -53,7 +53,7 @@ namespace BeatSyncLib.Downloader
                 if (postedJob != null)
                     jobs.Add(postedJob);
                 else
-                    Logger.log.Info($"Posted job is null for {song}, this shouldn't happen.");
+                    Logger.log?.Info($"Posted job is null for {song}, this shouldn't happen.");
             }
             return jobs;
         }
@@ -68,19 +68,29 @@ namespace BeatSyncLib.Downloader
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.TopRanked, sourceConfig.LatestRanked, sourceConfig.Trending, sourceConfig.TopPlayed };
             if (!feedConfigs.Any(f => f.Enabled))
             {
-                Logger.log.Info($"No feeds enabled for {reader.Name}");
+                Logger.log?.Info($"No feeds enabled for {reader.Name}");
                 return sourceStats;
             }
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
-                Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
+                Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
-                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
-                JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-                JobStats feedStats = new JobStats(jobResults);
-                ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
-                sourceStats += feedStats;
+                if (results.Successful)
+                {
+                    IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
+                    JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                    JobStats feedStats = new JobStats(jobResults);
+                    ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
+                    Logger.log?.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                    sourceStats += feedStats;
+                }
+                else
+                {
+                    if (results.Exception != null)
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}{results.Exception.Message}\n{results.Exception.StackTrace}");
+                    else
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: Unknown error.");
+                }
             }
 
             Logger.log.Info($"  Finished ScoreSaber reading: ({sourceStats}).");
@@ -97,26 +107,39 @@ namespace BeatSyncLib.Downloader
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Bookmarks, sourceConfig.Follows, sourceConfig.CuratorRecommended };
             if (!feedConfigs.Any(f => f.Enabled))
             {
-                Logger.log.Info($"No feeds enabled for {reader.Name}");
+                Logger.log?.Info($"No feeds enabled for {reader.Name}");
                 return sourceStats;
             }
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
-                if (string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
-                {
-                    Logger.log.Warn($"  {feedConfig.GetType().Name} feed not available without a valid username.");
-                    continue;
-                }
-                Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
+                //if (string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
+                //{
+                //    Logger.log?.Warn($"  {feedConfig.GetType().Name} feed not available without a valid username.");
+                //    continue;
+                //}
+                Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
-                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
-                JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-                JobStats feedStats = new JobStats(jobResults);
-                ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
-                sourceStats += feedStats;
+                if (results.Successful)
+                {
+                    IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
+                    JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                    JobStats feedStats = new JobStats(jobResults);
+                    ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
+                    Logger.log?.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                    sourceStats += feedStats;
+                }
+                else
+                {
+                    if (results.Exception != null)
+                    {
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: {results.Exception.Message}");
+                        Logger.log?.Debug(results.Exception);
+                    }
+                    else
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: Unknown error.");
+                }
             }
-            Logger.log.Info($"  Finished BeastSaber reading: ({sourceStats}).");
+            Logger.log?.Info($"  Finished BeastSaber reading: ({sourceStats}).");
             return sourceStats;
         }
 
@@ -131,20 +154,29 @@ namespace BeatSyncLib.Downloader
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads };
             if (!(feedConfigs.Any(f => f.Enabled) || sourceConfig.FavoriteMappers.Enabled))
             {
-                Logger.log.Info($"No feeds enabled for {reader.Name}");
+                Logger.log?.Info($"No feeds enabled for {reader.Name}");
                 return sourceStats;
             }
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
-                Logger.log.Info($"  Starting {feedConfig.GetType().Name} feed...");
+                Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings(), cancellationToken).ConfigureAwait(false);
-                IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
-                await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-                JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-                JobStats feedStats = new JobStats(jobResults);
-                ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
-                Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
-                sourceStats += feedStats;
+                if (results.Successful)
+                {
+                    IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
+                    JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                    JobStats feedStats = new JobStats(jobResults);
+                    ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
+                    Logger.log?.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                    sourceStats += feedStats;
+                }
+                else
+                {
+                    if (results.Exception != null)
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}{results.Exception.Message}\n{results.Exception.StackTrace}");
+                    else
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: Unknown error.");
+                }
             }
 
             string[] mappers = sourceConfig.FavoriteMappers.Mappers ?? Array.Empty<string>();
@@ -211,7 +243,7 @@ namespace BeatSyncLib.Downloader
             return sourceStats;
         }
 
-        
+
 
 
         public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<SongTarget> songTargets, BeatSyncConfig beatSyncConfig, FeedConfigBase feedConfig)

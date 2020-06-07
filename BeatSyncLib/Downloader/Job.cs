@@ -25,6 +25,9 @@ namespace BeatSyncLib.Downloader
         public event EventHandler<JobResult>? JobFinished;
         public event EventHandler<JobProgress>? JobProgressChanged;
 
+        protected TaskCompletionSource<JobResult> TaskCompletionSource = new TaskCompletionSource<JobResult>();
+        public Task<JobResult> JobTask => TaskCompletionSource.Task;
+
         public JobResult? Result { get; private set; }
 
         public JobStage JobStage { get; private set; }
@@ -57,8 +60,7 @@ namespace BeatSyncLib.Downloader
             JobFinishedCallback = jobFinishedCallback;
             JobFinishedAsyncCallback = null;
         }
-        protected TaskCompletionSource<JobResult> TaskCompletionSource = new TaskCompletionSource<JobResult>();
-        public Task<JobResult> JobTask => TaskCompletionSource.Task;
+
         private Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, IProgress<JobProgress> progress)
         {
             Song = song;

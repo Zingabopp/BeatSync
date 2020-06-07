@@ -29,7 +29,7 @@ namespace BeatSyncLib.Downloader
         void Unpause();
         Exception? Exception { get; }
         ISong Song { get; }
-        JobResult Result { get; }
+        JobResult? Result { get; }
         JobStage JobStage { get; }
         JobState JobState { get; }
         Task<JobResult> JobTask { get; }
