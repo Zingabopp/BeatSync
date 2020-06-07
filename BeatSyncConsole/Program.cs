@@ -151,7 +151,7 @@ namespace BeatSyncConsole
                     SongDownloader songDownloader = new SongDownloader();
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
-                    JobStats[] sourceStats = await songDownloader.RunAsync(config, jobBuilder, manager).ConfigureAwait(false);
+                    JobStats[] sourceStats = await songDownloader.RunAsync(config.BeatSyncConfig, jobBuilder, manager).ConfigureAwait(false);
                     JobStats beatSyncStats = sourceStats.Aggregate((a, b) => a + b);
                     await manager.CompleteAsync().ConfigureAwait(false);
                     foreach (SongTarget? target in jobBuilder.SongTargets)
