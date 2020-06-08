@@ -57,7 +57,7 @@ namespace BeatSyncPlaylists
         bool AllowDuplicates { get; set; }
         /// <summary>
         /// Adds the <see cref="ISong"/> to the playlist. 
-        /// Does nothing if <see cref="AllowDuplicates"/> is false and the song is already in the playlist. 
+        /// Does nothing if <see cref="AllowDuplicates"/> is false and the song is already in the playlist.
         /// Converts the <see cref="ISong"/> if needed.
         /// </summary>
         /// <param name="song"></param>
@@ -65,7 +65,7 @@ namespace BeatSyncPlaylists
         IPlaylistSong? Add(ISong song);
         /// <summary>
         /// Creates a new <see cref="IPlaylistSong"/> and adds it to the playlist.
-        /// Does nothing if <see cref="AllowDuplicates"/> is false and the song is already in the playlist. 
+        /// Does nothing if <see cref="AllowDuplicates"/> is false and the song is already in the playlist.
         /// </summary>
         /// <param name="songHash"></param>
         /// <param name="songName"></param>
