@@ -31,11 +31,11 @@ jobs:
       continue-on-error: true
       uses: actions/upload-artifact@v1
       with:
-        name: win-x64
+        name: BeatSyncConsole_win64
         path: ./BeatSyncConsole/bin/Release/netcoreapp3.1/publish/BeatSyncConsole_win-x64
     - name: Upload Linux64 Artifact
       uses: actions/upload-artifact@v1
       with:
-        name: linux-x64
+        name: BeatSyncConsole_linux64
         path: ./BeatSyncConsole/bin/Release/netcoreapp3.1/publish/BeatSyncConsole_linux-x64
 
