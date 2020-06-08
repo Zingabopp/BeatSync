@@ -38,12 +38,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Blister">
-      <HintPath>..\Refs\Blister.dll</HintPath>
-    </Reference>
-    <Reference Include="Blister.Conversion">
-      <HintPath>..\Refs\Blister.Conversion.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
@@ -87,6 +81,10 @@
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
       <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
       <Name>WebUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj">
+      <Project>{e58d6ec9-193f-4328-bb11-86ec2a8ad1fa}</Project>
+      <Name>BeatSaberPlaylistsLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

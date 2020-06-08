@@ -1,5 +1,5 @@
-﻿using BeatSyncLib.History;
-using BeatSyncPlaylists;
+﻿using BeatSaberPlaylistsLib;
+using BeatSyncLib.History;
 using System;
 using System.Collections.Generic;
 using System.Text;

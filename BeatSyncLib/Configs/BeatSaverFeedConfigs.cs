@@ -1,4 +1,4 @@
-﻿using BeatSyncPlaylists;
+﻿using BeatSyncLib.Playlists;
 using Newtonsoft.Json;
 using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeatSaver;

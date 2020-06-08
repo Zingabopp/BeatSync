@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BeatSyncPlaylists;
+using BeatSaberPlaylistsLib;
 using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeastSaber;
+using BeatSyncLib.Playlists;
 
 namespace BeatSyncLib.Configs
 {

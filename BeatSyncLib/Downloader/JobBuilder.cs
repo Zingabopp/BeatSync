@@ -1,6 +1,5 @@
 ﻿using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
-using BeatSyncPlaylists;
 using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,4 @@
-﻿using BeatSyncPlaylists;
-using SongFeedReaders.Data;
+﻿using SongFeedReaders.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;

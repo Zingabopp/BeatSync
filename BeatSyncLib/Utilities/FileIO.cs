@@ -1,5 +1,4 @@
-﻿using BeatSyncPlaylists;
-using Newtonsoft.Json;
+﻿using BeatSyncLib.Downloader.Downloading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,9 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BeatSyncLib.Downloader;
 using WebUtilities;
-using BeatSyncLib.Downloader.Downloading;
 using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Utilities
@@ -29,7 +26,7 @@ namespace BeatSyncLib.Utilities
         public static string LoadStringFromFile(string path)
         {
             string text;
-            var bakFile = new FileInfo(path + ".bak");
+            FileInfo? bakFile = new FileInfo(path + ".bak");
             if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
             {
                 try
@@ -107,7 +104,7 @@ namespace BeatSyncLib.Utilities
             //    return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
             {
-                using (var response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(downloadUri, cancellationToken, 30, 2).ConfigureAwait(false))
+                using (IWebResponseMessage? response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(downloadUri, cancellationToken, 30, 2).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
 
@@ -138,7 +135,7 @@ namespace BeatSyncLib.Utilities
             }
             catch (WebClientException ex)
             {
-                var faultedCode = ex.Response?.StatusCode ?? 0;
+                int faultedCode = ex.Response?.StatusCode ?? 0;
                 DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
                 if (faultedCode == 404)
                     downloadResultStatus = DownloadResultStatus.NetNotFound;
@@ -165,11 +162,11 @@ namespace BeatSyncLib.Utilities
         /// <exception cref="PathTooLongException">Thrown if shortening the path enough is impossible.</exception>
         public static string GetValidPath(string extractDirectory, int longestEntryName, int padding = 0)
         {
-            var extLength = extractDirectory.Length;
-            var dir = new DirectoryInfo(extractDirectory);
+            int extLength = extractDirectory.Length;
+            DirectoryInfo? dir = new DirectoryInfo(extractDirectory);
             int minLength = dir.Parent.FullName.Length + 2;
-            var dirName = dir.Name;
-            var diff = MaxFileSystemPathLength - extLength - longestEntryName - padding;
+            string? dirName = dir.Name;
+            int diff = MaxFileSystemPathLength - extLength - longestEntryName - padding;
             if (diff < 0)
             {
 
@@ -222,15 +219,15 @@ namespace BeatSyncLib.Utilities
             };
 
             string createdDirectory = null;
-            var createdFiles = new List<string>();
+            List<string>? createdFiles = new List<string>();
             try
             {
                 //Logger.log?.Info($"ExtractDirectory is {extractDirectory}");
-                using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read))
+                using (ZipArchive? zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read))
                 {
                     //Logger.log?.Info("Zip opened");
                     //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
-                    var longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
+                    int longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
                     try
                     {
                         extractDirectory = Path.GetFullPath(extractDirectory); // Could theoretically throw an exception: Argument/ArgumentNull/Security/NotSupported/PathTooLong
@@ -241,7 +238,7 @@ namespace BeatSyncLib.Utilities
                             string finalPath;
                             do
                             {
-                                var append = $" ({pathNum})";
+                                string? append = $" ({pathNum})";
                                 finalPath = GetValidPath(extractDirectory, longestEntryName, append.Length) + append; // padding ensures we aren't continuously cutting off the append value
                                 pathNum++;
                             } while (Directory.Exists(finalPath));
@@ -256,7 +253,7 @@ namespace BeatSyncLib.Utilities
                     }
                     result.OutputDirectory = extractDirectory;
                     bool extractDirectoryExists = Directory.Exists(extractDirectory);
-                    var toBeCreated = extractDirectoryExists ? null : extractDirectory; // For cleanup
+                    string? toBeCreated = extractDirectoryExists ? null : extractDirectory; // For cleanup
                     try { Directory.CreateDirectory(extractDirectory); }
                     catch (Exception ex)
                     {
@@ -268,12 +265,12 @@ namespace BeatSyncLib.Utilities
                     result.CreatedOutputDirectory = !extractDirectoryExists;
                     createdDirectory = string.IsNullOrEmpty(toBeCreated) ? null : extractDirectory;
                     // TODO: Ordering so largest files extracted first. If the extraction is interrupted, theoretically the song's hash won't match Beat Saver's.
-                    foreach (var entry in zipArchive.Entries.OrderByDescending(e => e.Length))
+                    foreach (ZipArchiveEntry? entry in zipArchive.Entries.OrderByDescending(e => e.Length))
                     {
                         if (!entry.FullName.Equals(entry.Name)) // If false, the entry is a directory or file nested in one
                             continue;
-                        var entryPath = Path.Combine(extractDirectory, entry.Name);
-                        var fileExists = File.Exists(entryPath);
+                        string? entryPath = Path.Combine(extractDirectory, entry.Name);
+                        bool fileExists = File.Exists(entryPath);
                         if (overwriteTarget || !fileExists)
                         {
                             try
@@ -300,7 +297,7 @@ namespace BeatSyncLib.Utilities
                             }
                             if (result.Exception != null)
                             {
-                                foreach (var file in createdFiles)
+                                foreach (string? file in createdFiles)
                                 {
                                     TryDeleteAsync(file).Wait();
                                 }
@@ -333,7 +330,7 @@ namespace BeatSyncLib.Utilities
                     }
                     else // TODO: What is this doing here...
                     {
-                        foreach (var file in createdFiles)
+                        foreach (string? file in createdFiles)
                         {
                             File.Delete(file);
                         }
@@ -354,7 +351,7 @@ namespace BeatSyncLib.Utilities
         public static string GetSafeDirectoryPath(string directory)
         {
             StringBuilder retStr = new StringBuilder(directory);
-            foreach (var character in Path.GetInvalidPathChars())
+            foreach (char character in Path.GetInvalidPathChars())
             {
                 retStr.Replace(character.ToString(), string.Empty);
             }
@@ -364,7 +361,7 @@ namespace BeatSyncLib.Utilities
         public static string GetSafeFileName(string fileName)
         {
             StringBuilder retStr = new StringBuilder(fileName);
-            foreach (var character in Path.GetInvalidFileNameChars())
+            foreach (char character in Path.GetInvalidFileNameChars())
             {
                 retStr.Replace(character.ToString(), string.Empty);
             }
@@ -373,8 +370,8 @@ namespace BeatSyncLib.Utilities
 
         public static Task<bool> TryDeleteAsync(string filePath)
         {
-            var timeoutSource = new CancellationTokenSource(3000);
-            var timeoutToken = timeoutSource.Token;
+            CancellationTokenSource? timeoutSource = new CancellationTokenSource(3000);
+            CancellationToken timeoutToken = timeoutSource.Token;
             return SongFeedReaders.Utilities.WaitUntil(() =>
             {
                 try

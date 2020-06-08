@@ -1,4 +1,4 @@
-﻿using BeatSyncPlaylists;
+﻿using SongFeedReaders.Data;
 using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace BeatSyncLib.History
             //Mapper = mapper;
         }
 
-        public HistoryEntry(IPlaylistSong song, HistoryFlag flag = 0)
+        public HistoryEntry(ISong song, HistoryFlag flag = 0)
         {
             //Hash = song.Hash;
             //SongName = song.Name;

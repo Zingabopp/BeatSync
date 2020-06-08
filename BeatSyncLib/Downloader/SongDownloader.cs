@@ -1,8 +1,10 @@
 ﻿using BeatSyncLib.Configs;
-using BeatSyncLib.Downloader;
+using BeatSyncLib.Playlists;
+using BeatSyncLib.Utilities;
 using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
-using BeatSyncPlaylists;
+using BeatSaberPlaylistsLib;
+using BeatSaberPlaylistsLib.Types;
 using SongFeedReaders.Data;
 using SongFeedReaders.Logging;
 using SongFeedReaders.Readers;
@@ -15,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSaberPlaylistsLib.Legacy;
 
 namespace BeatSyncLib.Downloader
 {
@@ -218,7 +221,7 @@ namespace BeatSyncLib.Downloader
                         JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                         JobStats mapperStats = new JobStats(jobResults);
                         feedStats += mapperStats;
-                        if (jobs.Any(j => j.Result.Successful) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
+                        if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
                         {
                             foreach (var feedPlaylist in feedPlaylists)
                             {
@@ -265,7 +268,7 @@ namespace BeatSyncLib.Downloader
                     }
                 }
             }
-            if (jobs.Any(j => j.Result.Successful) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
+            if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
             {
                 foreach (var feedPlaylist in feedPlaylists)
                 {

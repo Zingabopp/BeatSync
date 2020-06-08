@@ -1,4 +1,4 @@
-﻿using BeatSyncPlaylists;
+﻿using SongFeedReaders.Data;
 using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -191,11 +191,11 @@ namespace BeatSyncLib.History
         /// <param name="song"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Thrown when trying to access data before Initialize is called on HistoryManager.</exception>
-        public bool TryAdd(IPlaylistSong song, HistoryFlag flag)
+        public bool TryAdd(ISong song, HistoryFlag flag)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
-            if (song == null)
+            if (song == null || song.Hash == null || song.Hash.Length == 0)
                 return false;
             return SongHistory.TryAdd(song.Hash.ToUpper(), new HistoryEntry(song, flag));
         }
@@ -230,7 +230,7 @@ namespace BeatSyncLib.History
         /// <param name="song"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public bool TryUpdateFlag(IPlaylistSong song, HistoryFlag flag)
+        public bool TryUpdateFlag(ISong song, HistoryFlag flag)
         {
             if (song == null)
                 return false;
@@ -294,9 +294,9 @@ namespace BeatSyncLib.History
                 return false;
         }
 
-        public bool TryUpdateDate(IPlaylistSong song, DateTime newDate)
+        public bool TryUpdateDate(ISong song, DateTime newDate)
         {
-            if (song == null)
+            if (song == null || song.Hash == null || song.Hash.Length == 0)
                 return false;
             return TryUpdateDate(song.Hash, newDate);
         }

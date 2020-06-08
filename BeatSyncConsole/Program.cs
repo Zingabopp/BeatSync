@@ -6,7 +6,7 @@ using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
-using BeatSyncPlaylists;
+using BeatSaberPlaylistsLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,7 +85,9 @@ namespace BeatSyncConsole
                 foreach (SongTarget target in jobBuilder.SongTargets)
                 {
                     // Add entry to history, this should only succeed for jobs that didn't get to the targets.
-                    if (target is ITargetWithHistory targetWithHistory && targetWithHistory.HistoryManager != null)
+                    if (target is ITargetWithHistory targetWithHistory 
+                        && targetWithHistory.HistoryManager != null
+                        && c.Song != null)
                         targetWithHistory.HistoryManager.TryAdd(c.Song.Hash, entry);
                 }
                 if (c.Successful)

@@ -47,7 +47,7 @@ namespace BeatSyncPlaylists.Legacy
         public string? Key { get; set; }
 
         [JsonProperty("hash", Order = -9)]
-        public string Hash
+        public string? Hash
         {
             get { return _hash; }
             set

@@ -19,18 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncLib", "BeatSyncLib\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncLibTests", "BeatSyncLibTests\BeatSyncLibTests.csproj", "{8BA75F87-831D-4420-915E-D7EC5F8953D3}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildTools", "BuildTools", "{07FFDD5C-E95C-4087-B2EA-BBF3450397FC}"
-	ProjectSection(SolutionItems) = preProject
-		Refs\refs.txt = Refs\refs.txt
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollectDependencies", "BS-Plugin-BuildTools\CollectDependencies\CollectDependencies.csproj", "{5F33B310-DC8D-4C0D-877E-BAC3908DE10F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyRenameStep", "BS-Plugin-BuildTools\AssemblyRenameStep\AssemblyRenameStep.csproj", "{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncPlaylists", "BeatSyncPlaylists\BeatSyncPlaylists.csproj", "{E1981AE8-0750-4D39-98A5-B60FBF010C32}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncPlaylistsTests", "BeatSyncPlaylistsTests\BeatSyncPlaylistsTests.csproj", "{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSaberPlaylistsLib", "Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj", "{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,10 +63,6 @@ Global
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -82,13 +71,13 @@ Global
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F} = {07FFDD5C-E95C-4087-B2EA-BBF3450397FC}
-		{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A} = {07FFDD5C-E95C-4087-B2EA-BBF3450397FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8A857683-1ED3-484E-9FBD-4D57FD657627}
