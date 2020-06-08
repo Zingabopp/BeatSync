@@ -1,4 +1,4 @@
-name: Build
+name: Publish
 
 on:
   push:
@@ -16,7 +16,7 @@ on:
       - 'BeatSyncLib/**'
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
