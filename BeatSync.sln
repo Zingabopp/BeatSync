@@ -4,10 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSync", "BeatSync\BeatSync.csproj", "{E9536F87-B2DE-423A-95A5-C1E35B1B0DD5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F} = {5F33B310-DC8D-4C0D-877E-BAC3908DE10F}
-		{E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A} = {E2CCDD2F-1D4F-4B06-9CD4-E0D2B9AE543A}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebUtilities", "Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj", "{34E8F435-5C5A-4971-8D6C-173E027E17CA}"
 EndProject
@@ -59,11 +55,9 @@ Global
 		{34E8F435-5C5A-4971-8D6C-173E027E17CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34E8F435-5C5A-4971-8D6C-173E027E17CA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Debug_BeatSyncConsole|Any CPU.ActiveCfg = Debug|Any CPU
-		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Debug_BeatSyncConsole|Any CPU.Build.0 = Debug|Any CPU
 		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Release_BeatSyncConsole|Any CPU.ActiveCfg = Release|Any CPU
-		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Release_BeatSyncConsole|Any CPU.Build.0 = Release|Any CPU
 		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23477327-6D58-4775-AF9B-D89E8B8BB11F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{460A61BC-C89A-433D-A9E2-37447694D76C}.Debug_BeatSyncConsole|Any CPU.ActiveCfg = Release_netstandard2.0|Any CPU
@@ -97,11 +91,9 @@ Global
 		{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Debug_BeatSyncConsole|Any CPU.ActiveCfg = Debug|Any CPU
-		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Debug_BeatSyncConsole|Any CPU.Build.0 = Debug|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release_BeatSyncConsole|Any CPU.ActiveCfg = Release|Any CPU
-		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release_BeatSyncConsole|Any CPU.Build.0 = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5F33B310-DC8D-4C0D-877E-BAC3908DE10F}.Debug_BeatSyncConsole|Any CPU.ActiveCfg = Debug|Any CPU
@@ -121,11 +113,9 @@ Global
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug_BeatSyncConsole|Any CPU.ActiveCfg = Debug|Any CPU
-		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug_BeatSyncConsole|Any CPU.Build.0 = Debug|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release_BeatSyncConsole|Any CPU.ActiveCfg = Release|Any CPU
-		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release_BeatSyncConsole|Any CPU.Build.0 = Release|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
