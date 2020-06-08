@@ -4,11 +4,16 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'BeatSync/**'
+      - 'BeatSyncConsole/**'
+      - 'BeatSyncPlaylists/**'
+      - 'BeatSyncLib/**'
       - '.github/workflows/PublishBeatSyncConsole.yml'
   pull_request:
     branches: [ master ]
-    paths: 'BeatSync/**'
+    paths:
+      - 'BeatSyncConsole/**'
+      - 'BeatSyncPlaylists/**'
+      - 'BeatSyncLib/**'
 
 jobs:
   build:
@@ -28,7 +33,6 @@ jobs:
       id: publish
       run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release_BeatSyncConsole /p:PublishProfile=linux-x64
     - name: Upload Win64 Artifact
-      continue-on-error: true
       uses: actions/upload-artifact@v1
       with:
         name: BeatSyncConsole_win64
