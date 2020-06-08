@@ -28,13 +28,14 @@ jobs:
       id: publish
       run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release_BeatSyncConsole /p:PublishProfile=linux-x64
     - name: Upload Win64 Artifact
+      continue-on-error: true
       uses: actions/upload-artifact@v1
       with:
         name: win-x64
-        path: ./BeatSyncConsole\bin\Release\netcoreapp3.1\publish\BeatSyncConsole_win-x64
+        path: ./BeatSyncConsole/bin/Release/netcoreapp3.1/publish/BeatSyncConsole_win-x64
     - name: Upload Linux64 Artifact
       uses: actions/upload-artifact@v1
       with:
         name: linux-x64
-        path: ./BeatSyncConsole\bin\Release\netcoreapp3.1\publish\BeatSyncConsole_linux-x64
+        path: ./BeatSyncConsole/bin/Release/netcoreapp3.1/publish/BeatSyncConsole_linux-x64
 
