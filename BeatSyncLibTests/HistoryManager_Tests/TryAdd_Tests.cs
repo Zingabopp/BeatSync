@@ -4,9 +4,8 @@ using BeatSyncLib.History;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using BeatSyncPlaylists;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
-using BeatSyncPlaylists.Legacy;
+using SongFeedReaders.Data;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
 {
@@ -112,12 +111,12 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         }
 
         [TestMethod]
-        public void TryAdd_NullPlaylistSong()
+        public void TryAdd_NullSong()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
             var historyManager = new HistoryManager(path);
             historyManager.Initialize();
-            IPlaylistSong nullSong = null;
+            ISong nullSong = null;
             var success = historyManager.TryAdd(nullSong, 0);
             Assert.IsFalse(success);
             Assert.AreEqual(historyManager.Count, 0);
@@ -125,19 +124,19 @@ namespace BeatSyncLibTests.HistoryManager_Tests
 
 
         [TestMethod]
-        public void TryAdd_PlaylistSong_NotInitialized()
+        public void TryAdd_Song_NotInitialized()
         {
             var historyManager = new HistoryManager(HistoryTestPathDir);
             string hash = "LKSJDFLKJASDLFKJ";
             string songName = "TestName";
             string songKey = "aaaa";
             string mapper = "SomeMapper";
-            IPlaylistSong song = new LegacyPlaylistSong(hash, songName, songKey, mapper);
+            ISong song = new ScrapedSong(hash, songName, mapper, songKey);
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song, 0));
         }
 
         [TestMethod]
-        public void TryAdd_PlaylistSong()
+        public void TryAdd_Song()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
             var historyManager = new HistoryManager(path);
@@ -146,7 +145,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
             string songName = "TestName";
             string songKey = "aaaa";
             string mapper = "SomeMapper";
-            IPlaylistSong song = new LegacyPlaylistSong(hash, songName, songKey, mapper);
+            ISong song = new ScrapedSong(hash, songName, mapper, songKey);
             var success = historyManager.TryAdd(song, 0);
             Assert.IsTrue(success);
             success = historyManager.TryGetValue(hash, out var retrieved);
@@ -155,7 +154,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         }
 
         [TestMethod]
-        public void TryAdd_PlaylistSong_NullHash()
+        public void TryAdd_Song_NullHash()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
             var historyManager = new HistoryManager(path);
@@ -166,7 +165,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
             string mapper = "SomeMapper";
             try
             {
-                IPlaylistSong song = new LegacyPlaylistSong(hash, songName, songKey, mapper);
+                ISong song = new ScrapedSong(hash, songName, mapper, songKey);
                 Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song, 0));
             }
             catch (ArgumentNullException)
@@ -177,7 +176,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         }
 
         [TestMethod]
-        public void TryAdd_PlaylistSong_EmptyHash()
+        public void TryAdd_Song_EmptyHash()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
             var historyManager = new HistoryManager(path);
@@ -188,7 +187,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
             string mapper = "SomeMapper";
             try
             {
-                IPlaylistSong song = new LegacyPlaylistSong(hash, songName, songKey, mapper);
+                ISong song = new ScrapedSong(hash, songName, mapper, songKey);
                 Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryAdd(song, 0));
             }
             catch (ArgumentNullException)
@@ -196,11 +195,6 @@ namespace BeatSyncLibTests.HistoryManager_Tests
                 //Assert.Inconclusive("PlaylistSong.Hash can never be null or empty.");
             }
 
-        }
-
-        private string PlaylistToString(IPlaylistSong song)
-        {
-            return $"({song.Key}) {song.Name} by {song.LevelAuthorName}";
         }
     }
 }

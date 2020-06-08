@@ -1,11 +1,9 @@
-﻿using System;
+﻿using BeatSyncLib.History;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BeatSyncLib;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using BeatSyncPlaylists;
-using BeatSyncLib.History;
+using System.Linq;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
@@ -24,7 +22,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void Constructor_Default()
         {
-            var historyManager = new HistoryManager(HistoryTestFilePath);
+            HistoryManager historyManager = new HistoryManager(HistoryTestFilePath);
             Assert.AreEqual(HistoryTestFilePath, historyManager.HistoryPath);
             Assert.AreEqual(0, historyManager.Count);
         }
@@ -33,14 +31,14 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void Constructor_NullPath()
         {
             string path = null;
-            Assert.ThrowsException<ArgumentNullException>(() =>  new HistoryManager(path));
+            Assert.ThrowsException<ArgumentNullException>(() => new HistoryManager(path));
         }
 
         [TestMethod]
         public void Constructor_WithPath()
         {
             string path = Path.Combine(@"Data\HistoryManager\BeatSyncHistory-TestCol1.json");
-            var historyManager = new HistoryManager(path);
+            HistoryManager historyManager = new HistoryManager(path);
             historyManager.Initialize();
             Assert.AreEqual(Path.GetFullPath(path), historyManager.HistoryPath);
             Assert.AreEqual(8, historyManager.Count);
@@ -49,10 +47,10 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void Initialize_ExistingFile()
         {
-            var fileName = "BeatSyncHistory-TestCol1.json";
-            var filePath = Path.Combine(HistoryTestPathDir, fileName);
+            string fileName = "BeatSyncHistory-TestCol1.json";
+            string filePath = Path.Combine(HistoryTestPathDir, fileName);
             Directory.CreateDirectory(HistoryTestPathDir);
-            var historyManager = new HistoryManager(filePath);
+            HistoryManager historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 8);
         }
@@ -60,9 +58,9 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void Initialize_FileDoesntExist()
         {
-            var fileName = "BeatSyncHistory-DoesntExist.json";
-            var filePath = Path.Combine(HistoryTestPathDir, fileName);
-            var historyManager = new HistoryManager(filePath);
+            string fileName = "BeatSyncHistory-DoesntExist.json";
+            string filePath = Path.Combine(HistoryTestPathDir, fileName);
+            HistoryManager historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 0);
         }
@@ -70,12 +68,12 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void Initialize_SecondCall_Parameterless()
         {
-            var fileName = "BeatSyncHistory-TestCol1.json";
-            var filePath = Path.Combine(HistoryTestPathDir, fileName);
+            string fileName = "BeatSyncHistory-TestCol1.json";
+            string filePath = Path.Combine(HistoryTestPathDir, fileName);
             Directory.CreateDirectory(HistoryTestPathDir);
-            var historyManager = new HistoryManager(filePath);
+            HistoryManager historyManager = new HistoryManager(filePath);
             historyManager.Initialize();
-            var songToAdd = TestCollection2.First();
+            KeyValuePair<string, HistoryEntry> songToAdd = TestCollection2.First();
             historyManager.TryAdd(songToAdd.Key, songToAdd.Value.SongInfo, songToAdd.Value.Flag);
             Assert.AreEqual(9, historyManager.Count);
             historyManager.Initialize();

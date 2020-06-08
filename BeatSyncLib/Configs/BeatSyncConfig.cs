@@ -35,11 +35,11 @@ namespace BeatSyncLib.Configs
         [JsonIgnore]
         private bool? _allBeatSyncSongsPlaylist;
         [JsonIgnore]
-        private BeastSaberConfig _beastSaber;
+        private BeastSaberConfig? _beastSaber;
         [JsonIgnore]
-        private BeatSaverConfig _beatSaver;
+        private BeatSaverConfig? _beatSaver;
         [JsonIgnore]
-        private ScoreSaberConfig _scoreSaber;
+        private ScoreSaberConfig? _scoreSaber;
         [JsonIgnore]
         private DateTime? _lastRun;
 

@@ -3,12 +3,9 @@ using Microsoft.Win32;
 #endif
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using static BeatSyncConsole.Utilities.Paths;
 
 namespace BeatSyncConsole.Utilities
 {
@@ -23,19 +20,19 @@ namespace BeatSyncConsole.Utilities
 #if !NOREGISTRY
         public static BeatSaberInstall[] GetBeatSaberPathsFromRegistry()
         {
-            var installList = new List<BeatSaberInstall>();
+            List<BeatSaberInstall>? installList = new List<BeatSaberInstall>();
             using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))// Doesn't work in 32 bit mode without this
             {
-                using (var steamKey = hklm?.OpenSubKey(STEAM_REG_KEY))
+                using (RegistryKey? steamKey = hklm?.OpenSubKey(STEAM_REG_KEY))
                 {
-                    var path = (string)steamKey?.GetValue("InstallLocation", string.Empty);
-                    if (IsBeatSaberDirectory(path))
+                    string? path = (string?)steamKey?.GetValue("InstallLocation", string.Empty);
+                    if (path != null && IsBeatSaberDirectory(path))
                         installList.Add(new BeatSaberInstall(path, InstallType.Steam));
                 }
                 string[] oculusLibraries = GetOculusLibraryPaths();
-                foreach (var library in oculusLibraries)
+                foreach (string? library in oculusLibraries)
                 {
-                    string matchedLocation = FindBeatSaberInOculusLibrary(library);
+                    string? matchedLocation = FindBeatSaberInOculusLibrary(library);
                     if (!string.IsNullOrEmpty(matchedLocation))
                         installList.Add(new BeatSaberInstall(matchedLocation, InstallType.Oculus));
                 }
@@ -43,10 +40,11 @@ namespace BeatSyncConsole.Utilities
             return installList.ToArray();
         }
 #endif
-        public static string FindBeatSaberInOculusLibrary(string oculusLibraryPath)
+        public static string? FindBeatSaberInOculusLibrary(string oculusLibraryPath)
         {
+            if (oculusLibraryPath == null) return null;
             string possibleLocation = Path.Combine(oculusLibraryPath, "hyperbolic-magnetism-beat-saber");
-            string matchedLocation = null;
+            string? matchedLocation = null;
             if (Directory.Exists(possibleLocation))
             {
                 if (IsBeatSaberDirectory(possibleLocation))
@@ -66,30 +64,24 @@ namespace BeatSyncConsole.Utilities
             List<string> paths = new List<string>();
             using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)) // Doesn't work in 32 bit mode without this
             {
-                using (var oculusKey = hklm?.OpenSubKey(OCULUS_LM_KEY))
+                using RegistryKey? oculusKey = hklm?.OpenSubKey(OCULUS_LM_KEY);
+                string? path = (string?)oculusKey?.GetValue("InitialAppLibrary", string.Empty);
+                if (!string.IsNullOrEmpty(path))
                 {
-                    var path = (string)oculusKey?.GetValue("InitialAppLibrary", string.Empty);
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        paths.Add(path);
-                    }
+                    paths.Add(path);
                 }
             }
             using (RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64)) // Doesn't work in 32 bit mode without this
             {
-                using (RegistryKey oculusKey = hkcu?.OpenSubKey(OCULUS_CU_KEY))
+                using RegistryKey? oculusKey = hkcu?.OpenSubKey(OCULUS_CU_KEY);
+                if (oculusKey != null && oculusKey.SubKeyCount > 0)
                 {
-                    if (oculusKey != null && oculusKey.SubKeyCount > 0)
+                    foreach (string? libraryKeyName in oculusKey.GetSubKeyNames())
                     {
-                        foreach (var libraryKeyName in oculusKey.GetSubKeyNames())
-                        {
-                            using (RegistryKey library = oculusKey.OpenSubKey(libraryKeyName))
-                            {
-                                var path = (string)library?.GetValue("OriginalPath", string.Empty);
-                                if (!string.IsNullOrEmpty(path) && !paths.Contains(path))
-                                    paths.Add(path);
-                            }
-                        }
+                        using RegistryKey? library = oculusKey.OpenSubKey(libraryKeyName);
+                        string? path = (string?)library?.GetValue("OriginalPath", string.Empty);
+                        if (!string.IsNullOrEmpty(path) && !paths.Contains(path))
+                            paths.Add(path);
                     }
                 }
             }
@@ -112,49 +104,52 @@ namespace BeatSyncConsole.Utilities
         /// </remarks>
         /// <param name="gameDir"></param>
         /// <returns></returns>
-        public static string GetVersion(string gameDir)
+        public static string? GetVersion(string gameDir)
         {
             string filename = Path.Combine(gameDir, "Beat Saber_Data", "globalgamemanagers");
             if (!File.Exists(filename))
                 return null;
             try
             {
-                using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
-                {
-                    byte[] file = File.ReadAllBytes(filename);
-                    byte[] bytes = new byte[16];
+                using FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+                byte[] file = File.ReadAllBytes(filename);
+                byte[] bytes = new byte[16];
 
-                    fs.Read(file, 0, Convert.ToInt32(fs.Length));
-                    fs.Close();
-                    int index = Encoding.Default.GetString(file).IndexOf("public.app-category.games") + 136;
+                fs.Read(file, 0, Convert.ToInt32(fs.Length));
+                fs.Close();
+                int index = Encoding.Default.GetString(file).IndexOf("public.app-category.games") + 136;
 
-                    Array.Copy(file, index, bytes, 0, 16);
-                    string version = Encoding.Default.GetString(bytes).Trim(IllegalCharacters);
+                Array.Copy(file, index, bytes, 0, 16);
+                string version = Encoding.Default.GetString(bytes).Trim(IllegalCharacters);
 
-                    return version;
-                }
+                return version;
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
             {
                 return null;
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
-        public static bool IsBeatSaberDirectory(string path)
+        public static bool IsBeatSaberDirectory(string? path)
         {
             if (string.IsNullOrEmpty(path?.Trim()))
                 return false;
-            DirectoryInfo bsDir = null;
+            DirectoryInfo? bsDir = null;
             try
             {
                 bsDir = new DirectoryInfo(path);
+                if (bsDir.Exists)
+                {
+                    FileInfo[]? files = bsDir.GetFiles("Beat Saber.exe");
+                    return files.Count() > 0;
+                }
             }
-            catch { return false; }
-            if (bsDir.Exists)
-            {
-                var files = bsDir.GetFiles("Beat Saber.exe");
-                return files.Count() > 0;
-            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
+
             return false;
         }
     }

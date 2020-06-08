@@ -79,7 +79,9 @@ namespace BeatSyncConsole
                 //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);
             }
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
             JobFinishedAsyncCallback jobFinishedCallback = new JobFinishedAsyncCallback(async (JobResult c) =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             {
                 HistoryEntry entry = c.CreateHistoryEntry();
                 foreach (SongTarget target in jobBuilder.SongTargets)

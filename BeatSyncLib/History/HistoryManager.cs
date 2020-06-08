@@ -154,13 +154,13 @@ namespace BeatSyncLib.History
         }
 
 
-        public bool TryAdd(string songHash, HistoryEntry historyEntry)
+        public bool TryAdd(string? songHash, HistoryEntry historyEntry)
         {
             if (!IsInitialized)
                 throw new InvalidOperationException("HistoryManager is not initialized.");
             if (historyEntry == null)
                 throw new ArgumentNullException(nameof(historyEntry), "Cannot add a null HistoryEntry.");
-            if (string.IsNullOrEmpty(songHash))
+            if (songHash == null || songHash.Length == 0)
                 return false;
             return SongHistory.TryAdd(songHash.ToUpper(), historyEntry);
         }
