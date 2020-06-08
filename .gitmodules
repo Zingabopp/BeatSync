@@ -4,3 +4,6 @@
 [submodule "BS-Plugin-BuildTools"]
 	path = BS-Plugin-BuildTools
 	url = https://github.com/Zingabopp/BS-Plugin-BuildTools.git
+[submodule "Libs/BeatSaberPlaylistsLib"]
+	path = Libs/BeatSaberPlaylistsLib
+	url = https://github.com/Zingabopp/BeatSaberPlaylistsLib.git
