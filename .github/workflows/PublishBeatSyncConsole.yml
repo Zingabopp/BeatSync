@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'BeatSync/**'
+      - '.github/workflows/PublishBeatSyncConsole.yml'
+  pull_request:
+    branches: [ master ]
+    paths: 'BeatSync/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+    - name: Publish_Win_x64
+      id: publish-win64
+      run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release_BeatSyncConsole /p:PublishProfile=win-x64
+    - name: Publish_Linux_x64
+      id: publish
+      run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release_BeatSyncConsole /p:PublishProfile=linux-x64
+    - name: Upload Win64 Artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ steps.Build.outputs.filename }}
+        path: ./BeatSyncConsole\bin\Release\netcoreapp3.1\publish\BeatSyncConsole_win-x64
+    - name: Upload Linux64 Artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ steps.Build.outputs.filename }}
+        path: ./BeatSyncConsole\bin\Release\netcoreapp3.1\publish\BeatSyncConsole_linux-x64
+
