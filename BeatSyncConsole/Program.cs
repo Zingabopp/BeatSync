@@ -141,7 +141,14 @@ namespace BeatSyncConsole
         {
             try
             {
-                GithubVersion latest = await VersionCheck.GetLatestVersionAsync("Zingabopp", "BeatSync").ConfigureAwait(false);
+                VersionChecker versionChecker = new VersionChecker();
+                versionChecker.ReleaseFilter = VersionChecker.HasAsset("BeatSyncConsole");
+                GithubVersion latest = await versionChecker.GetLatestVersionAsync("Zingabopp", "BeatSync").ConfigureAwait(false);
+                if (!latest.IsValid)
+                {
+                    Logger.log.Warn($"Unable to get information on the latest version.");
+                    return;
+                }
                 Version? current = Assembly.GetExecutingAssembly().GetName().Version;
                 if (current != null)
                 {
