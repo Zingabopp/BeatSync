@@ -16,15 +16,6 @@ namespace BeatSyncConsole.Configs
             songLocation.PlaylistDirectory = null;
             songLocation.HistoryPath = "BeatSyncHistory.json";
         }
-        public static CustomSongLocation CreateGameLocation(string basePath)
-        {
-            if (string.IsNullOrEmpty(basePath))
-                throw new ArgumentNullException(nameof(basePath), $"{nameof(basePath)} cannot be null or empty.");
-            basePath = Path.GetFullPath(basePath);
-            CustomSongLocation newLocation = new CustomSongLocation(basePath);
-            SetDefaultPaths(newLocation);
-            return newLocation;
-        }
 
         public static CustomSongLocation CreateEmptyLocation()
         {
@@ -39,8 +30,9 @@ namespace BeatSyncConsole.Configs
         internal CustomSongLocation() { }
         public CustomSongLocation(string basePath)
         {
-            if (!string.IsNullOrEmpty(basePath))
-                BasePath = Path.GetFullPath(basePath);
+            if (string.IsNullOrEmpty(basePath))
+                throw new ArgumentNullException(nameof(basePath));
+            BasePath = basePath;
             SetDefaultPaths(this);
         }
         [JsonIgnore]
