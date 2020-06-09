@@ -5,7 +5,8 @@ namespace BeatSyncLib.Logging
     public interface IBeatSyncLogger
     {
         LogLevel LoggingLevel { get; set; }
-
+        void Log(string message, LogLevel logLevel);
+        void Log(Exception ex, LogLevel logLevel);
         void Debug(string message);
         void Debug(Exception ex);
         void Info(string message);

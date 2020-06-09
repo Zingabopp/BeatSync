@@ -185,7 +185,7 @@ namespace BeatSyncConsole
                 Logger.log.Info("No enabled custom songs paths found, please manually enter a target directory for your songs in config.json.");
                 validConfig = false;
             }
-            string? favoriteMappersPath = GetFavoriteMappersLocation(Config.CustomSongsPaths);
+            string? favoriteMappersPath = GetFavoriteMappersLocation(enabledPaths);
             if (validConfig && favoriteMappersPath != null)
             {
                 FavoriteMappers favoriteMappers = new FavoriteMappers(favoriteMappersPath);

@@ -161,6 +161,7 @@ namespace BeatSyncLib.Configs
             FavoriteMappers.FillDefaults();
             Hot.FillDefaults();
             Downloads.FillDefaults();
+            Latest.FillDefaults();
             base.FillDefaults();
             var __ = MaxConcurrentPageChecks;
         }

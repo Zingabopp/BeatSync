@@ -130,9 +130,19 @@ namespace BeatSyncConsole.Loggers
             Console.ForegroundColor = previousColor;
         }
 
+        internal static void Abort()
+        {
+            QueuedMessages.CompleteAdding();
+            cts.Cancel();
+        }
+
         internal static void Stop()
         {
-            cts.Cancel();
+            QueuedMessages.CompleteAdding();
+        }
+        internal static void Wait()
+        {
+            logThread.Join();
         }
     }
 

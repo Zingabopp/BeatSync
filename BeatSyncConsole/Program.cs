@@ -119,10 +119,12 @@ namespace BeatSyncConsole
         {
             ConsoleLogWriter? consoleWriter = new ConsoleLogWriter
             {
-                LogLevel = BeatSyncLib.Logging.LogLevel.Info
+                LogLevel = BeatSyncLib.Logging.LogLevel.Debug
             };
             LogManager.AddLogWriter(consoleWriter);
             BeatSyncLib.Logger.log = new BeatSyncLogger("BeatSyncLib");
+            SongFeedReaderLogger feedReaderLogger = new SongFeedReaderLogger("SongFeedReader");
+            SongFeedReaders.Logging.LoggingController.DefaultLogger = feedReaderLogger;
             try
             {
                 string logFilePath = Path.Combine("logs", "log.txt");
@@ -183,7 +185,11 @@ namespace BeatSyncConsole
                 {
                     Logger.log.Info("BeatSyncConsole cannot run without a valid config, exiting.");
                 }
-                LogManager.GetUserInput("Press Enter to continue...");
+
+                LogManager.Stop();
+                LogManager.Wait();
+                Console.WriteLine("Press Enter to continue...");
+                Console.Read();
             }
             catch (Exception ex)
             {
@@ -199,13 +205,15 @@ namespace BeatSyncConsole
                     Console.WriteLine(message);
                     Console.ForegroundColor = previousColor;
                 }
+
                 LogManager.Stop();
+                LogManager.Wait();
                 Console.WriteLine("Press Enter to continue...");
                 Console.Read();
             }
             finally
             {
-                LogManager.Stop();
+                LogManager.Abort();
             }
         }
     }

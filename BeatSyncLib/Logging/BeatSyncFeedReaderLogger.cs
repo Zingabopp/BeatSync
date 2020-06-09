@@ -22,47 +22,33 @@ namespace BeatSyncLib.Logging
             LogController = controller;
         }
 
-        public override void Debug(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
+        public override void Log(string message, SongFeedReaders.Logging.LogLevel logLevel, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
         {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Debug)
+            if (LogLevel > logLevel)
                 return;
-            Logger.log?.Debug(MessagePrefix + message);
+            Logger.log?.Log(message, ConvertLogLevel(logLevel));
         }
 
-        public override void Error(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
+        public override void Log(string message, Exception e, SongFeedReaders.Logging.LogLevel logLevel, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
         {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Error)
+            if (LogLevel > logLevel)
                 return;
-            Logger.log?.Error(MessagePrefix + message);
+            Logger.log?.Log(e, ConvertLogLevel(logLevel));
         }
 
-        public override void Exception(string message, Exception e, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
+        public BeatSyncLib.Logging.LogLevel ConvertLogLevel(SongFeedReaders.Logging.LogLevel logLevel)
         {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Exception)
-                return;
-            Logger.log?.Error($"{MessagePrefix + message}: {e.Message}");
-            Logger.log?.Debug(e);
-        }
-        
-        public override void Info(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
-        {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Info)
-                return;
-            Logger.log?.Info(MessagePrefix + message);
-        }
-
-        public override void Trace(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
-        {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Trace)
-                return;
-            Logger.log?.Debug(MessagePrefix + message);
-        }
-
-        public override void Warning(string message, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
-        {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Warning)
-                return;
-            Logger.log?.Warn(MessagePrefix + message);
+            return logLevel switch
+            {
+                SongFeedReaders.Logging.LogLevel.Trace => BeatSyncLib.Logging.LogLevel.Debug,
+                SongFeedReaders.Logging.LogLevel.Debug => BeatSyncLib.Logging.LogLevel.Debug,
+                SongFeedReaders.Logging.LogLevel.Info => BeatSyncLib.Logging.LogLevel.Info,
+                SongFeedReaders.Logging.LogLevel.Warning => BeatSyncLib.Logging.LogLevel.Warn,
+                SongFeedReaders.Logging.LogLevel.Error => BeatSyncLib.Logging.LogLevel.Error,
+                SongFeedReaders.Logging.LogLevel.Exception => BeatSyncLib.Logging.LogLevel.Error,
+                SongFeedReaders.Logging.LogLevel.Disabled => BeatSyncLib.Logging.LogLevel.Disabled,
+                _ => BeatSyncLib.Logging.LogLevel.Debug,
+            };
         }
     }
 }
