@@ -34,7 +34,6 @@ namespace BeatSyncLib.Configs
         }
         [JsonIgnore]
         public virtual bool InvalidInputFixed { get; protected set; }
-
         public virtual void SetConfigChanged(bool changed = true, [CallerMemberName] string member = "")
         {
             if (!string.IsNullOrEmpty(member))
@@ -283,6 +282,8 @@ namespace BeatSyncLib.Configs
             }
         }
 
+        [JsonIgnore]
+        public virtual bool StoreRawData { get; protected set; } = false;
         public abstract IFeedSettings ToFeedSettings();
 
         public override bool ConfigMatches(ConfigBase other)
