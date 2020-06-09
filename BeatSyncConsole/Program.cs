@@ -87,7 +87,7 @@ namespace BeatSyncConsole
                 foreach (SongTarget target in jobBuilder.SongTargets)
                 {
                     // Add entry to history, this should only succeed for jobs that didn't get to the targets.
-                    if (target is ITargetWithHistory targetWithHistory 
+                    if (target is ITargetWithHistory targetWithHistory
                         && targetWithHistory.HistoryManager != null
                         && c.Song != null)
                         targetWithHistory.HistoryManager.TryAdd(c.Song.Hash, entry);
@@ -136,6 +136,31 @@ namespace BeatSyncConsole
                 Logger.log.Error($"Error creating FileLogWriter: {ex.Message}");
             }
         }
+        private const string ReleaseUrl = @"https://github.com/Zingabopp/BeatSync/releases";
+        static async Task CheckVersion()
+        {
+            try
+            {
+                GithubVersion latest = await VersionCheck.GetLatestVersionAsync("Zingabopp", "BeatSync").ConfigureAwait(false);
+                Version? current = Assembly.GetExecutingAssembly().GetName().Version;
+                if (current != null)
+                {
+                    int compare = latest.CompareTo(current);
+                    if (compare > 0)
+                        Logger.log.Warn($"There is a new version of BeatSyncConsole available: ({latest}). Download the latest release from '{ReleaseUrl}'.");
+                    else if (compare < 0)
+                        Logger.log.Info($"Running a build of BeatSyncConsole from the future! Current released version is {latest}.");
+                    else
+                        Logger.log.Info($"Running the latest release of BeatSyncConsole.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Warn($"Error checking for latest version: {ex.Message}.");
+                Logger.log.Debug(ex);
+            }
+
+        }
 
         static async Task Main(string[] args)
         {
@@ -144,6 +169,7 @@ namespace BeatSyncConsole
                 SetupLogging();
                 string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
                 Logger.log.Info($"Starting BeatSyncConsole v{version}");
+                await CheckVersion().ConfigureAwait(false);
                 ConfigManager = new ConfigManager(ConfigDirectory);
                 bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
                 Config? config = ConfigManager.Config;
