@@ -132,12 +132,18 @@ namespace BeatSyncConsole.Loggers
 
         internal static void Abort()
         {
+            if (IsAlive)
+                QueuedMessages.TryAdd(new LogMessage() { Message = "Aborting LogManager.", LogLevel = LogLevel.Info });
+            IsAlive = false;
             QueuedMessages.CompleteAdding();
             cts.Cancel();
         }
 
         internal static void Stop()
         {
+            if (IsAlive)
+                QueuedMessages.TryAdd(new LogMessage() { Message = "Stopping LogManager.", LogLevel = LogLevel.Info });
+            IsAlive = false;
             QueuedMessages.CompleteAdding();
         }
         internal static void Wait()
