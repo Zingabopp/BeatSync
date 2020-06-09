@@ -57,7 +57,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
                 await SongHasher.GetSongHashDataAsync(songDir).ConfigureAwait(false);
                 Assert.Fail("Should have thrown exception.");
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
 
             }

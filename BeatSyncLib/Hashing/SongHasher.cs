@@ -49,7 +49,7 @@ namespace BeatSyncLib.Hashing
             int hashedSongs = 0;
             var tasks = songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().Select(async d =>
             {
-                ISongHashData data = null;
+                ISongHashData? data = null;
                 try
                 {
                     data = await GetSongHashDataAsync(d.FullName);
@@ -145,7 +145,7 @@ namespace BeatSyncLib.Hashing
                     s += 2;
                 }
                 return hash1 + (hash2 * 1566083941);
-            }catch(Exception ex)
+            }catch(Exception)
             {
 
                 return 0;

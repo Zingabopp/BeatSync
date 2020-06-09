@@ -12,11 +12,13 @@ namespace BeatSyncLib.Configs
         [JsonIgnore]
         private int? _maxConcurrentPageChecks;
         [JsonIgnore]
-        private BeatSaverFavoriteMappers _favoriteMappers;
+        private BeatSaverFavoriteMappers? _favoriteMappers;
         [JsonIgnore]
-        private BeatSaverHot _hot;
+        private BeatSaverHot? _hot;
         [JsonIgnore]
-        private BeatSaverDownloads _downloads;
+        private BeatSaverDownloads? _downloads;
+        [JsonIgnore]
+        private BeatSaverLatest? _latest;
 
         [JsonProperty(Order = -60)]
         public int MaxConcurrentPageChecks
@@ -105,6 +107,26 @@ namespace BeatSyncLib.Configs
             }
         }
 
+        [JsonProperty(Order = -20)]
+        public BeatSaverLatest Latest
+        {
+            get
+            {
+                if (_latest == null)
+                {
+                    _latest = new BeatSaverLatest();
+                    SetConfigChanged();
+                }
+                return _latest;
+            }
+            set
+            {
+                if (_latest == value)
+                    return;
+                _latest = value;
+                SetConfigChanged();
+            }
+        }
         [JsonIgnore]
         protected override bool DefaultEnabled => true;
 

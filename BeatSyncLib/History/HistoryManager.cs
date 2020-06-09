@@ -77,17 +77,16 @@ namespace BeatSyncLib.History
                     var token = JToken.Parse(histStr);
                     foreach (JObject entry in token.Children())
                     {
-                        string keyHash = entry["Key"].Value<string>();
-                        HistoryEntry historyEntry = entry["Value"].ToObject<HistoryEntry>();
-                        //var historyEntry = new HistoryEntry();
-                        //historyEntry.Hash = entry["Value"]["Hash"].Value<string>();
-                        //historyEntry.SongName = entry["Value"]["SongName"].Value<string>();
-                        //historyEntry.Mapper = entry["Value"]["Mapper"].Value<string>();
-                        //historyEntry.Flag = (HistoryFlag)(entry["Value"]["Flag"].Value<int>());
-                        //historyEntry.Date = entry["Value"]["Date"].Value<DateTime>();
-                        //if (keyHash != historyEntry.Hash)
-                        //    Logger.log?.Warn($"History key doesn't match the entry's hash: '{keyHash}' != {historyEntry.Hash}");
-                        SongHistory.TryAdd(keyHash, historyEntry);
+                        string? keyHash = entry?["Key"]?.Value<string>();
+                        HistoryEntry? historyEntry = entry?["Value"]?.ToObject<HistoryEntry>();
+                        if (keyHash != null && historyEntry != null)
+                        {
+                            SongHistory.TryAdd(keyHash, historyEntry);
+                        }
+                        else
+                        {
+                            Logger.log?.Warn($"Invalid HistoryEntry: {keyHash}");
+                        }
                     }
                 }
                 else

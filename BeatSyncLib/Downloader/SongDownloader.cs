@@ -61,7 +61,7 @@ namespace BeatSyncLib.Downloader
             return jobs;
         }
 
-        static async Task<JobStats> GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        protected async Task<JobStats> GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             ScoreSaberConfig sourceConfig = config.ScoreSaber;
             JobStats sourceStats = new JobStats();
@@ -74,6 +74,7 @@ namespace BeatSyncLib.Downloader
                 Logger.log?.Info($"No feeds enabled for {reader.Name}");
                 return sourceStats;
             }
+            SourceStarted?.Invoke(this, "ScoreSaber");
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");
@@ -100,7 +101,7 @@ namespace BeatSyncLib.Downloader
             return sourceStats;
         }
 
-        static async Task<JobStats> GetBeastSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        protected async Task<JobStats> GetBeastSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             BeastSaberConfig sourceConfig = config.BeastSaber;
             JobStats sourceStats = new JobStats();
@@ -113,6 +114,8 @@ namespace BeatSyncLib.Downloader
                 Logger.log?.Info($"No feeds enabled for {reader.Name}");
                 return sourceStats;
             }
+
+            SourceStarted?.Invoke(this, "BeastSaber");
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 //if (string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
@@ -146,7 +149,7 @@ namespace BeatSyncLib.Downloader
             return sourceStats;
         }
 
-        static async Task<JobStats> GetBeatSaverAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        protected async Task<JobStats> GetBeatSaverAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             BeatSaverConfig sourceConfig = config.BeatSaver;
             JobStats sourceStats = new JobStats();
@@ -154,12 +157,14 @@ namespace BeatSyncLib.Downloader
                 return sourceStats;
 
             BeatSaverReader reader = new BeatSaverReader(sourceConfig.MaxConcurrentPageChecks);
-            FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads };
+            FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads, sourceConfig.Latest };
             if (!(feedConfigs.Any(f => f.Enabled) || sourceConfig.FavoriteMappers.Enabled))
             {
                 Logger.log?.Info($"No feeds enabled for {reader.Name}");
                 return sourceStats;
             }
+
+            SourceStarted?.Invoke(this, "BeatSaver");
             foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");

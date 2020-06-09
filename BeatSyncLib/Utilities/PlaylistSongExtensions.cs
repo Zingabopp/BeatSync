@@ -14,7 +14,7 @@ namespace BeatSyncLib.Utilities
     {
         public static async Task<bool> UpdateSongKeyAsync(this IPlaylistSong song, bool overwrite = false)
         {
-            if (song?.Hash == null || string.IsNullOrEmpty(song?.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
+            if (song?.Hash == null || string.IsNullOrEmpty(song.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
                 return false;
 
             var result = await WebUtils.SongInfoManager.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
@@ -24,7 +24,7 @@ namespace BeatSyncLib.Utilities
             song.Key = scrapedSong.Key;
             return true;
         }
-        public static IPlaylistSong Add<T, TSong>(this T playlist, SongFeedReaders.Data.ISong song) 
+        public static IPlaylistSong? Add<T, TSong>(this T playlist, SongFeedReaders.Data.ISong song) 
             where T : IPlaylist<TSong>, new()
             where TSong : IPlaylistSong, new()
         {

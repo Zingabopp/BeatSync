@@ -92,7 +92,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
                 await hasher.HashDirectoryAsync().ConfigureAwait(false);
                 Assert.Fail("Should have thrown exception.");
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
 
             }
