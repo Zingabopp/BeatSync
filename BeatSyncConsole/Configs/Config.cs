@@ -19,7 +19,10 @@ namespace BeatSyncConsole.Configs
         private List<BeatSaberInstallLocation>? _beatSaberInstallLocations;
         [JsonIgnore]
         private List<CustomSongLocation>? _customSongsPaths;
+        [JsonIgnore]
         private string? _beatSyncConfigPath;
+        [JsonIgnore]
+        internal bool legacyValueChanged = false;
 
         public static Config GetDefaultConfig()
         {
@@ -68,8 +71,19 @@ namespace BeatSyncConsole.Configs
             }
         }
 
-        [JsonProperty(nameof(CustomSongsPaths), Order = 20)]
-        public List<CustomSongLocation> CustomSongsPaths
+        [JsonProperty("CustomSongsPaths")]
+        private List<CustomSongLocation> legacySongLocations
+        {
+            set
+            {
+                AlternateSongsPaths = value;
+                legacyValueChanged = true;
+                SetConfigChanged();
+            }
+        }
+
+        [JsonProperty(nameof(AlternateSongsPaths), Order = 20)]
+        public List<CustomSongLocation> AlternateSongsPaths
         {
             get
             {
@@ -100,7 +114,7 @@ namespace BeatSyncConsole.Configs
         {
             if (other is Config config)
             {
-                if (CustomSongsPaths.Except(config.CustomSongsPaths).Any() || config.CustomSongsPaths.Except(CustomSongsPaths).Any())
+                if (AlternateSongsPaths.Except(config.AlternateSongsPaths).Any() || config.AlternateSongsPaths.Except(AlternateSongsPaths).Any())
                     return false;
                 return true;
             }
@@ -114,8 +128,8 @@ namespace BeatSyncConsole.Configs
                 BeatSyncConfigPath = Path.Combine("%CONFIG%", "BeatSync.json");
             if (BeatSaberInstallLocations.Count == 0)
                 BeatSaberInstallLocations.Add(BeatSaberInstallLocation.CreateEmptyLocation());
-            if (CustomSongsPaths.Count == 0)
-                CustomSongsPaths.Add(CustomSongLocation.CreateEmptyLocation());
+            if (AlternateSongsPaths.Count == 0)
+                AlternateSongsPaths.Add(CustomSongLocation.CreateEmptyLocation());
             BeatSyncConfig.FillDefaults();
         }
 

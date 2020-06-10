@@ -21,8 +21,10 @@ namespace BeatSyncConsole
 {
     class Program
     {
+        private const string ReleaseUrl = @"https://github.com/Zingabopp/BeatSync/releases";
         private const string ConfigDirectory = "configs";
         internal const string ConfigBackupPath = "config.json.bak";
+        private static ConfigManager? ConfigManager;
         public static async Task<IJobBuilder> CreateJobBuilderAsync(Config config)
         {
             string tempDirectory = "Temp";
@@ -35,7 +37,7 @@ namespace BeatSyncConsole
             IJobBuilder jobBuilder = new JobBuilder().SetDownloadJobFactory(downloadJobFactory);
             List<ISongLocation> songLocations = new List<ISongLocation>();
             songLocations.AddRange(config.BeatSaberInstallLocations.Where(l => l.Enabled && l.IsValid()));
-            songLocations.AddRange(config.CustomSongsPaths.Where(l => l.Enabled && l.IsValid()));
+            songLocations.AddRange(config.AlternateSongsPaths.Where(l => l.Enabled && l.IsValid()));
 
             foreach (ISongLocation location in songLocations)
             {
@@ -110,11 +112,6 @@ namespace BeatSyncConsole
             return jobBuilder;
 
         }
-
-
-
-        private static ConfigManager? ConfigManager;
-
         private static void SetupLogging()
         {
             ConsoleLogWriter? consoleWriter = new ConsoleLogWriter
@@ -136,13 +133,14 @@ namespace BeatSyncConsole
                 Logger.log.Error($"Error creating FileLogWriter: {ex.Message}");
             }
         }
-        private const string ReleaseUrl = @"https://github.com/Zingabopp/BeatSync/releases";
         static async Task CheckVersion()
         {
             try
             {
-                VersionChecker versionChecker = new VersionChecker();
-                versionChecker.ReleaseFilter = VersionChecker.HasAsset("BeatSyncConsole");
+                VersionChecker versionChecker = new VersionChecker
+                {
+                    ReleaseFilter = VersionChecker.HasAsset("BeatSyncConsole")
+                };
                 GithubVersion latest = await versionChecker.GetLatestVersionAsync("Zingabopp", "BeatSync").ConfigureAwait(false);
                 if (!latest.IsValid)
                 {

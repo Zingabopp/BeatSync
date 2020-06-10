@@ -41,7 +41,7 @@ namespace BeatSyncConsole
                 throw new InvalidOperationException("Config is null.");
             List<ISongLocation> songLocations = new List<ISongLocation>();
             songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.Enabled && l.IsValid()));
-            songLocations.AddRange(Config.CustomSongsPaths.Where(l => l.Enabled && l.IsValid()));
+            songLocations.AddRange(Config.AlternateSongsPaths.Where(l => l.Enabled && l.IsValid()));
             return songLocations;
         }
 
@@ -51,7 +51,7 @@ namespace BeatSyncConsole
                 throw new InvalidOperationException("Config is null.");
             List<ISongLocation> songLocations = new List<ISongLocation>();
             songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.IsValid()));
-            songLocations.AddRange(Config.CustomSongsPaths.Where(l => l.IsValid()));
+            songLocations.AddRange(Config.AlternateSongsPaths.Where(l => l.IsValid()));
             return songLocations;
         }
 
@@ -164,7 +164,7 @@ namespace BeatSyncConsole
                         {
                             validPaths[current].Enabled = true;
                             Logger.log.Info($"Enabling {validPaths[current]}.");
-                            Config.SetConfigChanged(true, nameof(Config.CustomSongsPaths));
+                            Config.SetConfigChanged(true, nameof(Config.AlternateSongsPaths));
                         }
                         else
                             Logger.log.Info($"'{selectionResponse[i]}' is invalid.");
@@ -194,7 +194,7 @@ namespace BeatSyncConsole
                 if (mappers.Count > 0)
                     Config.BeatSyncConfig.BeatSaver.FavoriteMappers.Mappers = mappers.ToArray();
             }
-            if (Config.ConfigChanged)
+            if (Config.ConfigChanged || Config.legacyValueChanged)
             {
                 try
                 {

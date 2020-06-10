@@ -188,6 +188,7 @@ namespace BeatSyncConsole.Utilities
 namespace BeatSyncConsole.VersionCheck
 {
 
+#nullable disable
     #region SimpleJSON
     /* * * * *
      * A simple JSON Parser / builder
@@ -309,6 +310,7 @@ namespace BeatSyncConsole.VersionCheck
         {
             private JSONNode m_Node;
             private Enumerator m_Enumerator;
+            private bool _disposed = false;
             internal LinqEnumerator(JSONNode aNode)
             {
                 m_Node = aNode;
@@ -319,10 +321,22 @@ namespace BeatSyncConsole.VersionCheck
             object IEnumerator.Current { get { return m_Enumerator.Current; } }
             public bool MoveNext() { return m_Enumerator.MoveNext(); }
 
+            protected virtual void Dispose(bool disposing)
+            {
+                if (_disposed)
+                    return;
+                if (disposing)
+                {
+                    m_Node = null;
+                    m_Enumerator = new Enumerator();
+                }
+                _disposed = true;
+            }
+
             public void Dispose()
             {
-                m_Node = null;
-                m_Enumerator = new Enumerator();
+                Dispose(true);
+                GC.SuppressFinalize(this);
             }
 
             public IEnumerator<KeyValuePair<string, JSONNode>> GetEnumerator()
@@ -1533,4 +1547,5 @@ namespace BeatSyncConsole.VersionCheck
         }
     }
     #endregion
+#nullable restore
 }
