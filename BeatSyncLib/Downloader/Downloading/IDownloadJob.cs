@@ -51,10 +51,10 @@ namespace BeatSyncLib.Downloader.Downloading
 
     public class DownloadJobStartedEventArgs : EventArgs
     {
-        public string SongHash { get; private set; }
-        public string SongKey { get; private set; }
-        public string SongName { get; private set; }
-        public string LevelAuthorName { get; private set; }
+        public string? SongHash { get; private set; }
+        public string? SongKey { get; private set; }
+        public string? SongName { get; private set; }
+        public string? LevelAuthorName { get; private set; }
         public DownloadJobStartedEventArgs(string songHash, string songKey, string songName, string levelAuthorName)
         {
             SongHash = songHash;
@@ -69,16 +69,16 @@ namespace BeatSyncLib.Downloader.Downloading
         public string SongHash { get; protected set; }
         public bool JobSuccessful => DownloadResult == DownloadResultStatus.Success;
         public DownloadResultStatus DownloadResult { get; protected set; }
-        public DownloadContainer DownloadContainer { get; protected set; }
+        public DownloadContainer? DownloadContainer { get; protected set; }
 
         public DownloadJobFinishedEventArgs(string songHash, DownloadResult jobResult)
         {
             SongHash = songHash;
             DownloadResult = jobResult.Status;
-            DownloadContainer = jobResult.DownloadContainer;
+            DownloadContainer = jobResult?.DownloadContainer;
         }
 
-        public DownloadJobFinishedEventArgs(string songHash, DownloadResultStatus downloadResult, DownloadContainer downloadContainer)
+        public DownloadJobFinishedEventArgs(string songHash, DownloadResultStatus downloadResult, DownloadContainer? downloadContainer)
         {
             SongHash = songHash;
             DownloadResult = downloadResult;
@@ -132,17 +132,22 @@ namespace BeatSyncLib.Downloader.Downloading
         }
         private ByteUnit ByteSize => ByteUnit.Megabyte;
 
-        private string _stringVal;
+        private string? _stringVal;
         private string stringVal
         {
             get
             {
-                if (!string.IsNullOrEmpty(_stringVal))
+                if (_stringVal != null && _stringVal.Length > 0)
                     return _stringVal;
                 if (TotalFileSize == null)
                     _stringVal = $"{ConvertByteValue(TotalBytesDownloaded, ByteSize).ToString("N2")} MB/?";
                 else
-                    _stringVal = $"({ProgressPercentage.Value.ToString("P2")}) {ConvertByteValue(TotalBytesDownloaded, ByteSize).ToString("N2")} MB/{ConvertByteValue(TotalFileSize.Value, ByteSize).ToString("N2")} MB";
+                {
+                    string progressPercentString = "";
+                    if (ProgressPercentage.HasValue)
+                        progressPercentString = $"({ProgressPercentage.Value.ToString("P2")})";
+                    _stringVal = $"{progressPercentString}{ConvertByteValue(TotalBytesDownloaded, ByteSize).ToString("N2")} MB/{ConvertByteValue(TotalFileSize.Value, ByteSize).ToString("N2")} MB";
+                }
                 return _stringVal;
             }
         }

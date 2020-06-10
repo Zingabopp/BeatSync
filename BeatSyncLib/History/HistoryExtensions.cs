@@ -18,12 +18,14 @@ namespace BeatSyncLib.History
         {
             if (jobResult == null)
                 throw new ArgumentNullException(nameof(jobResult), $"{nameof(jobResult)} cannot be null for {nameof(CreateHistoryEntry)}");
+            if(jobResult.Song == null)
+                throw new ArgumentNullException(nameof(jobResult), $"{nameof(jobResult)}.Song cannot be null for {nameof(CreateHistoryEntry)}");
             HistoryEntry entry = new HistoryEntry(jobResult.Song.Name, jobResult.Song.LevelAuthorName);
             if (jobResult.Successful)
                 entry.Flag = HistoryFlag.Downloaded;
             else
             {
-                if (jobResult.DownloadResult.Status == DownloadResultStatus.NetNotFound)
+                if ((jobResult.DownloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.NetNotFound)
                     entry.Flag = HistoryFlag.BeatSaverNotFound;
                 else
                     entry.Flag = HistoryFlag.Error;

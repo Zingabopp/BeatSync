@@ -60,9 +60,15 @@ namespace BeatSyncLib.Downloader.Targets
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "Song cannot be null for TransferAsync.");
-            string directoryPath = null;
-            ZipExtractResult zipResult = null;
-            string directoryName = Util.GetSongDirectoryName(song.Key, song.Name, song.LevelAuthorName);
+            string? directoryPath = null;
+            ZipExtractResult? zipResult = null;
+            string directoryName;
+            if (song.Name != null && song.LevelAuthorName != null)
+                directoryName = Util.GetSongDirectoryName(song.Key, song.Name, song.LevelAuthorName);
+            else if (song.Key != null)
+                directoryName = song.Key;
+            else
+                directoryName = song.Hash ?? Path.GetRandomFileName();
             try
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -71,10 +77,12 @@ namespace BeatSyncLib.Downloader.Targets
                 if (!Directory.Exists(SongsDirectory))
                     throw new SongTargetTransferException($"Parent directory doesn't exist: '{SongsDirectory}'");
                 zipResult = await Task.Run(() => FileIO.ExtractZip(sourceStream, directoryPath, OverwriteTarget)).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(song.Hash))
+                if (!string.IsNullOrEmpty(song.Hash) && zipResult.OutputDirectory != null)
                 {
-                    string hashAfterDownload = (await SongHasher.GetSongHashDataAsync(zipResult.OutputDirectory).ConfigureAwait(false)).songHash;
-                    if (hashAfterDownload != song.Hash)
+                    string? hashAfterDownload = (await SongHasher.GetSongHashDataAsync(zipResult.OutputDirectory).ConfigureAwait(false)).songHash;
+                    if (hashAfterDownload == null)
+                        Logger.log.Warn($"Unable to get hash for '{song}', hasher returned null.");
+                    else if (hashAfterDownload != song.Hash)
                         throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
                 }
                 TargetResult = new DirectoryTargetResult(this, SongState.Wanted, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
@@ -92,8 +100,8 @@ namespace BeatSyncLib.Downloader.Targets
 
     public class DirectoryTargetResult : TargetResult
     {
-        public ZipExtractResult ZipExtractResult { get; private set; }
-        public DirectoryTargetResult(SongTarget target, SongState songState, bool success, ZipExtractResult zipExtractResult, Exception exception)
+        public ZipExtractResult? ZipExtractResult { get; protected set; }
+        public DirectoryTargetResult(SongTarget target, SongState songState, bool success, ZipExtractResult? zipExtractResult, Exception? exception)
             : base(target, songState, success, exception)
         {
             ZipExtractResult = zipExtractResult;

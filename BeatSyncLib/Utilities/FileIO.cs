@@ -107,7 +107,8 @@ namespace BeatSyncLib.Utilities
                 using (IWebResponseMessage? response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(downloadUri, cancellationToken, 30, 2).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
-
+                    if (response == null) throw new WebClientException($"Response was null for '{downloadUri}'.");
+                    if (response.Content == null) throw new WebClientException($"Response's content was null for '{downloadUri}'.");
                     try
                     {
                         await downloadContainer.ReceiveDataAsync(response.Content, cancellationToken).ConfigureAwait(false);
@@ -205,7 +206,7 @@ namespace BeatSyncLib.Utilities
         /// <param name="deleteZip">If true, deletes zip file after extraction</param>
         /// <param name="overwriteTarget">If true, overwrites existing files with the zip's contents</param>
         /// <returns></returns>
-        public static ZipExtractResult ExtractZip(Stream zipStream, string extractDirectory, bool overwriteTarget = true, string sourcePath = null)
+        public static ZipExtractResult ExtractZip(Stream zipStream, string extractDirectory, bool overwriteTarget = true, string? sourcePath = null)
         {
             if (zipStream == null)
                 throw new ArgumentNullException(nameof(zipStream));
@@ -218,7 +219,7 @@ namespace BeatSyncLib.Utilities
                 ResultStatus = ZipExtractResultStatus.Unknown
             };
 
-            string createdDirectory = null;
+            string? createdDirectory = null;
             List<string>? createdFiles = new List<string>();
             try
             {
@@ -394,12 +395,12 @@ namespace BeatSyncLib.Utilities
 
     public class ZipExtractResult
     {
-        public string SourceZip { get; set; }
-        public string OutputDirectory { get; set; }
+        public string? SourceZip { get; set; }
+        public string? OutputDirectory { get; set; }
         public bool CreatedOutputDirectory { get; set; }
-        public string[] ExtractedFiles { get; set; }
+        public string[]? ExtractedFiles { get; set; }
         public ZipExtractResultStatus ResultStatus { get; set; }
-        public Exception Exception { get; set; }
+        public Exception? Exception { get; set; }
     }
 
     public enum ZipExtractResultStatus

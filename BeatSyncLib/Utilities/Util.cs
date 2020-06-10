@@ -140,8 +140,11 @@ namespace BeatSyncLib.Utilities
         /// </summary>
         /// <returns>Hash of the song files. Null if the info.dat file doesn't exist</returns>
         /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
         public static string? GenerateHash(string songDirectory, string existingHash = "")
         {
+            if (string.IsNullOrEmpty(songDirectory))
+                throw new ArgumentNullException(nameof(songDirectory));
             if (!Directory.Exists(songDirectory))
                 throw new DirectoryNotFoundException($"Directory doesn't exist: '{songDirectory}'");
             byte[] combinedBytes = Array.Empty<byte>();

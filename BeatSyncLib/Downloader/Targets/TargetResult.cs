@@ -10,7 +10,7 @@ namespace BeatSyncLib.Downloader.Targets
         public bool Success { get; protected set; }
         public SongState SongState { get; }
         public Exception? Exception { get; protected set; }
-        public TargetResult(SongTarget target, SongState songState, bool success, Exception exception)
+        public TargetResult(SongTarget target, SongState songState, bool success, Exception? exception)
         {
             Target = target;
             Success = success;

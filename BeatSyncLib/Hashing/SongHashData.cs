@@ -8,6 +8,6 @@ namespace BeatSyncLib.Hashing
         : ISongHashData
     {
         public long directoryHash { get; set; }
-        public string songHash { get; set; }
+        public string? songHash { get; set; }
     }
 }

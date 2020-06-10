@@ -15,7 +15,7 @@ namespace BeatSyncLib.Downloader.Downloading
     {
         private static readonly string BeatSaverHashDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
         private static readonly string BeatSaverKeyDownloadUrlBase = "https://beatsaver.com/api/download/key/";
-        public Exception Exception { get; private set; }
+        public Exception? Exception { get; private set; }
         public event EventHandler<DownloadJobStartedEventArgs> JobStarted;
         public event EventHandler<DownloadJobFinishedEventArgs> JobFinished;
         public event EventHandler<DownloadJobProgressChangedEventArgs> JobProgressChanged;
@@ -25,11 +25,11 @@ namespace BeatSyncLib.Downloader.Downloading
         private DownloadResult _downloadResult;
 
         //public PlaylistSong Song { get; private set; }
-        public string FileLocation => (DownloadResult?.DownloadContainer as FileDownloadContainer)?.FilePath;
-        public string SongHash { get; private set; }
-        public string SongKey { get; private set; }
-        public string SongName { get; private set; }
-        public string LevelAuthorName { get; private set; }
+        public string? FileLocation => (DownloadResult?.DownloadContainer as FileDownloadContainer)?.FilePath;
+        public string? SongHash { get; private set; }
+        public string? SongKey { get; private set; }
+        public string? SongName { get; private set; }
+        public string? LevelAuthorName { get; private set; }
         public bool Paused { get; private set; }
         public DownloadResult DownloadResult { get; private set; }
         private DownloadJobStatus _status;
@@ -59,7 +59,7 @@ namespace BeatSyncLib.Downloader.Downloading
         /// <param name="container"></param>
         /// <param name="jobFinishedCallback"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        private DownloadJob(DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
+        private DownloadJob(DownloadContainer container, DownloadFinishedCallback? jobFinishedCallback = null)
         {
             if (container == null)
                 throw new ArgumentNullException(nameof(container), "DownloadJob must have a download container.");
@@ -87,12 +87,12 @@ namespace BeatSyncLib.Downloader.Downloading
         /// <param name="jobFinishedCallback"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public DownloadJob(ISong song, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
+        public DownloadJob(ISong song, DownloadContainer container, DownloadFinishedCallback? jobFinishedCallback = null)
             : this(container, jobFinishedCallback)
         {
             if (song == null)
                 throw new ArgumentNullException(nameof(song), "song cannot be null.");
-            if (string.IsNullOrEmpty(song.Hash) && string.IsNullOrEmpty(song.Key))
+            if ((song.Hash == null || song.Hash.Length == 0) && (song.Key == null || song.Key.Length == 0))
                 throw new ArgumentException("ISong must have a Hash or Key.", nameof(song));
             //Song = song;
             SongHash = song.Hash;
@@ -215,13 +215,13 @@ namespace BeatSyncLib.Downloader.Downloading
         /// <returns></returns>
         public async Task<DownloadResult> DownloadSongAsync(DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
-            string stringForUri = null;
+            string? stringForUri = null;
             Uri downloadUri;
             try
             {
-                if (!string.IsNullOrEmpty(SongHash))
+                if (SongHash != null && SongHash.Length > 0)
                     stringForUri = BeatSaverHashDownloadUrlBase + SongHash.ToLower();
-                else if (!string.IsNullOrEmpty(SongKey))
+                else if (SongKey != null && SongKey.Length > 0)
                     stringForUri = BeatSaverKeyDownloadUrlBase + SongKey.ToLower();
                 else
                     return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "No SongHash or SongKey provided to the DownloadJob.");
@@ -247,7 +247,7 @@ namespace BeatSyncLib.Downloader.Downloading
             return retStr;
         }
 
-        public void AddDownloadFinishedCallback(DownloadFinishedCallback callback)
+        public void AddDownloadFinishedCallback(DownloadFinishedCallback? callback)
         {
             if (callback != null)
                 downloadFinishedCallbacks.Add(callback);

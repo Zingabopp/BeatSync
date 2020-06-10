@@ -7,7 +7,7 @@ namespace BeatSyncLib.Downloader.Downloading
     public class DownloadResult
         : IDisposable
     {
-        public DownloadResult(DownloadContainer container, DownloadResultStatus status, int httpStatus, string reason = null, Exception exception = null)
+        public DownloadResult(DownloadContainer? container, DownloadResultStatus status, int httpStatus, string? reason = null, Exception? exception = null)
         {
             DownloadContainer = container;
             Status = status;
@@ -16,11 +16,11 @@ namespace BeatSyncLib.Downloader.Downloading
             Exception = exception;
         }
         public bool IsDisposed { get; protected set; }
-        public DownloadContainer DownloadContainer { get; protected set; }
-        public string Reason { get; protected set; }
+        public DownloadContainer? DownloadContainer { get; protected set; }
+        public string? Reason { get; protected set; }
         public DownloadResultStatus Status { get; protected set; }
         public int HttpStatusCode { get; protected set; }
-        public Exception Exception { get; protected set; }
+        public Exception? Exception { get; protected set; }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -32,7 +32,7 @@ namespace BeatSyncLib.Downloader.Downloading
             {
                 if (disposing)
                 {
-                    DownloadContainer.Dispose();
+                    DownloadContainer?.Dispose();
                     DownloadContainer = null;
                 }
                 disposedValue = true;

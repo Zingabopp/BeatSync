@@ -4,23 +4,30 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
 using BeatSyncLib.Configs.Converters;
+using BeatSyncLib.Utilities;
 
 namespace BeatSyncLib.History
 {
     public class HistoryEntry
     {
         public HistoryEntry() { }
-        public HistoryEntry(string songInfo, HistoryFlag flag = 0)
+        public HistoryEntry(string? songInfo, HistoryFlag flag = 0)
         {
             SongInfo = songInfo;
             Date = DateTime.Now;
+            Flag = flag;
         }
-        public HistoryEntry(string songName, string mapper, HistoryFlag flag = 0)
-            : this($"{songName} by {mapper}", flag)
+        public HistoryEntry(string? songName, string? mapper, HistoryFlag flag = 0)
         {
-            //Hash = hash;
-            //SongName = songName;
-            //Mapper = mapper;
+            if(songName != null && songName.Length > 0)
+            {
+                if (mapper != null && mapper.Length > 0)
+                    SongInfo = $"{songName} by {mapper}";
+                else
+                    SongInfo = $"{songName}";
+            }
+            Date = DateTime.Now;
+            Flag = flag;
         }
 
         public HistoryEntry(ISong song, HistoryFlag flag = 0)
@@ -36,7 +43,7 @@ namespace BeatSyncLib.History
             Date = DateTime.Now;
         }
         [JsonProperty("SongInfo")]
-        public string SongInfo { get; set; }
+        public string? SongInfo { get; set; }
         [JsonProperty("Flag")]
         [JsonConverter(typeof(HistoryFlagConverter))]
         public HistoryFlag Flag { get; set; }
