@@ -95,6 +95,7 @@ namespace BeatSyncConsole
             catch (Exception ex)
             {
                 Logger.log.Info($"Invalid BeatSync.json file, using defaults: {ex.Message}");
+                Logger.log.Debug(ex);
             }
             if (Config.BeatSyncConfig == null)
             {

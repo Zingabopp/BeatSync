@@ -16,6 +16,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities.DownloadContainers;
+using BeatSaberPlaylistsLib.Legacy;
+using BeatSaberPlaylistsLib.Blister;
 
 namespace BeatSyncConsole
 {
@@ -68,7 +70,7 @@ namespace BeatSyncConsole
                     if (!Path.IsPathFullyQualified(playlistDirectory))
                         playlistDirectory = Path.Combine(location.BasePath, playlistDirectory);
                     Directory.CreateDirectory(playlistDirectory);
-                    playlistManager = new PlaylistManager(playlistDirectory);
+                    playlistManager = new PlaylistManager(playlistDirectory, new LegacyPlaylistHandler(), new BlisterPlaylistHandler());
                 }
                 string songsDirectory = location.SongsDirectory;
                 if (!Path.IsPathFullyQualified(songsDirectory))
@@ -116,7 +118,7 @@ namespace BeatSyncConsole
         {
             ConsoleLogWriter? consoleWriter = new ConsoleLogWriter
             {
-                LogLevel = BeatSyncLib.Logging.LogLevel.Debug
+                LogLevel = BeatSyncLib.Logging.LogLevel.Info
             };
             LogManager.AddLogWriter(consoleWriter);
             BeatSyncLib.Logger.log = new BeatSyncLogger("BeatSyncLib");
@@ -177,6 +179,7 @@ namespace BeatSyncConsole
                 await CheckVersion().ConfigureAwait(false);
                 ConfigManager = new ConfigManager(ConfigDirectory);
                 bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
+                Logger.log.LoggingLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
                 Config? config = ConfigManager.Config;
                 if (validConfig && config != null)
                 {

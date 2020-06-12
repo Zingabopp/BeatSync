@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BeatSyncConsole.Configs.Converters;
 using BeatSyncLib.Configs;
+using BeatSyncLib.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -102,6 +104,31 @@ namespace BeatSyncConsole.Configs
                 SetConfigChanged();
             }
         }
+
+        private LogLevel? _consoleLogLevel;
+        [JsonProperty(nameof(ConsoleLogLevel), Order = 100)]
+        [JsonConverter(typeof(LogLevelConverter))]
+        public LogLevel ConsoleLogLevel 
+        {
+
+            get
+            {
+                if (_consoleLogLevel == null)
+                {
+                    _consoleLogLevel = LogLevel.Info;
+                    SetConfigChanged();
+                }
+                return _consoleLogLevel ?? LogLevel.Info;
+            }
+            set
+            {
+                if (_consoleLogLevel == value)
+                    return;
+                _consoleLogLevel = value;
+                SetConfigChanged();
+            }
+        }
+
         [JsonIgnore]
         public BeatSyncConfig BeatSyncConfig
         {

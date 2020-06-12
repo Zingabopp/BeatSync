@@ -26,8 +26,9 @@ namespace BeatSyncConsole.Configs
                 HistoryPath = "BeatSyncHistory.json"
             };
         }
-
+        [JsonConstructor]
         internal CustomSongLocation() { }
+        
         public CustomSongLocation(string basePath)
         {
             if (string.IsNullOrEmpty(basePath))
