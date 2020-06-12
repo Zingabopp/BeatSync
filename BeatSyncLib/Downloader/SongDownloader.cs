@@ -212,12 +212,20 @@ namespace BeatSyncLib.Downloader
                                 if (sourceConfig.FavoriteMappers.CreatePlaylist)
                                 {
                                     IPlaylist feedPlaylist;
-                                    if (sourceConfig.FavoriteMappers.SeparateMapperPlaylists)
-                                        feedPlaylist = playlistManager.GetOrCreateAuthorPlaylist(mapper);
-                                    else
-                                        feedPlaylist = playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverFavoriteMappers);
-                                    feedPlaylists.Add(feedPlaylist);
-                                    playlists.Add(feedPlaylist);
+                                    try
+                                    {
+                                        if (sourceConfig.FavoriteMappers.SeparateMapperPlaylists)
+                                            feedPlaylist = playlistManager.GetOrCreateAuthorPlaylist(mapper);
+                                        else
+                                            feedPlaylist = playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverFavoriteMappers);
+                                        feedPlaylists.Add(feedPlaylist);
+                                        playlists.Add(feedPlaylist);
+                                    }
+                                    catch (ArgumentException ex)
+                                    {
+                                        Logger.log?.Error($"Error getting playlist for FavoriteMappers: {ex.Message}");
+                                        Logger.log?.Debug(ex);
+                                    } 
                                 }
                             }
                         }
@@ -228,6 +236,7 @@ namespace BeatSyncLib.Downloader
                         feedStats += mapperStats;
                         if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
                         {
+                            // TODO: This should only apply to successful targets.
                             foreach (var feedPlaylist in feedPlaylists)
                             {
                                 feedPlaylist.Clear();
@@ -267,9 +276,19 @@ namespace BeatSyncLib.Downloader
                         playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
                     if (feedConfig.CreatePlaylist)
                     {
-                        IPlaylist feedPlaylist = playlistManager.GetOrAddPlaylist(feedConfig.FeedPlaylist);
-                        playlists.Add(feedPlaylist);
-                        feedPlaylists.Add(feedPlaylist);
+                        try
+                        {
+
+                            IPlaylist feedPlaylist = playlistManager.GetOrAddPlaylist(feedConfig.FeedPlaylist);
+                            playlists.Add(feedPlaylist);
+                            feedPlaylists.Add(feedPlaylist);
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            Logger.log?.Error($"Error getting playlist for FavoriteMappers: {ex.Message}");
+                            Logger.log?.Debug(ex);
+                        }
+                        //catch (PlaylistSerializationException ex) // Caught in GetOrAddPlaylist
                     }
                 }
             }
@@ -277,6 +296,7 @@ namespace BeatSyncLib.Downloader
             {
                 foreach (var feedPlaylist in feedPlaylists)
                 {
+                    // TODO: This should only apply to successful targets.
                     feedPlaylist.Clear();
                     feedPlaylist.RaisePlaylistChanged();
                 }

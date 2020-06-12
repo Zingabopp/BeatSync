@@ -90,25 +90,60 @@ namespace BeatSyncLib.Playlists
             try
             {
                 playlist = manager.GetPlaylist(GetBuiltinPlaylistFilename(builtInPlaylist));
+                if (playlist != null)
+                {
+                    Logger.log?.Debug($"Found existing playlist for {builtInPlaylist} with {playlist.Count} song{(playlist.Count == 1 ? "" : "s")}.");
+                    return playlist;
+                }
+            }
+            catch(InvalidOperationException ex)
+            {
+                Logger.log?.Warn($"Error reading existing {builtInPlaylist} playlist file,  creating a new one: {ex.Message}");
+                Logger.log?.Debug(ex);
             }
             catch (PlaylistSerializationException ex)
             {
                 Logger.log?.Warn($"Error reading {builtInPlaylist} playlist file, creating a new one: {ex.Message}");
                 Logger.log?.Debug(ex);
             }
-            if (playlist != null)
-                return playlist;
             return manager.CreateBuiltinPlaylist(builtInPlaylist);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="manager"></param>
+        /// <param name="authorName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="PlaylistSerializationException"></exception>
         public static IPlaylist GetOrCreateAuthorPlaylist(this PlaylistManager manager, string authorName)
         {
             string fileName = AuthorPlaylistPrefix + authorName;
-            if (manager.TryGetPlaylist(fileName, out IPlaylist? existing) && existing != null)
-                return existing;
-            IPlaylist newPlaylist = manager.CreatePlaylist(fileName, authorName, "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverMapper], $"Beatmaps by {authorName}.");
-            manager.RegisterPlaylist(newPlaylist);
-            return newPlaylist;
+            IPlaylist? playlist;
+            try
+            {
+                playlist = manager.GetPlaylist(fileName);
+                if (playlist != null)
+                {
+                    Logger.log?.Debug($"Found existing playlist '{fileName}' with {playlist.Count} song{(playlist.Count == 1 ? "" : "s")}.");
+                    return playlist;
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                Logger.log?.Warn($"Error reading existing playlist file '{fileName}',  creating a new one: {ex.Message}");
+                Logger.log?.Debug(ex);
+            }
+            catch (PlaylistSerializationException ex)
+            {
+                Logger.log?.Warn($"Error reading playlist file '{fileName}', creating a new one: {ex.Message}");
+                Logger.log?.Debug(ex);
+            }
+            playlist = manager.CreatePlaylist(fileName, authorName, "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverMapper], $"Beatmaps by {authorName}.");
+            manager.RegisterPlaylist(playlist);
+            return playlist;
         }
 
         public static IPlaylistSong? Add(this IPlaylist playlist, SongFeedReaders.Data.ISong song)

@@ -1,4 +1,7 @@
-﻿using BeatSyncConsole.Configs;
+﻿using BeatSaberPlaylistsLib;
+using BeatSaberPlaylistsLib.Blister;
+using BeatSaberPlaylistsLib.Legacy;
+using BeatSyncConsole.Configs;
 using BeatSyncConsole.Loggers;
 using BeatSyncConsole.Utilities;
 using BeatSyncLib.Downloader;
@@ -6,7 +9,6 @@ using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
-using BeatSaberPlaylistsLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,8 +18,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities.DownloadContainers;
-using BeatSaberPlaylistsLib.Legacy;
-using BeatSaberPlaylistsLib.Blister;
 
 namespace BeatSyncConsole
 {
@@ -114,9 +114,9 @@ namespace BeatSyncConsole
             return jobBuilder;
 
         }
-        private static void SetupLogging()
+        private static ConsoleLogWriter SetupLogging()
         {
-            ConsoleLogWriter? consoleWriter = new ConsoleLogWriter
+            ConsoleLogWriter consoleWriter = new ConsoleLogWriter
             {
                 LogLevel = BeatSyncLib.Logging.LogLevel.Info
             };
@@ -134,6 +134,7 @@ namespace BeatSyncConsole
             {
                 Logger.log.Error($"Error creating FileLogWriter: {ex.Message}");
             }
+            return consoleWriter;
         }
         static async Task CheckVersion()
         {
@@ -173,13 +174,14 @@ namespace BeatSyncConsole
         {
             try
             {
-                SetupLogging();
+                ConsoleLogWriter? consoleLogger = SetupLogging();
                 string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
                 Logger.log.Info($"Starting BeatSyncConsole v{version}");
                 await CheckVersion().ConfigureAwait(false);
                 ConfigManager = new ConfigManager(ConfigDirectory);
                 bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
-                Logger.log.LoggingLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
+                if (consoleLogger != null)
+                    consoleLogger.LogLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
                 Config? config = ConfigManager.Config;
                 if (validConfig && config != null)
                 {
