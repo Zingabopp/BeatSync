@@ -1,12 +1,11 @@
-﻿using BeatSyncLib.Configs;
-using BeatSyncLib.Playlists;
-using BeatSyncLib.Utilities;
+﻿using BeatSaberPlaylistsLib;
+using BeatSaberPlaylistsLib.Types;
+using BeatSyncLib.Configs;
 using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
-using BeatSaberPlaylistsLib;
-using BeatSaberPlaylistsLib.Types;
+using BeatSyncLib.Playlists;
+using BeatSyncLib.Utilities;
 using SongFeedReaders.Data;
-using SongFeedReaders.Logging;
 using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeastSaber;
 using SongFeedReaders.Readers.BeatSaver;
@@ -14,10 +13,8 @@ using SongFeedReaders.Readers.ScoreSaber;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BeatSaberPlaylistsLib.Legacy;
 
 namespace BeatSyncLib.Downloader
 {
@@ -75,7 +72,7 @@ namespace BeatSyncLib.Downloader
                 return sourceStats;
             }
             SourceStarted?.Invoke(this, "ScoreSaber");
-            foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
+            foreach (FeedConfigBase? feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings()).ConfigureAwait(false);
@@ -116,7 +113,7 @@ namespace BeatSyncLib.Downloader
             }
 
             SourceStarted?.Invoke(this, "BeastSaber");
-            foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
+            foreach (FeedConfigBase? feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 //if (string.IsNullOrEmpty(sourceConfig.Username) && feedConfig.GetType() != typeof(BeastSaberCuratorRecommended))
                 //{
@@ -165,7 +162,7 @@ namespace BeatSyncLib.Downloader
             }
 
             SourceStarted?.Invoke(this, "BeatSaver");
-            foreach (var feedConfig in feedConfigs.Where(c => c.Enabled))
+            foreach (FeedConfigBase? feedConfig in feedConfigs.Where(c => c.Enabled))
             {
                 Logger.log?.Info($"  Starting {feedConfig.GetType().Name} feed...");
                 FeedResult results = await reader.GetSongsFromFeedAsync(feedConfig.ToFeedSettings(), cancellationToken).ConfigureAwait(false);
@@ -196,17 +193,20 @@ namespace BeatSyncLib.Downloader
                     Logger.log.Info("  Starting FavoriteMappers feed...");
                     List<IPlaylist> playlists = new List<IPlaylist>();
                     List<IPlaylist> feedPlaylists = new List<IPlaylist>();
+                    List<IPlaylist> recentPlaylists = new List<IPlaylist>();
                     JobStats feedStats = new JobStats();
-                    foreach (var mapper in mappers)
+                    foreach (string? mapper in mappers)
                     {
 
                         Logger.log.Info($"  Getting songs by {mapper}...");
                         playlists.Clear();
-                        foreach (var targetWithPlaylist in jobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
+                        foreach (ITargetWithPlaylists? targetWithPlaylist in jobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
                         {
                             PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
                             if (playlistManager != null)
                             {
+                                if (config.RecentPlaylistDays > 0)
+                                    recentPlaylists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent));
                                 if (config.AllBeatSyncSongsPlaylist)
                                     playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
                                 if (sourceConfig.FavoriteMappers.CreatePlaylist)
@@ -225,7 +225,7 @@ namespace BeatSyncLib.Downloader
                                     {
                                         Logger.log?.Error($"Error getting playlist for FavoriteMappers: {ex.Message}");
                                         Logger.log?.Debug(ex);
-                                    } 
+                                    }
                                 }
                             }
                         }
@@ -237,13 +237,13 @@ namespace BeatSyncLib.Downloader
                         if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
                         {
                             // TODO: This should only apply to successful targets.
-                            foreach (var feedPlaylist in feedPlaylists)
+                            foreach (IPlaylist? feedPlaylist in feedPlaylists)
                             {
                                 feedPlaylist.Clear();
                                 feedPlaylist.RaisePlaylistChanged();
                             }
                         }
-                        ProcessFinishedJobs(jobs, playlists);
+                        ProcessFinishedJobs(jobs, playlists, recentPlaylists);
 
                         Logger.log.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
                     }
@@ -267,18 +267,20 @@ namespace BeatSyncLib.Downloader
         {
             List<IPlaylist> playlists = new List<IPlaylist>();
             List<IPlaylist> feedPlaylists = new List<IPlaylist>();
-            foreach (var targetWithPlaylist in songTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
+            List<IPlaylist> recentPlaylists = new List<IPlaylist>();
+            foreach (ITargetWithPlaylists? targetWithPlaylist in songTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
             {
                 PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
                 if (playlistManager != null)
                 {
+                    if (beatSyncConfig.RecentPlaylistDays > 0)
+                        recentPlaylists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent));
                     if (beatSyncConfig.AllBeatSyncSongsPlaylist)
                         playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
                     if (feedConfig.CreatePlaylist)
                     {
                         try
                         {
-
                             IPlaylist feedPlaylist = playlistManager.GetOrAddPlaylist(feedConfig.FeedPlaylist);
                             playlists.Add(feedPlaylist);
                             feedPlaylists.Add(feedPlaylist);
@@ -294,34 +296,49 @@ namespace BeatSyncLib.Downloader
             }
             if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
             {
-                foreach (var feedPlaylist in feedPlaylists)
+                foreach (IPlaylist? feedPlaylist in feedPlaylists)
                 {
                     // TODO: This should only apply to successful targets.
                     feedPlaylist.Clear();
                     feedPlaylist.RaisePlaylistChanged();
                 }
             }
-            ProcessFinishedJobs(jobs, playlists);
+            ProcessFinishedJobs(jobs, playlists, recentPlaylists);
         }
 
-        public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<IPlaylist> playlists)
+        public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<IPlaylist> playlists, IEnumerable<IPlaylist> recentPlaylists)
         {
-
-            DateTime addedTime = DateTime.Now;
             TimeSpan offset = new TimeSpan(0, 0, 0, 0, 1);
-            foreach (var job in jobs.Where(j => j.DownloadResult != null && j.DownloadResult.Status != DownloadResultStatus.NetNotFound))
+            DateTime addedTime = DateTime.Now - offset;
+            foreach (IJob? job in jobs.Where(j => j.DownloadResult != null && j.DownloadResult.Status != DownloadResultStatus.NetNotFound))
             {
-                foreach (var playlist in playlists)
+                foreach (IPlaylist? playlist in playlists)
                 {
                     IPlaylistSong? addedSong = playlist.Add(job.Song);
                     if (addedSong != null)
                     {
                         addedSong.DateAdded = addedTime;
-                        addedTime -= offset;
+                    }
+                }
+                DownloadResultStatus downloadStatus = job.Result?.DownloadResult?.Status ?? DownloadResultStatus.Unknown;
+                //if (downloadStatus == DownloadResultStatus.Skipped)
+                {
+                    foreach (IPlaylist? playlist in recentPlaylists)
+                    {
+                        IPlaylistSong? addedSong = playlist.Add(job.Song);
+                        if (addedSong != null)
+                        {
+                            addedSong.DateAdded = addedTime;
+                        }
                     }
                 }
             }
-            foreach (var playlist in playlists)
+            foreach (IPlaylist? playlist in playlists)
+            {
+                playlist.Sort();
+                playlist.RaisePlaylistChanged();
+            }
+            foreach (IPlaylist? playlist in recentPlaylists)
             {
                 playlist.Sort();
                 playlist.RaisePlaylistChanged();
