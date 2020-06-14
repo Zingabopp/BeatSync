@@ -1,6 +1,7 @@
 ﻿using BeatSaberPlaylistsLib;
 using BeatSaberPlaylistsLib.Blister;
 using BeatSaberPlaylistsLib.Legacy;
+using BeatSaberPlaylistsLib.Types;
 using BeatSyncConsole.Configs;
 using BeatSyncConsole.Loggers;
 using BeatSyncConsole.Utilities;
@@ -9,6 +10,8 @@ using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
+using BeatSyncLib.Playlists;
+using BeatSyncLib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -196,11 +199,24 @@ namespace BeatSyncConsole
                     JobStats[] sourceStats = await songDownloader.RunAsync(config.BeatSyncConfig, jobBuilder, manager).ConfigureAwait(false);
                     JobStats beatSyncStats = sourceStats.Aggregate((a, b) => a + b);
                     await manager.CompleteAsync().ConfigureAwait(false);
+                    int recentPlaylistDays = ConfigManager.Config?.BeatSyncConfig.RecentPlaylistDays ?? 0;
+                    DateTime cutoff = DateTime.Now - new TimeSpan(recentPlaylistDays, 0, 0, 0);
                     foreach (SongTarget? target in jobBuilder.SongTargets)
                     {
                         if (target is ITargetWithPlaylists targetWithPlaylists)
                         {
-                            targetWithPlaylists.PlaylistManager?.StoreAllPlaylists();
+                            PlaylistManager? targetPlaylistManager = targetWithPlaylists.PlaylistManager;
+                            if (recentPlaylistDays > 0)
+                            {
+                                IPlaylist? recent = targetPlaylistManager?.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent);
+                                if (recent != null && recent.Count > 0)
+                                {
+                                    int songsRemoved = recent.RemoveAll(s => s.DateAdded < cutoff);
+                                    if (songsRemoved > 0)
+                                        recent.RaisePlaylistChanged();
+                                }
+                            }
+                            targetPlaylistManager?.StoreAllPlaylists();
                         }
                         if (target is ITargetWithHistory targetWithHistory)
                         {
