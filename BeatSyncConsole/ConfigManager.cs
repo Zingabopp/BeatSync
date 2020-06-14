@@ -30,7 +30,7 @@ namespace BeatSyncConsole
         {
             get
             {
-                return Config?.BeatSyncConfigPath?.Replace("%CONFIG%", ConfigDirectory, StringComparison.OrdinalIgnoreCase) 
+                return Config?.BeatSyncConfigPath?.Replace("%CONFIG%", ConfigDirectory, StringComparison.OrdinalIgnoreCase)
                     ?? Path.Combine(ConfigDirectory, "BeatSync.json");
             }
         }
@@ -195,6 +195,21 @@ namespace BeatSyncConsole
                 if (mappers.Count > 0)
                     Config.BeatSyncConfig.BeatSaver.FavoriteMappers.Mappers = mappers.ToArray();
             }
+            var beastSaberConfig = Config.BeatSyncConfig.BeastSaber;
+            if (validConfig && beastSaberConfig.Enabled 
+                && string.IsNullOrEmpty(beastSaberConfig.Username))
+            {
+                if (beastSaberConfig.Bookmarks.Enabled || beastSaberConfig.Follows.Enabled)
+                {
+                    string? username = LogManager.GetUserInput("You have BeastSaber feeds enabled that require your bsaber.com username, enter your username:");
+                    if (username != null && username.Length > 0)
+                    {
+                        beastSaberConfig.Username = username;
+                    }
+                    else
+                        Logger.log.Warn($"No BeastSaber username entered, BeastSaber feeds 'Bookmarks' and 'Follows' will be unavailable.");
+                }
+            }
             if (Config.ConfigChanged || Config.legacyValueChanged)
             {
                 try
@@ -243,7 +258,7 @@ namespace BeatSyncConsole
                     inBeatSyncConfigPath = Path.GetFullPath(Path.Combine(beatSyncConfigDirectory, fileName));
             }
             catch { }
-            if(inBeatSyncConfigPath != null && File.Exists(inBeatSyncConfigPath))
+            if (inBeatSyncConfigPath != null && File.Exists(inBeatSyncConfigPath))
                 return inBeatSyncConfigPath;
 
             string inConfigDirPath = Path.GetFullPath(Path.Combine(ConfigDirectory, fileName));

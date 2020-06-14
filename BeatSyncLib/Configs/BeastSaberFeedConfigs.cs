@@ -36,9 +36,9 @@ namespace BeatSyncLib.Configs
     public class BeastSaberBookmarks : FeedConfigBase
     {
         #region Defaults
-        protected override bool DefaultEnabled => false;
+        protected override bool DefaultEnabled => true;
 
-        protected override int DefaultMaxSongs => 20;
+        protected override int DefaultMaxSongs => 0;
 
         protected override bool DefaultCreatePlaylist => true;
 
