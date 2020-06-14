@@ -67,8 +67,8 @@ namespace BeatSync
 
         private void SetupComponents()
         {
-            string historyPath = Path.Combine(ConfigPath, "BeatSyncHistory.json");
-            string playlistDirectory = Path.Combine(GamePath, "Playlists");
+            string historyPath = HistoryPath;
+            string playlistDirectory = PlaylistDirectory;
             try
             {
                 Directory.CreateDirectory(ConfigPath);

@@ -245,6 +245,7 @@ namespace BeatSyncLib.Configs
         }
         #endregion
 
+        [IgnoreDataMember]
         [JsonIgnore]
         public override bool ConfigChanged
         {

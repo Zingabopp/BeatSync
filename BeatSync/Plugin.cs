@@ -15,6 +15,8 @@ using BeatSync.Utilities;
 using IPALogger = IPA.Logging.Logger;
 using System.Threading;
 using BeatSync.Configs;
+using IPA.Config.Stores;
+using Newtonsoft.Json;
 
 namespace BeatSync
 {
@@ -25,7 +27,7 @@ namespace BeatSync
         internal static readonly string CachedHashDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"..\LocalLow\Hyperbolic Magnetism\Beat Saber\SongHashData.dat");
         internal const string PlaylistsPath = "Playlists";
         internal const string CustomLevelsPath = @"Beat Saber_Data\CustomLevels";
-        internal const string UserDataPath = "UserData";
+        internal static readonly string UserDataPath = Path.Combine(UnityGame.UserDataPath);
         private static string _version;
         public static string PluginVersion
         {
@@ -46,12 +48,12 @@ namespace BeatSync
         //private bool beatSyncCreated = false;
 
         [Init]
-        public void Init(IPALogger logger, [Config.Prefer("json")] IConfigProvider cfgProvider)
+        public void Init(IPALogger logger)//, [Config.Prefer("json")] Config conf)
         {
             Logger.log = new BeatSyncIPALogger(logger);
             Logger.log?.Debug("Logger initialized.");
-
-
+            //config = conf.Generated<BeatSyncConfig>();
+            config = JsonConvert.DeserializeObject<BeatSyncConfig>(File.ReadAllText(Path.Combine(UserDataPath, "BeatSync.json")));
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             SongFeedReaders.Logging.LoggingController.DefaultLogger = readerLogger;
         }
@@ -71,6 +73,7 @@ namespace BeatSync
                 BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
                 SceneManager.activeSceneChanged -= OnActiveSceneChanged;
             }
+            Logger.log?.Debug("Finished setting events.");
         }
 
         [OnEnable]
@@ -98,11 +101,12 @@ namespace BeatSync
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
                     SongFeedReaders.WebUtils.WebClient.Timeout = config.DownloadTimeout * 1000;
+                    Logger.log?.Debug($"Initialized WebUtils with User-Agent: {userAgent}");
                 }
                 BeatSync.Paused = false;
                 BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
                 BeatSyncController.CancelAllToken = CancelAllSource.Token;
-                StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
+                //StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
                 //beatSyncCreated = true;
                 GameObject.DontDestroyOnLoad(BeatSyncController);
                 GameObject.DontDestroyOnLoad(StatusController);
