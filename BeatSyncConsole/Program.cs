@@ -216,7 +216,23 @@ namespace BeatSyncConsole
                                         recent.RaisePlaylistChanged();
                                 }
                             }
-                            targetPlaylistManager?.StoreAllPlaylists();
+                            try
+                            {
+                                targetPlaylistManager?.StoreAllPlaylists();
+                            }
+                            catch (AggregateException ex)
+                            {
+                                Logger.log.Error($"Error storing playlists: {ex.Message}");
+                                foreach (var e in ex.InnerExceptions)
+                                {
+                                    Logger.log.Debug(e);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.log.Error($"Error storing playlists: {ex.Message}");
+                                Logger.log.Debug(ex);
+                            }
                         }
                         if (target is ITargetWithHistory targetWithHistory)
                         {

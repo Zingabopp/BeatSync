@@ -321,7 +321,7 @@ namespace BeatSyncLib.Downloader
                     }
                 }
                 DownloadResultStatus downloadStatus = job.Result?.DownloadResult?.Status ?? DownloadResultStatus.Unknown;
-                //if (downloadStatus == DownloadResultStatus.Skipped)
+                if (downloadStatus == DownloadResultStatus.Success)
                 {
                     foreach (IPlaylist? playlist in recentPlaylists)
                     {
