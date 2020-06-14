@@ -24,6 +24,10 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
     * The `BeatSyncConfigPath` can be used to use an alternate `BeatSync.json` file (such as the one located in your `Beat Saber\UserData` folder.
   * `BeatSync.json` contains the feed configurations and is shared between BeatSyncConsole and the BeatSync mod. You can view details for the feed configuration [Here](#feed-configuration).
   * Once configured, run `BeatSyncConsole.exe` any time you want to download new songs.
+## Have Issues?
+* BeatSyncConsole stores a log file from the last run in the `logs` folder.
+* Let me know of issues by creating an [Issue](https://github.com/Zingabopp/BeatSync/issues) or Ping/DM me in the [BeatSaberModdingGroup](https://discord.gg/beatsabermods) Discord server @Zingabopp#6764
+  * Please include your log file.
 # Installation (BeatSync mod, not released yet)
 * Extract the release zip to your Beat Saber folder (or manually place BeatSync.dll into your Plugins folder).
 * You must also have the following mods for BeatSync to function:
