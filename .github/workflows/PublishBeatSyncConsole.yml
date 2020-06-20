@@ -41,5 +41,5 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: ${{ steps.publish-linux64.outputs.filename }}
-        path: ${{ steps.publish-win64.outputs.artifactpath }}
+        path: ${{ steps.publish-linux64.outputs.artifactpath }}
 
