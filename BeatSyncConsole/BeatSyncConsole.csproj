@@ -47,7 +47,7 @@
     <Message Text="::set-output name=filename::$(OutputFile)" Importance="high" />
     <Message Text="::set-output name=artifactpath::$(ProjectDir)$(PublishDir)../" Importance="high" />
   </Target>
-  <Target Name="ZipRelease" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' != 'True'">
+  <Target Name="ZipRelease" AfterTargets="Publish" Condition="'$(DisableZipRelease)' != 'True'">
     <GetCommitHash ProjectDir="$(ProjectDir)">
       <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
     </GetCommitHash>
@@ -57,6 +57,10 @@
     </PropertyGroup>
     <Message Text="Published '$(RuntimeIdentifier)' to '$(ProjectDir)$(PublishDir)'" Importance="high" />
     <MakeDir Directories="$(ArtifactDirectory)" />
+    <ItemGroup>
+      <filesToDelete Include="$(ArtifactDirectory)*$(RuntimeIdentifier)*.zip"/>
+    </ItemGroup>
+    <Delete Files="@(filesToDelete)" />
     <ZipDirectory SourceDirectory="$(PublishDir)..\" DestinationFile="$(ArtifactDirectory)$(OutputFile)" Overwrite="true" />
   </Target>
   <ItemGroup>
