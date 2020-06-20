@@ -1,5 +1,5 @@
 ﻿using BeatSaberPlaylistsLib;
-using BeatSaberPlaylistsLib.Blister;
+using BeatSaberPlaylistsLib.Blist;
 using BeatSaberPlaylistsLib.Legacy;
 using BeatSaberPlaylistsLib.Types;
 using BeatSyncConsole.Configs;
@@ -73,15 +73,19 @@ namespace BeatSyncConsole
                     if (!Path.IsPathFullyQualified(playlistDirectory))
                         playlistDirectory = Path.Combine(location.BasePath, playlistDirectory);
                     Directory.CreateDirectory(playlistDirectory);
-                    playlistManager = new PlaylistManager(playlistDirectory, new LegacyPlaylistHandler(), new BlisterPlaylistHandler());
+                    playlistManager = new PlaylistManager(playlistDirectory, new LegacyPlaylistHandler(), new BlistPlaylistHandler());
                 }
                 string songsDirectory = location.SongsDirectory;
                 if (!Path.IsPathFullyQualified(songsDirectory))
                     songsDirectory = Path.Combine(location.BasePath, songsDirectory);
                 Directory.CreateDirectory(songsDirectory);
                 songHasher = new SongHasher<SongHashData>(songsDirectory);
+                Stopwatch sw = new Stopwatch();
+                Logger.log.Info($"Hashing songs in '{Paths.ReplaceWorkingDirectory(songsDirectory)}'...");
+                sw.Start();
                 await songHasher.InitializeAsync().ConfigureAwait(false);
-                Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)}.");
+                sw.Stop();
+                Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)} in {sw.Elapsed.Seconds}sec.");
                 SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
                 //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);
