@@ -30,16 +30,16 @@ jobs:
       id: publish-win64
       run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release /p:PublishProfile=win-x64
     - name: Publish_Linux_x64
-      id: publish
+      id: publish-linux64
       run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release /p:PublishProfile=linux-x64
     - name: Upload Win64 Artifact
       uses: actions/upload-artifact@v1
       with:
-        name: BeatSyncConsole_win64
-        path: ./BeatSyncConsole/bin/Release/netcoreapp3.1/publish/BeatSyncConsole_win-x64
+        name: ${{ steps.publish-win64.outputs.filename }}
+        path: ${{ steps.publish-win64.outputs.artifactpath }}
     - name: Upload Linux64 Artifact
       uses: actions/upload-artifact@v1
       with:
-        name: BeatSyncConsole_linux64
-        path: ./BeatSyncConsole/bin/Release/netcoreapp3.1/publish/BeatSyncConsole_linux-x64
+        name: ${{ steps.publish-linux64.outputs.filename }}
+        path: ${{ steps.publish-win64.outputs.artifactpath }}
 
