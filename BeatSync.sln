@@ -19,10 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncLib", "BeatSyncLib\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncLibTests", "BeatSyncLibTests\BeatSyncLibTests.csproj", "{8BA75F87-831D-4420-915E-D7EC5F8953D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncPlaylists", "BeatSyncPlaylists\BeatSyncPlaylists.csproj", "{E1981AE8-0750-4D39-98A5-B60FBF010C32}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncPlaylistsTests", "BeatSyncPlaylistsTests\BeatSyncPlaylistsTests.csproj", "{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSaberPlaylistsLib", "Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj", "{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}"
 EndProject
 Global
@@ -63,14 +59,6 @@ Global
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E1981AE8-0750-4D39-98A5-B60FBF010C32}.Release|Any CPU.Build.0 = Release|Any CPU
-		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{09E9DAF2-98D7-4A9B-8DD9-BE61D92E79D7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
