@@ -16,7 +16,6 @@ using IPALogger = IPA.Logging.Logger;
 using System.Threading;
 using BeatSync.Configs;
 using IPA.Config.Stores;
-using Newtonsoft.Json;
 
 namespace BeatSync
 {
@@ -48,12 +47,11 @@ namespace BeatSync
         //private bool beatSyncCreated = false;
 
         [Init]
-        public void Init(IPALogger logger)//, [Config.Prefer("json")] Config conf)
+        public void Init(IPALogger logger, [Config.Prefer("json")] Config conf)
         {
             Logger.log = new BeatSyncIPALogger(logger);
             Logger.log?.Debug("Logger initialized.");
-            //config = conf.Generated<BeatSyncConfig>();
-            config = JsonConvert.DeserializeObject<BeatSyncConfig>(File.ReadAllText(Path.Combine(UserDataPath, "BeatSync.json")));
+            config = conf.Generated<BeatSyncConfig>();
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             SongFeedReaders.Logging.LoggingController.DefaultLogger = readerLogger;
         }

@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- This file contains the build tasks and targets for verifying the manifest, zipping Release builds,
+     and copying the plugin to to your Beat Saber folder. Only edit this if you know what you are doing. -->
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BuildTargetsVersion>2.0</BuildTargetsVersion>
+    <!--Set this to true if you edit this file to prevent automatic updates-->
+    <BuildTargetsModified>true</BuildTargetsModified>
+    <!--Output assembly path without extension-->
+    <OutputAssemblyName>$(OutputPath)Merged\$(AssemblyName)</OutputAssemblyName>
+    <!--Path to folder to be zipped. Needs to be relative to the project directory to work without changes to the 'BuildForCI' target.-->
+    <ArtifactDestination>$(OutputPath)Final</ArtifactDestination>
+  </PropertyGroup>
+  <!--Build Targets-->
+  <!--Displays a warning if BeatSaberModdingTools.Tasks is not installed.-->
+  <Target Name="CheckBSMTInstalled" AfterTargets="Build" Condition="'$(BSMTTaskAssembly)' == ''">
+    <Error Text="The BeatSaberModdingTools.Tasks nuget package doesn't seem to be installed, advanced build targets will not work." ContinueOnError="true" />
+  </Target>
+  <!--Build target for Continuous Integration builds. Set up for GitHub Actions.-->
+  <Target Name="BuildForCI" AfterTargets="ILRepack" Condition="'$(ContinuousIntegrationBuild)' == 'True' AND '$(BSMTTaskAssembly)' != ''">
+    <Message Text="Building for CI" Importance="high" />
+    <GetManifestInfo ErrorOnMismatch="True">
+      <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
+      <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
+      <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
+    </GetManifestInfo>
+    <GetCommitHash ProjectDir="$(ProjectDir)">
+      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
+    </GetCommitHash>
+    <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
+    <Message Text="::set-output name=filename::$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash)" Importance="high" />
+    <Message Text="::set-output name=assemblyname::$(AssemblyName)" Importance="high" />
+    <Message Text="::set-output name=artifactpath::$(ProjectDir)$(ArtifactDestination)" Importance="high" />
+    <Message Text="Copying '$(OutputAssemblyName).dll' to '$(ProjectDir)$(ArtifactDestination)/Plugins/$(AssemblyName).dll'" Importance="high" />
+    <Copy SourceFiles="$(OutputAssemblyName).dll" DestinationFiles="$(ProjectDir)$(ArtifactDestination)\Plugins\$(AssemblyName).dll" />
+  </Target>
+  <!--Creates a BeatMods compliant zip file with the release.-->
+  <Target Name="ZipRelease" AfterTargets="ILRepack" Condition="'$(DisableZipRelease)' != 'True' AND '$(Configuration)' == 'Release' AND '$(BSMTTaskAssembly)' != ''">
+    <Message Text="Zipping '$(ArtifactDestination)' for release." Importance="high" />
+    <GetCommitHash ProjectDir="$(ProjectDir)">
+      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
+    </GetCommitHash>
+    <Copy SourceFiles="$(OutputAssemblyName).dll" DestinationFiles="$(ArtifactDestination)\Plugins\$(AssemblyName).dll" />
+    <GetManifestInfo ErrorOnMismatch="True">
+      <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
+      <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
+      <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
+    </GetManifestInfo>
+    <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
+    <ZipDir DirectoryName="$(ArtifactDestination)" ZipFileName="$(OutDir)zip\$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" />
+  </Target>
+  <!--Copies the assembly and pdb to the Beat Saber folder.-->
+  <Target Name="CopyToPlugins" AfterTargets="ILRepack" Condition="'$(DisableCopyToPlugins)' != 'True' AND '$(ContinuousIntegrationBuild)' != 'True'">
+    <IsProcessRunning ProcessName="Beat Saber" Condition="'$(BSMTTaskAssembly)' != ''">
+      <Output TaskParameter="IsRunning" PropertyName="IsRunning" />
+    </IsProcessRunning>
+    <PropertyGroup Condition="'$(IsRunning)' == 'True'">
+      <PluginDir>$(BeatSaberDir)\IPA\Pending\Plugins</PluginDir>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsRunning)' != 'True'">
+      <PluginDir>$(BeatSaberDir)\Plugins</PluginDir>
+    </PropertyGroup>
+    <Error Text="Unable to copy assembly to game folder. BeatSaberDir doesn't exist: $(BeatSaberDir)" Condition="!Exists($(BeatSaberDir))"/>
+    <Message Text="Copying $(OutputPath)Merged\$(AssemblyName).dll to $(PluginDir) folder" Importance="high" />
+    <Copy SourceFiles="$(OutputAssemblyName).dll" DestinationFiles="$(PluginDir)\$(AssemblyName).dll" />
+    <Copy SourceFiles="$(OutputAssemblyName).pdb" DestinationFiles="$(PluginDir)\$(AssemblyName).pdb" />
+  </Target>
+</Project>

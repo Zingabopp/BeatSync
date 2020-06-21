@@ -1,37 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(NCrunch)' != '1'" >
+  <UsingTask TaskName="ILRepack" AssemblyFile="ILRepack.MSBuild.Task.dll"/>
+  <Target Name="ILRepack" AfterTargets="Build" Condition="'$(NCrunch)' != '1'" >
+    <Message Text="Starting ILRepack..." Importance="high" />
+    <PropertyGroup>
+      <RepackPDB>false</RepackPDB>
+      <WorkingDirectory>$(ProjectDir)$(OutputPath)</WorkingDirectory>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+      <RepackPDB>true</RepackPDB>
+    </PropertyGroup>
     <ItemGroup>
-      <InputAssemblies Include="$(OutputPath)BeatSync.dll" />
-      <InputAssemblies Include="$(OutputPath)SongFeedReaders.dll" />
-      <InputAssemblies Include="$(OutputPath)WebUtilities.dll" />
-      <InputAssemblies Include="$(OutputPath)BeatSyncLib.dll" />
-      <InputAssemblies Include="$(OutputPath)BeatSaberPlaylistsLib.dll" />
-    </ItemGroup>
-    <ItemGroup>
-      <LibraryPaths Include="$(BeatSaberDir)\Beat Saber_Data\Managed" />
-      <LibraryPaths Include="$(BeatSaberDir)\Libs" />
-      <LibraryPaths Include="$(BeatSaberDir)\Plugins" />
-      <!--<LibraryPaths Include="$(OutputPath)" />  For Newtonsoft -->
+      <InputAssemblies Include="WebUtilities.dll" />
+      <InputAssemblies Include="SongFeedReaders.dll" />
+      <InputAssemblies Include="BeatSyncLib.dll" />
     </ItemGroup>
     <ItemGroup>
       <!-- Must be a fully qualified name -->
-      <!-- <DoNotInternalizeAssemblies Include="System.Threading.Tasks.Dataflow.dll" /> -->
+      <DoNotInternalizeAssemblies Include="^BeatSyncLib.Configs" />
     </ItemGroup>
-
     <ILRepack
         Parallel="true"
-        Internalize="false"
-        InternalizeExclude="@(DoNotInternalizeAssemblies)"
+        Internalize="true"
+        InternalizeExcludeAssemblies="@(DoNotInternalizeAssemblies)"
+        MainAssembly="$(AssemblyName).dll"
+        OutputAssembly="$(WorkingDirectory)Merged\$(AssemblyName).dll"
         InputAssemblies="@(InputAssemblies)"
-        TargetKind="Dll"
-        OutputFile="$(OutputPath)Merged\$(AssemblyName).dll"
-        Verbose="true"
-        LibraryPath="@(LibraryPaths)"
-        DebugInfo="true"
-        TargetPlatformVersion="v4"
+        OutputType="Dll"
+        Verbose="false"
+        DebugInfo="$(RepackPDB)"
+        WorkingDirectory="$(WorkingDirectory)"
     />
-
+    <Message Text="OS is $(OS), repacked PDB available: $(RepackPDB)" Importance="high"/>
   </Target>
 </Project>
-<!-- /ILRepack -->
