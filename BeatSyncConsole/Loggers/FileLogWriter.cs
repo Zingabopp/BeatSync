@@ -23,5 +23,10 @@ namespace BeatSyncConsole.Loggers
             LogFile.Write(message + "\n");
             LogFile.Flush();
         }
+
+        public void Write(LogMessage message)
+        {
+            Write(message.Message, message.LogLevel);
+        }
     }
 }

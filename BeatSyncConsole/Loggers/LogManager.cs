@@ -112,7 +112,7 @@ namespace BeatSyncConsole.Loggers
             {
                 try
                 {
-                    logger.Write(message.Message, message.LogLevel);
+                    logger.Write(message);
                 }
                 catch (Exception ex)
                 {
@@ -151,11 +151,26 @@ namespace BeatSyncConsole.Loggers
             logThread.Join();
         }
     }
-
+    // 0    5--8 9 11
+    // Text Text Text
     public struct LogMessage
     {
         public string Message;
         public LogLevel LogLevel;
         public bool RequiresInput;
+        public ColoredSection[]? ColoredSections;
+    }
+
+    public struct ColoredSection
+    {
+        public ColoredSection(int startIndex, int length, ConsoleColor color)
+        {
+            StartIndex = Math.Max(0, startIndex);
+            Length = Math.Max(0, length);
+            Color = color;
+        }
+        public int StartIndex;
+        public int Length;
+        public ConsoleColor Color;
     }
 }

@@ -35,7 +35,7 @@ namespace BeatSyncConsole.Configs
         #endregion
         #region Public Properties
         [JsonProperty(nameof(BeatSyncConfigPath), Order = 10)]
-        public string BeatSyncConfigPath 
+        public string BeatSyncConfigPath
         {
             get
             {
@@ -108,7 +108,7 @@ namespace BeatSyncConsole.Configs
         private LogLevel? _consoleLogLevel;
         [JsonProperty(nameof(ConsoleLogLevel), Order = 100)]
         [JsonConverter(typeof(LogLevelConverter))]
-        public LogLevel ConsoleLogLevel 
+        public LogLevel ConsoleLogLevel
         {
 
             get
@@ -130,9 +130,9 @@ namespace BeatSyncConsole.Configs
         }
 
         [JsonIgnore]
-        public BeatSyncConfig BeatSyncConfig
+        public BeatSyncConfig? BeatSyncConfig
         {
-            get => _beatSyncConfig ??= new BeatSyncConfig(true);
+            get => _beatSyncConfig;
             set => _beatSyncConfig = value;
         }
 
@@ -157,7 +157,8 @@ namespace BeatSyncConsole.Configs
                 BeatSaberInstallLocations.Add(BeatSaberInstallLocation.CreateEmptyLocation());
             if (AlternateSongsPaths.Count == 0)
                 AlternateSongsPaths.Add(CustomSongLocation.CreateEmptyLocation());
-            BeatSyncConfig.FillDefaults();
+            if (BeatSyncConfig != null)
+                BeatSyncConfig.FillDefaults();
         }
 
 

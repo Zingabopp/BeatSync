@@ -15,6 +15,7 @@ using BeatSyncLib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -190,7 +191,7 @@ namespace BeatSyncConsole
                 if (consoleLogger != null)
                     consoleLogger.LogLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
                 Config? config = ConfigManager.Config;
-                if (validConfig && config != null)
+                if (validConfig && config != null && config.BeatSyncConfig != null)
                 {
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/" + version);
@@ -203,7 +204,7 @@ namespace BeatSyncConsole
                     JobStats[] sourceStats = await songDownloader.RunAsync(config.BeatSyncConfig, jobBuilder, manager).ConfigureAwait(false);
                     JobStats beatSyncStats = sourceStats.Aggregate((a, b) => a + b);
                     await manager.CompleteAsync().ConfigureAwait(false);
-                    int recentPlaylistDays = ConfigManager.Config?.BeatSyncConfig.RecentPlaylistDays ?? 0;
+                    int recentPlaylistDays = config.BeatSyncConfig.RecentPlaylistDays;
                     DateTime cutoff = DateTime.Now - new TimeSpan(recentPlaylistDays, 0, 0, 0);
                     foreach (SongTarget? target in jobBuilder.SongTargets)
                     {
@@ -252,6 +253,7 @@ namespace BeatSyncConsole
                     }
                     sw.Stop();
                     Logger.log.Info($"Finished after {sw.Elapsed.TotalSeconds}s: {beatSyncStats}");
+                    config.BeatSyncConfig.LastRun = DateTime.Now;
                 }
                 else
                 {

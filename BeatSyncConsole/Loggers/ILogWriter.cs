@@ -9,5 +9,6 @@ namespace BeatSyncConsole.Loggers
     {
         LogLevel LogLevel { get; set; }
         void Write(string message, LogLevel logLevel);
+        void Write(LogMessage message);
     }
 }
