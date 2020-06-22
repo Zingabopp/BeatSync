@@ -22,6 +22,7 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
 * The config files `BeatSyncConsole.json` and `BeatSync.json` will be generated in the `configs` folder.
   * `BeatSyncConsole.json` contains settings specific to the console app, such as target locations to download songs to.
     * The `BeatSyncConfigPath` can be used to use an alternate `BeatSync.json` file (such as the one located in your `Beat Saber\UserData` folder.
+    * **Important**: For JSON strings `\` is a special character. If you manually add a path, make sure you separate directories using `\\`. i.e. `C:\\Program Files\\Steam`.
   * `BeatSync.json` contains the feed configurations and is shared between BeatSyncConsole and the BeatSync mod. You can view details for the feed configuration [Here](#feed-configuration).
   * Once configured, run `BeatSyncConsole.exe` any time you want to download new songs.
 ## Have Issues?
