@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="1.1.5">
+    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="1.1.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -58,7 +58,7 @@
     <Message Text="Published '$(RuntimeIdentifier)' to '$(ProjectDir)$(PublishDir)'" Importance="high" />
     <MakeDir Directories="$(ArtifactDirectory)" />
     <ItemGroup>
-      <filesToDelete Include="$(ArtifactDirectory)*$(RuntimeIdentifier)*.zip"/>
+      <filesToDelete Include="$(ArtifactDirectory)*$(RuntimeIdentifier)*.zip" />
     </ItemGroup>
     <Delete Files="@(filesToDelete)" />
     <ZipDirectory SourceDirectory="$(PublishDir)..\" DestinationFile="$(ArtifactDirectory)$(OutputFile)" Overwrite="true" />
