@@ -154,12 +154,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BeatSync.cs" />
+    <Compile Include="ConfigManager.cs" />
     <Compile Include="Configs\BeatSyncModConfig.cs" />
     <Compile Include="Logging\BeatSyncConsoleLogger.cs" />
     <Compile Include="Logging\BeatSyncIPALogger.cs" />
     <Compile Include="Logging\IBeatSyncLogger.cs" />
     <Compile Include="UI\IStatusManager.cs" />
     <Compile Include="UI\PostText.cs" />
+    <Compile Include="UI\SettingsUI.cs" />
     <Compile Include="UI\TextMeshList.cs" />
     <Compile Include="UI\UIController.cs" />
     <Compile Include="Utilities\DictionaryExtensions.cs" />
@@ -183,6 +185,9 @@
     <None Include="Directory.Build.props" />
     <None Include="Directory.Build.targets" />
     <None Include="ILRepack.targets" />
+    <EmbeddedResource Include="UI\SettingsUI.bsml">
+      <DependentUpon>SettingsUI.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BeatSaberModdingTools.Tasks">

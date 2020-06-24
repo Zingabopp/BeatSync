@@ -1,0 +1,195 @@
+﻿<settings-container xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
+  <slider-setting text='DownloadTimeout' min='10' max='300' value='DownloadTimeout' integer-only='true' increment='1' />
+  <slider-setting text='MaxConcurrentDownloads' min='1' max='10' value='MaxConcurrentDownloads' integer-only='true' increment='1' />
+  <slider-setting text='RecentPlaylistDays' min='0' max='30' value='RecentPlaylistDays' integer-only='true' increment='1' />
+  <bool-setting text='AllBeatSyncSongsPlaylist' value='AllBeatSyncSongsPlaylist' />
+  <!--BeastSaber-->
+  <settings-submenu underlined='true' text='BeastSaber'>
+    <settings-container>
+      <horizontal>
+        <clickable-text text='|Back|' underlined='true' click-event='back'/>
+        <text text='BeastSaber Settings' underlined='true' font-size='5'/>
+      </horizontal>
+      <bool-setting text='Enabled' value='BeastSaber.Enabled' />
+      <string-setting text='Username' value='BeastSaber.Username' />
+      <slider-setting text='MaxConcurrentPageChecks' min='1' max='10' value='BeastSaber.MaxConcurrentPageChecks' integer-only='true' increment='1' />
+      <!--BeastSaber Bookmarks-->
+      <settings-submenu underlined='true' text='Bookmarks'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeastSaber Bookmarks' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeastSaber.Bookmarks.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeastSaber.Bookmarks.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeastSaber.Bookmarks.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeastSaber.Bookmarks.PlaylistStyle' />
+        </settings-container>
+      </settings-submenu>
+      <!--BeastSaber Follows-->
+      <settings-submenu underlined='true' text='Follows'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeastSaber Follows' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeastSaber.Follows.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeastSaber.Follows.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeastSaber.Follows.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeastSaber.Follows.PlaylistStyle' />
+        </settings-container>
+      </settings-submenu>
+      <!--BeastSaber CuratorRecommended-->
+      <settings-submenu underlined='true' text='CuratorRecommended'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeastSaber CuratorRecommended' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeastSaber.CuratorRecommended.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeastSaber.CuratorRecommended.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeastSaber.CuratorRecommended.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeastSaber.CuratorRecommended.PlaylistStyle' />
+        </settings-container>
+      </settings-submenu>
+    </settings-container>
+  </settings-submenu>
+  <!--BeatSaver-->
+  <settings-submenu underlined='true' text='BeatSaver'>
+    <settings-container>
+      <horizontal>
+        <clickable-text text='|Back|' underlined='true' click-event='back'/>
+        <text text='BeatSaver Settings' underlined='true' font-size='5'/>
+      </horizontal>
+      <bool-setting text='Enabled' value='BeatSaver.Enabled' />
+      <slider-setting text='MaxConcurrentPageChecks' min='1' max='10' value='BeatSaver.MaxConcurrentPageChecks' integer-only='true' increment='1' />
+      <!--BeatSaver FavoriteMappers-->
+      <settings-submenu underlined='true' text='FavoriteMappers'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeatSaver FavoriteMappers' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeatSaver.FavoriteMappers.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeatSaver.FavoriteMappers.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeatSaver.FavoriteMappers.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeatSaver.FavoriteMappers.PlaylistStyle' />
+          <bool-setting text='SeparateMapperPlaylists' value='BeatSaver.FavoriteMappers.SeparateMapperPlaylists' />
+        </settings-container>
+      </settings-submenu>
+      <!--BeatSaver Hot-->
+      <settings-submenu underlined='true' text='Hot'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeatSaver Hot' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeatSaver.Hot.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeatSaver.Hot.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeatSaver.Hot.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeatSaver.Hot.PlaylistStyle' />
+        </settings-container>
+      </settings-submenu>
+      <!--BeatSaver Downloads-->
+      <settings-submenu underlined='true' text='Downloads'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeatSaver Downloads' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeatSaver.Downloads.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeatSaver.Downloads.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeatSaver.Downloads.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeatSaver.Downloads.PlaylistStyle' />
+        </settings-container>
+      </settings-submenu>
+      <!--BeatSaver Latest-->
+      <settings-submenu underlined='true' text='Latest'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='BeatSaver Latest' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='BeatSaver.Latest.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='BeatSaver.Latest.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='BeatSaver.Latest.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='BeatSaver.Latest.PlaylistStyle' />
+        </settings-container>
+      </settings-submenu>
+    </settings-container>
+  </settings-submenu>
+  <!--ScoreSaber-->
+  <settings-submenu underlined='true' text='ScoreSaber'>
+    <settings-container>
+      <horizontal>
+        <clickable-text text='|Back|' underlined='true' click-event='back'/>
+        <text text='ScoreSaber Settings' underlined='true' font-size='5'/>
+      </horizontal>
+      <bool-setting text='Enabled' value='ScoreSaber.Enabled' />
+      <!--ScoreSaber TopRanked-->
+      <settings-submenu underlined='true' text='TopRanked'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='ScoreSaber TopRanked' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='ScoreSaber.TopRanked.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='ScoreSaber.TopRanked.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='ScoreSaber.TopRanked.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='ScoreSaber.TopRanked.PlaylistStyle' />
+          <slider-setting text='MaxStars' value='ScoreSaber.TopRanked.MaxStars' increment='0.1' integer-only='false' />
+          <slider-setting text='MinStars' value='ScoreSaber.TopRanked.MinStars' increment='0.1' integer-only='false' />
+        </settings-container>
+      </settings-submenu>
+      <!--ScoreSaber LatestRanked-->
+      <settings-submenu underlined='true' text='LatestRanked'>
+        <settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='ScoreSaber LatestRanked' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='ScoreSaber.LatestRanked.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='ScoreSaber.LatestRanked.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='ScoreSaber.LatestRanked.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='ScoreSaber.LatestRanked.PlaylistStyle' />
+          <slider-setting text='MaxStars' value='ScoreSaber.LatestRanked.MaxStars' increment='0.1' integer-only='false' />
+          <slider-setting text='MinStars' value='ScoreSaber.LatestRanked.MinStars' increment='0.1' integer-only='false' />
+        </settings-container>
+      </settings-submenu>
+      <!--ScoreSaber Trending-->
+      <settings-submenu underlined='true' text='Trending'>
+        <scrollable-settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='ScoreSaber Trending' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='ScoreSaber.Trending.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='ScoreSaber.Trending.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='ScoreSaber.Trending.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='ScoreSaber.Trending.PlaylistStyle' />
+          <bool-setting text='Ranked Only' value='ScoreSaber.Trending.RankedOnly' />
+          <bool-setting text='Include Unstarred' value='ScoreSaber.Trending.IncludeUnstarred' />
+          <slider-setting text='MaxStars' value='ScoreSaber.Trending.MaxStars' increment='0.1' integer-only='false' />
+          <slider-setting text='MinStars' value='ScoreSaber.Trending.MinStars' increment='0.1' integer-only='false' />
+        </scrollable-settings-container>
+      </settings-submenu>
+      <!--ScoreSaber TopPlayed-->
+      <settings-submenu underlined='true' text='TopPlayed'>
+        <scrollable-settings-container>
+          <horizontal>
+            <clickable-text text='|Back|' underlined='true' click-event='back'/>
+            <text text='ScoreSaber TopPlayed' underlined='true' font-size='5'/>
+          </horizontal>
+          <bool-setting text='Enabled' value='ScoreSaber.TopPlayed.Enabled' />
+          <list-slider-setting text='MaxSongs' choices='MaxSongOptions' value='ScoreSaber.TopPlayed.MaxSongs' />
+          <bool-setting text='CreatePlaylist' value='ScoreSaber.TopPlayed.CreatePlaylist' />
+          <dropdown-list-setting text='PlaylistStyle' choices='PlaylistStyleOptions' value='ScoreSaber.TopPlayed.PlaylistStyle' />
+          <bool-setting text='Ranked Only' value='ScoreSaber.TopPlayed.RankedOnly' />
+          <bool-setting text='Include Unstarred' value='ScoreSaber.TopPlayed.IncludeUnstarred' />
+          <slider-setting text='MaxStars' value='ScoreSaber.TopPlayed.MaxStars' increment='0.1' integer-only='false' />
+          <slider-setting text='MinStars' value='ScoreSaber.TopPlayed.MinStars' increment='0.1' integer-only='false' />
+        </scrollable-settings-container>
+      </settings-submenu>
+    </settings-container>
+  </settings-submenu>
+</settings-container>

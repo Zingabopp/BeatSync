@@ -16,6 +16,7 @@ using IPALogger = IPA.Logging.Logger;
 using System.Threading;
 using BeatSync.Configs;
 using IPA.Config.Stores;
+using BeatSaberMarkupLanguage.Settings;
 
 namespace BeatSync
 {
@@ -37,8 +38,12 @@ namespace BeatSync
                 return _version;
             }
         }
+
+        internal static ConfigManager ConfigManager;
+        internal static bool ConfigInitialized = false;
         internal static BeatSyncConfig config;
         internal static BeatSyncModConfig modConfig;
+        internal static UI.SettingsUI SettingsUI;
         internal static UI.UIController StatusController;
         internal static BeatSync BeatSyncController;
         internal static FileLock CustomLevelsLock = new FileLock(CustomLevelsPath);
@@ -47,13 +52,21 @@ namespace BeatSync
         //private bool beatSyncCreated = false;
 
         [Init]
-        public void Init(IPALogger logger, [Config.Prefer("json")] Config conf)
+        public void Init(IPALogger logger)//, [Config.Prefer("json")] Config conf)
         {
             Logger.log = new BeatSyncIPALogger(logger);
             Logger.log?.Debug("Logger initialized.");
-            config = conf.Generated<BeatSyncConfig>();
+            //config = conf.Generated<BeatSyncConfig>();
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             SongFeedReaders.Logging.LoggingController.DefaultLogger = readerLogger;
+            ConfigManager = new ConfigManager();
+            ConfigInitialized = ConfigManager.InitializeConfig();
+            if (ConfigInitialized)
+            {
+                modConfig = ConfigManager.Config;
+                config = ConfigManager.Config.BeatSyncConfig;
+                SettingsUI = new UI.SettingsUI(modConfig);
+            }
         }
 
         public void SetEvents(bool enabled)
@@ -77,6 +90,11 @@ namespace BeatSync
         [OnEnable]
         public void OnEnable()
         {
+            if (!ConfigInitialized)
+            {
+                Logger.log.Error($"Config files could not be initialized, unable to start.");
+                return;
+            }
             if (CancelAllSource != null)
             {
                 try
@@ -86,6 +104,7 @@ namespace BeatSync
                 }
                 catch (Exception) { }
             }
+            BSMLSettings.instance.AddSettingsMenu("BeatSync", "BeatSync.UI.SettingsUI", SettingsUI);
             CancelAllSource = new CancellationTokenSource();
             Logger.log?.Debug($"BeatSync {PluginVersion} OnEnable");
             // Check if CustomUI is installed.
@@ -107,7 +126,7 @@ namespace BeatSync
                 //StatusController = new GameObject("BeatSync.UIController").AddComponent<UI.UIController>();
                 //beatSyncCreated = true;
                 GameObject.DontDestroyOnLoad(BeatSyncController);
-                GameObject.DontDestroyOnLoad(StatusController);
+               // GameObject.DontDestroyOnLoad(StatusController);
             }
             catch (Exception ex)
             {
