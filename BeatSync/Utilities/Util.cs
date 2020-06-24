@@ -35,7 +35,7 @@ namespace BeatSync.Utilities
                 }
                 catch (Exception ex)
                 {
-                    Logger.log?.Error($"Error invoking action for WaitForResource<{typeof(TResource)}> with name {name}.\n{ex?.Message}\n{ex?.StackTrace}");
+                    Plugin.log?.Error($"Error invoking action for WaitForResource<{typeof(TResource)}> with name {name}.\n{ex?.Message}\n{ex?.StackTrace}");
                 }
                 return true;
             });
@@ -107,13 +107,13 @@ namespace BeatSync.Utilities
                     if (File.Exists(beatmapPath))
                         combinedBytes = combinedBytes.Concat(File.ReadAllBytes(beatmapPath)).ToArray();
                     else
-                        Logger.log?.Debug($"Missing difficulty file {beatmapPath.Split('\\', '/').LastOrDefault()}");
+                        Plugin.log?.Debug($"Missing difficulty file {beatmapPath.Split('\\', '/').LastOrDefault()}");
                 }
             }
 
             string hash = CreateSha1FromBytes(combinedBytes.ToArray());
             if (!string.IsNullOrEmpty(existingHash) && existingHash != hash)
-                Logger.log?.Warn($"Hash doesn't match the existing hash for {songDirectory}");
+                Plugin.log?.Warn($"Hash doesn't match the existing hash for {songDirectory}");
             return hash;
         }
 
@@ -215,15 +215,15 @@ namespace BeatSync.Utilities
                 var resource = GetResource(Assembly.GetCallingAssembly(), imagePath);
                 if(resource.Length == 0)
                 {
-                    Logger.log?.Warn($"Unable to load image from path: {imagePath}");
+                    Plugin.log?.Warn($"Unable to load image from path: {imagePath}");
                     return "1";
                 }
                 return Convert.ToBase64String(resource);
             }
             catch (Exception ex)
             {
-                Logger.log?.Warn($"Unable to load image from path: {imagePath}");
-                Logger.log?.Debug(ex);
+                Plugin.log?.Warn($"Unable to load image from path: {imagePath}");
+                Plugin.log?.Debug(ex);
             }
             return string.Empty;
         }
@@ -248,7 +248,7 @@ namespace BeatSync.Utilities
             }
             catch (NullReferenceException)
             {
-                Logger.log?.Debug($"Resource {ResourceName} was not found.");
+                Plugin.log?.Debug($"Resource {ResourceName} was not found.");
             }
             return Array.Empty<byte>();
         }

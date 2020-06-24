@@ -34,8 +34,8 @@ namespace BeatSync.Utilities
                 }
                 catch (Exception ex)
                 {
-                    Logger.log?.Warn($"Error recovering {bakFile.FullName}: {ex.Message}");
-                    Logger.log?.Debug(ex.StackTrace);
+                    Plugin.log?.Warn($"Error recovering {bakFile.FullName}: {ex.Message}");
+                    Plugin.log?.Debug(ex.StackTrace);
                 }
             }
             text = File.ReadAllText(path);
@@ -146,12 +146,12 @@ namespace BeatSync.Utilities
 
                 if (dirName.Length + diff > 0)
                 {
-                    //Logger.log?.Warn($"{extractDirectory} is too long, attempting to shorten.");
+                    //Plugin.log?.Warn($"{extractDirectory} is too long, attempting to shorten.");
                     extractDirectory = extractDirectory.Substring(0, minLength + dirName.Length + diff);
                 }
                 else
                 {
-                    //Logger.log?.Error($"{extractDirectory} is too long, couldn't shorten enough.");
+                    //Plugin.log?.Error($"{extractDirectory} is too long, couldn't shorten enough.");
                     throw new PathTooLongException(extractDirectory);
                 }
             }
@@ -186,11 +186,11 @@ namespace BeatSync.Utilities
             List<string> createdFiles = new List<string>();
             try
             {
-                //Logger.log?.Info($"ExtractDirectory is {extractDirectory}");
+                //Plugin.log?.Info($"ExtractDirectory is {extractDirectory}");
                 using (FileStream fs = new FileStream(zipPath, FileMode.Open, FileAccess.Read))
                 using (ZipArchive zipArchive = new ZipArchive(fs, ZipArchiveMode.Read))
                 {
-                    //Logger.log?.Info("Zip opened");
+                    //Plugin.log?.Info("Zip opened");
                     //extractDirectory = GetValidPath(extractDirectory, zipArchive.Entries.Select(e => e.Name).ToArray(), shortDirName, overwriteTarget);
                     int longestEntryName = zipArchive.Entries.Select(e => e.Name).Max(n => n.Length);
                     try
@@ -245,16 +245,16 @@ namespace BeatSync.Utilities
                             }
                             catch (InvalidDataException ex) // Entry is missing, corrupt, or compression method isn't supported
                             {
-                                Logger.log?.Error($"Error extracting {extractDirectory}, archive appears to be damaged.");
-                                Logger.log?.Error(ex);
+                                Plugin.log?.Error($"Error extracting {extractDirectory}, archive appears to be damaged.");
+                                Plugin.log?.Error(ex);
                                 result.Exception = ex;
                                 result.ResultStatus = ZipExtractResultStatus.SourceFailed;
                                 result.ExtractedFiles = createdFiles.ToArray();
                             }
                             catch (Exception ex)
                             {
-                                Logger.log?.Error($"Error extracting {extractDirectory}");
-                                Logger.log?.Error(ex);
+                                Plugin.log?.Error($"Error extracting {extractDirectory}");
+                                Plugin.log?.Error(ex);
                                 result.Exception = ex;
                                 result.ResultStatus = ZipExtractResultStatus.DestinationFailed;
                                 result.ExtractedFiles = createdFiles.ToArray();
@@ -285,8 +285,8 @@ namespace BeatSync.Utilities
             catch (Exception ex) // If exception is thrown here, it probably happened when the FileStream was opened.
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                Logger.log?.Error($"Error opening FileStream for {zipPath}");
-                Logger.log?.Error(ex);
+                Plugin.log?.Error($"Error opening FileStream for {zipPath}");
+                Plugin.log?.Error(ex);
                 try
                 {
                     if (!string.IsNullOrEmpty(createdDirectory))
@@ -304,7 +304,7 @@ namespace BeatSync.Utilities
                 catch (Exception cleanUpException)
                 {
                     // Failed at cleanup
-                    Logger.log?.Debug($"Failed to clean up zip file: {cleanUpException.Message}");
+                    Plugin.log?.Debug($"Failed to clean up zip file: {cleanUpException.Message}");
                 }
 
                 result.Exception = ex;

@@ -7,7 +7,7 @@ namespace BeatSync.Logging
     public class BeatSyncFeedReaderLogger : FeedReaderLoggerBase
     {
 #if DEBUG
-        private const string MessagePrefix = "-SongFeedReaders-: ";
+        private const string MessagePrefix = "[SongFeedReaders]: ";
 #else
         private const string MessagePrefix = "";
 #endif
@@ -24,22 +24,22 @@ namespace BeatSync.Logging
 
         public override void Log(string message, SongFeedReaders.Logging.LogLevel logLevel, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
         {
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Error)
+            if (LogLevel > logLevel)
                 return;
-            Logger.log?.Error(MessagePrefix + message);
+            Plugin.log?.Log(logLevel.ToIPALogLevel(), MessagePrefix + message);
         }
 
         public override void Log(string message, Exception e, SongFeedReaders.Logging.LogLevel logLevel, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
         {
             if (e == null)
                 return;
-            if (LogLevel > SongFeedReaders.Logging.LogLevel.Exception)
+            if (LogLevel > logLevel)
                 return;
             if (!string.IsNullOrEmpty(message))
-                Logger.log?.Error($"{MessagePrefix + message}: {e.Message}");
+                Plugin.log?.Log(logLevel.ToIPALogLevel(), $"{MessagePrefix + message}: {e.Message}");
             else
-                Logger.log?.Error(e.Message);
-            Logger.log?.Debug(e);
+                Plugin.log?.Log(logLevel.ToIPALogLevel(), e.Message);
+            Plugin.log?.Debug(e);
         }
     }
 }

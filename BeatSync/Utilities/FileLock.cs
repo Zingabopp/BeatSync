@@ -62,7 +62,7 @@ namespace BeatSync.Utilities
                         File.Delete(LockFile);
                     }catch(Exception ex)
                     {
-                        Logger.log?.Debug($"Unable to delete lock file {LockFile}: {ex.Message}");
+                        Plugin.log?.Debug($"Unable to delete lock file {LockFile}: {ex.Message}");
                     }
                 }
 

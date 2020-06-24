@@ -175,12 +175,12 @@ namespace BeatSync.UI
                     _displayedText = value;
                     if (_textMesh != null)
                     {
-                        //Logger.log?.Info($"Setting textMesh to {_displayedText}, alignment: {_textMesh.alignment.ToString()}");
+                        //Plugin.log?.Info($"Setting textMesh to {_displayedText}, alignment: {_textMesh.alignment.ToString()}");
                         _textMesh.text = value;
                         //WriteThings();
                     }
                     //else
-                    //    Logger.log?.Debug($"textMesh is null when trying to make it {_displayedText}");
+                    //    Plugin.log?.Debug($"textMesh is null when trying to make it {_displayedText}");
                 }
             }
         }
@@ -227,18 +227,18 @@ namespace BeatSync.UI
 
         public void Awake()
         {
-            //Logger.log?.Info("FloatingText awake.");
+            //Plugin.log?.Info("FloatingText awake.");
         }
 
         private IEnumerator<WaitForSeconds> WaitForCanvas()
         {
-            //Logger.log?.Info($"{gameObject.name}:Waiting for Canvas");
+            //Plugin.log?.Info($"{gameObject.name}:Waiting for Canvas");
             var pollRate = new WaitForSeconds(1f);
             while (Canvas == null)
             {
                 yield return pollRate;
             }
-            //Logger.log?.Info($"{gameObject.name}:Waiting for Font");
+            //Plugin.log?.Info($"{gameObject.name}:Waiting for Font");
             StartCoroutine(Util.WaitForResource<TMP_FontAsset>(FontName, font =>
             {
                 TMP_Font = UnityEngine.Object.Instantiate<TMP_FontAsset>(font);
@@ -255,16 +255,16 @@ namespace BeatSync.UI
         {
             _textMesh.ForceMeshUpdate();
             
-            Logger.log?.Warn($"{gameObject.name} Text: {_displayedText}\n  TransformPos: {_textMesh.transform.position}\n  LocalPos: {_textMesh.transform.localPosition}\n  RT_anchored: {_textMesh.rectTransform.anchoredPosition}");
-            Logger.log?.Warn($"  TextBounds: {_textMesh.textBounds.ToString()}\n  Bounds: {_textMesh.bounds.ToString()}");
-            Logger.log?.Warn($" Canvas:\n  TransformPos: {Canvas.transform.position}\n  LocalPos: {Canvas.transform.localPosition}");
-            Logger.log?.Critical($"  minWidth = {_textMesh.minWidth}, preferredWidth = {_textMesh.preferredWidth}");
+            Plugin.log?.Warn($"{gameObject.name} Text: {_displayedText}\n  TransformPos: {_textMesh.transform.position}\n  LocalPos: {_textMesh.transform.localPosition}\n  RT_anchored: {_textMesh.rectTransform.anchoredPosition}");
+            Plugin.log?.Warn($"  TextBounds: {_textMesh.textBounds.ToString()}\n  Bounds: {_textMesh.bounds.ToString()}");
+            Plugin.log?.Warn($" Canvas:\n  TransformPos: {Canvas.transform.position}\n  LocalPos: {Canvas.transform.localPosition}");
+            Plugin.log?.Critical($"  minWidth = {_textMesh.minWidth}, preferredWidth = {_textMesh.preferredWidth}");
 
         }
 
         public void CreateText()
         {
-            //Logger.log?.Info("Font found, creating text.");
+            //Plugin.log?.Info("Font found, creating text.");
             _textMesh = BeatSaberUI.CreateText(Canvas.transform as RectTransform, DisplayedText, new Vector2(0f, 0f), new Vector2(0f, 0f));
             _textMesh.text = DisplayedText;
             _textMesh.fontSize = FontSize;
@@ -273,7 +273,7 @@ namespace BeatSync.UI
             _textMesh.fontStyle = FontStyle;
             _textMesh.color = FontColor;
             //_textMesh.rectTransform.anchoredPosition = (Canvas.transform as RectTransform).anchoredPosition;
-            //Logger.log?.Debug($"FloatingText {this.gameObject.name ?? ""} created.");
+            //Plugin.log?.Debug($"FloatingText {this.gameObject.name ?? ""} created.");
         }
 
         public string Vector2ToString(Vector2 vector)

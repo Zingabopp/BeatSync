@@ -82,7 +82,7 @@ namespace BeatSync.UI
             {
                 if (_height != value)
                 {
-                    //Logger.log?.Info($"Height: {_height} > {value}");
+                    //Plugin.log?.Info($"Height: {_height} > {value}");
                     _height = value;
                     var currentPos = gameObject.transform.position;
                     currentPos.y = _height;
@@ -103,7 +103,7 @@ namespace BeatSync.UI
             {
                 if (_horizontalDegrees != value)
                 {
-                    //Logger.log?.Info($"VerticalDegrees: {_horizontalDegrees} > {value}");
+                    //Plugin.log?.Info($"VerticalDegrees: {_horizontalDegrees} > {value}");
                     var diff = value - _horizontalDegrees;
                     _horizontalDegrees = value;
                     RotateRelative(new Vector3(0, 1, 0), diff);
@@ -145,14 +145,14 @@ namespace BeatSync.UI
         {
             var postId = NextId;
             if (postId == 0)
-                Logger.log?.Error($"postId is 0 during Post, this shouldn't happen");
+                Plugin.log?.Error($"postId is 0 during Post, this shouldn't happen");
             if (StatusLists.TryGetValue(targetName, out var statusList))
             {
                 if (!PostHistory.TryAdd(postId, targetName))
-                    Logger.log?.Warn($"postId {postId} for {targetName} couldn't be added.");
+                    Plugin.log?.Warn($"postId {postId} for {targetName} couldn't be added.");
                 statusList.Post(postId, text, color);
 #if DEBUG
-                Logger.log?.Info($"Posting text {text} to {targetName}.{postId}");
+                Plugin.log?.Info($"Posting text {text} to {targetName}.{postId}");
 #endif
                 return postId;
             }
@@ -198,16 +198,16 @@ namespace BeatSync.UI
                         return true;
                     //else
                     //{
-                    //    Logger.log?.Debug($"Failed to append PostId {postId} for {targetName} at AppendPost({postId}, {text}, {color})");
+                    //    Plugin.log?.Debug($"Failed to append PostId {postId} for {targetName} at AppendPost({postId}, {text}, {color})");
                     //    var postIds = string.Join(", ", statusList.PostTexts.Select(l => l.PostId).ToList());
-                    //    Logger.log?.Debug($"Valid PostIds: {postIds}");
+                    //    Plugin.log?.Debug($"Valid PostIds: {postIds}");
                     //}
                 }
                 //else
-                //    Logger.log?.Debug($"Failed to append PostId {postId} for {targetName} at StatusLists.TryGetValue({targetName})");
+                //    Plugin.log?.Debug($"Failed to append PostId {postId} for {targetName} at StatusLists.TryGetValue({targetName})");
             }
             //else
-            //    Logger.log?.Debug($"Failed to append PostId {postId} at PostHistory.TryGetValue({postId})");
+            //    Plugin.log?.Debug($"Failed to append PostId {postId} at PostHistory.TryGetValue({postId})");
             PostHistory.TryRemove(postId, out var _); // Doesn't exist anymore, remove
             return false;
         }
@@ -304,7 +304,7 @@ namespace BeatSync.UI
                 statusList.Clear();
             }
             else
-                Logger.log?.Warn($"Unable to clear {targetName}");
+                Plugin.log?.Warn($"Unable to clear {targetName}");
         }
 
         public void ClearAll()
@@ -364,11 +364,11 @@ namespace BeatSync.UI
 
         public void Awake()
         {
-            //Logger.log?.Info("UIController awake.");
+            //Plugin.log?.Info("UIController awake.");
             _statusLists = new Dictionary<string, TextMeshList>();
             PlayerPos = new Vector3(0, 1.7f, 0);
             UpdateSettings();
-            //Logger.log?.Info($"UIController Position: {gameObject.transform.position}");
+            //Plugin.log?.Info($"UIController Position: {gameObject.transform.position}");
             //WriteParents(gameObject);
             //CreateCanvas();
 
@@ -395,7 +395,7 @@ namespace BeatSync.UI
 
             while (gObject != null)
             {
-                Logger.log?.Info($"  {gObject.name}");
+                Plugin.log?.Info($"  {gObject.name}");
                 gObject = gObject.transform.parent?.gameObject;
             }
         }
@@ -406,9 +406,9 @@ namespace BeatSync.UI
             canvas.renderMode = UnityEngine.RenderMode.WorldSpace;
             (canvas.transform as RectTransform).sizeDelta = new Vector2(4f, 2f);
             canvas.transform.SetParent(parent.transform, false);
-            //Logger.log?.Warn($"UIController Position: {parent.transform.position}");
+            //Plugin.log?.Warn($"UIController Position: {parent.transform.position}");
             //canvas.transform.position = new Vector3(0, 0, Distance);
-            //Logger.log?.Info($"UIController Position: {parent.transform.position}");
+            //Plugin.log?.Info($"UIController Position: {parent.transform.position}");
             return canvas;
         }
 
@@ -483,7 +483,7 @@ namespace BeatSync.UI
 
         public void OnDestroy()
         {
-            //Logger.log?.Warn("Destroying UI Controller.");
+            //Plugin.log?.Warn("Destroying UI Controller.");
             foreach (var item in StatusLists.Values)
             {
                 if (item != null)
@@ -529,33 +529,33 @@ namespace BeatSync.UI
         //    if (Input.GetKeyDown(KeyCode.UpArrow))
         //    {
         //        Height = Height + .1f;
-        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //        Plugin.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
 
         //    }
         //    if (Input.GetKeyDown(KeyCode.DownArrow))
         //    {
         //        Height = Height - .1f;
-        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //        Plugin.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
         //    }
         //    if (Input.GetKeyDown(KeyCode.LeftArrow))
         //    {
         //        HorizontalDegrees = HorizontalDegrees - 5;
-        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //        Plugin.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
         //    }
         //    if (Input.GetKeyDown(KeyCode.RightArrow))
         //    {
         //        HorizontalDegrees = HorizontalDegrees + 5;
-        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //        Plugin.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
         //    }
         //    if (Input.GetKeyDown(KeyCode.PageUp))
         //    {
         //        Distance = Distance + .1f;
-        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //        Plugin.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
         //    }
         //    if (Input.GetKeyDown(KeyCode.PageDown))
         //    {
         //        Distance = Distance - .1f;
-        //        Logger.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
+        //        Plugin.log?.Info($"UIController Position: {gameObject.transform.position}, Rotation: {gameObject.transform.rotation}");
         //    }
 
         //}

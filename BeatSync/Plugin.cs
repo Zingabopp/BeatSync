@@ -39,6 +39,7 @@ namespace BeatSync
             }
         }
 
+        internal static IPALogger log;
         internal static ConfigManager ConfigManager;
         internal static bool ConfigInitialized = false;
         internal static BeatSyncConfig config;
@@ -54,11 +55,12 @@ namespace BeatSync
         [Init]
         public void Init(IPALogger logger)//, [Config.Prefer("json")] Config conf)
         {
-            Logger.log = new BeatSyncIPALogger(logger);
-            Logger.log?.Debug("Logger initialized.");
+            log = logger;
+            log?.Debug("Logger initialized.");
             //config = conf.Generated<BeatSyncConfig>();
             var readerLogger = new Logging.BeatSyncFeedReaderLogger(SongFeedReaders.Logging.LoggingController.DefaultLogController);
             SongFeedReaders.Logging.LoggingController.DefaultLogger = readerLogger;
+            BeatSyncLib.Logger.log = new BeatSyncLogger(logger);
             ConfigManager = new ConfigManager();
             ConfigInitialized = ConfigManager.InitializeConfig();
             if (ConfigInitialized)
@@ -84,7 +86,7 @@ namespace BeatSync
                 BS_Utils.Utilities.BSEvents.menuSceneLoadedFresh -= MenuLoadedFresh;
                 SceneManager.activeSceneChanged -= OnActiveSceneChanged;
             }
-            Logger.log?.Debug("Finished setting events.");
+            Plugin.log?.Debug("Finished setting events.");
         }
 
         [OnEnable]
@@ -92,7 +94,7 @@ namespace BeatSync
         {
             if (!ConfigInitialized)
             {
-                Logger.log.Error($"Config files could not be initialized, unable to start.");
+                Plugin.log.Error($"Config files could not be initialized, unable to start.");
                 return;
             }
             if (CancelAllSource != null)
@@ -106,7 +108,7 @@ namespace BeatSync
             }
             BSMLSettings.instance.AddSettingsMenu("BeatSync", "BeatSync.UI.SettingsUI", SettingsUI);
             CancelAllSource = new CancellationTokenSource();
-            Logger.log?.Debug($"BeatSync {PluginVersion} OnEnable");
+            Plugin.log?.Debug($"BeatSync {PluginVersion} OnEnable");
             // Check if CustomUI is installed.
             try
             {
@@ -118,7 +120,7 @@ namespace BeatSync
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.WebWrapper.WebClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent(userAgent);
                     SongFeedReaders.WebUtils.WebClient.Timeout = config.DownloadTimeout * 1000;
-                    Logger.log?.Debug($"Initialized WebUtils with User-Agent: {userAgent}");
+                    Plugin.log?.Debug($"Initialized WebUtils with User-Agent: {userAgent}");
                 }
                 BeatSync.Paused = false;
                 BeatSyncController = new GameObject("BeatSync.BeatSync").AddComponent<BeatSync>();
@@ -130,7 +132,7 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
-                Logger.log?.Error(ex);
+                Plugin.log?.Error(ex);
             }
         }
 
@@ -140,7 +142,7 @@ namespace BeatSync
             CancelAllSource.Cancel();
             CancelAllSource.Dispose();
             CancelAllSource = null;
-            Logger.log?.Critical($"Disabling BeatSync...");
+            Plugin.log?.Critical($"Disabling BeatSync...");
             SetEvents(false);
             SharedCoroutineStarter.instance.StartCoroutine(BeatSyncController.DestroyAfterFinishing());
             GameObject.Destroy(StatusController);
@@ -154,7 +156,7 @@ namespace BeatSync
         [OnExit]
         public void OnApplicationQuit()
         {
-            Logger.log?.Debug("OnApplicationQuit");
+            Plugin.log?.Debug("OnApplicationQuit");
         }
 
         /// <summary>
@@ -164,7 +166,7 @@ namespace BeatSync
         /// <param name="nextScene">The scene you are transitioning to.</param>
         public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
         {
-            Logger.log?.Debug($"OnActiveSceneChanged: {nextScene.name}");
+            Plugin.log?.Debug($"OnActiveSceneChanged: {nextScene.name}");
             try
             {
                 if (nextScene.name == "GameCore")
@@ -182,7 +184,7 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
-                Logger.log?.Error($"Error in Plugin.OnActiveSceneChanged:\n{ex}");
+                Plugin.log?.Error($"Error in Plugin.OnActiveSceneChanged:\n{ex}");
             }
         }
         /// <summary>
@@ -203,12 +205,12 @@ namespace BeatSync
                 }
                 catch (Exception)
                 {
-                    Logger.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
+                    Plugin.log?.Critical("Could not find the SettingsFlowCoordinator. BeatSync settings will not be able to save.");
                 }
             }
             catch (Exception ex)
             {
-                Logger.log?.Error(ex);
+                Plugin.log?.Error(ex);
             }
         }
 
@@ -233,7 +235,7 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
-                Logger.log?.Critical($"Error saving settings.\n{ex.Message}\n{ex.StackTrace}");
+                Plugin.log?.Critical($"Error saving settings.\n{ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -244,33 +246,33 @@ namespace BeatSync
             foreach (var item in notDestroyed)
             {
                 if (item != null)
-                    Logger.log?.Warn($"Not destroyed: {item.name}");
+                    Plugin.log?.Warn($"Not destroyed: {item.name}");
             }
 
             var otherNotDestroyed = Resources.FindObjectsOfTypeAll<UI.FloatingText>();
             foreach (var item in otherNotDestroyed)
             {
                 if (item != null)
-                    Logger.log?.Warn($"Not destroyed: {item.name}");
+                    Plugin.log?.Warn($"Not destroyed: {item.name}");
             }
             GameObject.Destroy(StatusController.gameObject);
             yield return new WaitForSeconds(1);
             notDestroyed = Resources.FindObjectsOfTypeAll<UI.TextMeshList>();
             if (notDestroyed.Length > 0 || notDestroyed.All(f => f == null))
-                Logger.log?.Warn("All TextMeshLists destroyed");
+                Plugin.log?.Warn("All TextMeshLists destroyed");
             foreach (var item in notDestroyed)
             {
                 if (item != null)
-                    Logger.log?.Warn($"Not destroyed: {item.name}");
+                    Plugin.log?.Warn($"Not destroyed: {item.name}");
             }
 
             otherNotDestroyed = Resources.FindObjectsOfTypeAll<UI.FloatingText>();
             if (otherNotDestroyed.Length > 0 || otherNotDestroyed.All(f => f == null))
-                Logger.log?.Warn("All FloatingTexts destroyed");
+                Plugin.log?.Warn("All FloatingTexts destroyed");
             foreach (var item in otherNotDestroyed)
             {
                 if (item != null)
-                    Logger.log?.Warn($"Not destroyed: {item.name}");
+                    Plugin.log?.Warn($"Not destroyed: {item.name}");
             }
         }
     }

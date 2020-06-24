@@ -42,7 +42,7 @@
 //        /// </summary>
 //        public static void CreateSettingsUI()
 //        {
-//            Logger.log?.Debug($"Creating settings UI.");
+//            Plugin.log?.Debug($"Creating settings UI.");
 //            try
 //            {
 //                ////This will create a menu tab in the settings menu for your plugin
@@ -55,8 +55,8 @@
 //            }
 //            catch (Exception ex)
 //            {
-//                Logger.log?.Error($"Error creating settings UI: {ex.Message}");
-//                Logger.log?.Debug(ex);
+//                Plugin.log?.Error($"Error creating settings UI: {ex.Message}");
+//                Plugin.log?.Debug(ex);
 //            }
 
 //        }
@@ -225,7 +225,7 @@
 
 //        private static float[] GetFloatList(ListParameters p)
 //        {
-//            //Logger.log?.Warn($"FloatList: {p}");
+//            //Plugin.log?.Warn($"FloatList: {p}");
 //            return GetFloatList(p.Minimum, p.Maximum, p.Increment);
 //        }
 //        private static float[] GetFloatList(float min, float max, float increment)
@@ -421,7 +421,7 @@
 //            //exampleToggle.OnToggle += (value) =>
 //            //{
 //            //    /*  You can execute whatever you want to occur when the value is toggled here, usually that would include updating wherever the value is pulled from   */
-//            //    Logger.log?.Debug($"Toggle is {(value ? "On" : "Off")}");
+//            //    Plugin.log?.Debug($"Toggle is {(value ? "On" : "Off")}");
 //            //};
 //            //exampleToggle.AddConflict("Conflicting Option Name"); //You can add conflicts with other gameplay options settings here, preventing both from being active at the same time, including that of other mods
 
@@ -436,7 +436,7 @@
 //            //{
 //            //    // Execute code based on what value is selected.
 //            //    Plugin.ExampleGameplayListSetting = value;
-//            //    Logger.log?.Debug($"Example GameplaySetting List value changed to {textValues[(int)value]}");
+//            //    Plugin.log?.Debug($"Example GameplaySetting List value changed to {textValues[(int)value]}");
 //            //};
 //        }
 

@@ -55,12 +55,12 @@ namespace BeatSyncLib.Downloader.Downloading
         public string? SongKey { get; private set; }
         public string? SongName { get; private set; }
         public string? LevelAuthorName { get; private set; }
-        public DownloadJobStartedEventArgs(string songHash, string songKey, string songName, string levelAuthorName)
+        public DownloadJobStartedEventArgs(string? songHash, string? songKey, string? songName, string? levelAuthorName)
         {
             SongHash = songHash;
             SongKey = songKey;
-            SongName = SongName;
-            LevelAuthorName = LevelAuthorName;
+            SongName = songName;
+            LevelAuthorName = levelAuthorName;
         }
     }
 

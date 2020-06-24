@@ -179,21 +179,32 @@ namespace BeatSyncLib.Downloader
         private void Job_OnJobFinished(object sender, JobResult e)
         {
             IJob finishedJob = (IJob)sender;
-            if (!_activeJobs.TryRemove(e.Song.Hash, out _))
+            if(e?.Song == null)
             {
-                Logger.log?.Warn($"Couldn't remove {finishedJob.ToString()} from _activeJobs, this shouldn't happen.");
+                Logger.log?.Warn($"Song in JobResult is null for finished job, unable to add to finished job dictionary.");
             }
-            switch (e.JobState)
+            else if (e.Song.Hash == null || e.Song.Hash.Length == 0)
             {
-                case JobState.Finished:
-                    _completedDownloads.TryAdd(e.Song.Hash, (IJob)sender);
-                    break;
-                case JobState.Cancelled:
-                    _cancelledDownloads.TryAdd(e.Song.Hash, (IJob)sender);
-                    break;
-                default:
-                    _failedDownloads.TryAdd(e.Song.Hash, (IJob)sender);
-                    break;
+                Logger.log?.Warn($"Hash is null for finished job, unable to add to finished job dictionary.");
+            }
+            else
+            {
+                if (!_activeJobs.TryRemove(e.Song.Hash, out _))
+                {
+                    Logger.log?.Warn($"Couldn't remove {finishedJob} from _activeJobs, this shouldn't happen.");
+                }
+                switch (e.JobState)
+                {
+                    case JobState.Finished:
+                        _completedDownloads.TryAdd(e.Song.Hash, (IJob)sender);
+                        break;
+                    case JobState.Cancelled:
+                        _cancelledDownloads.TryAdd(e.Song.Hash, (IJob)sender);
+                        break;
+                    default:
+                        _failedDownloads.TryAdd(e.Song.Hash, (IJob)sender);
+                        break;
+                }
             }
             if (_activeJobs.Count == 0)
                 _running = false;

@@ -48,7 +48,7 @@ namespace BeatSync
 
         public static void WriteJsonException(string sourceFile, JsonReaderException ex)
         {
-            Logger.log.Error($"Invalid JSON in {sourceFile} on line {ex.LineNumber} position {ex.LinePosition}.");
+            Plugin.log.Error($"Invalid JSON in {sourceFile} on line {ex.LineNumber} position {ex.LinePosition}.");
             string? line = null;
             try
             {
@@ -58,9 +58,9 @@ namespace BeatSync
             catch { }
             if (line != null)
             {
-                Logger.log.Error(line);
+                Plugin.log.Error(line);
             }
-            Logger.log.Debug(ex);
+            Plugin.log.Debug(ex);
         }
 
         public bool InitializeConfig()
@@ -76,7 +76,7 @@ namespace BeatSync
                 }
                 else
                 {
-                    Logger.log.Info($"{modConfigPath} not found, creating a new one.");
+                    Plugin.log.Info($"{modConfigPath} not found, creating a new one.");
                     Config = BeatSyncModConfig.GetDefaultConfig();
                 }
             }
@@ -87,8 +87,8 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
-                Logger.log.Error($"Invalid {BeatSyncModConfigName} file, using defaults: {ex.Message}");
-                Logger.log.Debug(ex);
+                Plugin.log.Error($"Invalid {BeatSyncModConfigName} file, using defaults: {ex.Message}");
+                Plugin.log.Debug(ex);
                 Config = null;
             }
             if (Config == null)
@@ -101,12 +101,12 @@ namespace BeatSync
             {
                 if (File.Exists(beatSyncConfigPath))
                 {
-                    Logger.log.Debug($"Using BeatSync config '{beatSyncConfigPath}'.");
+                    Plugin.log.Debug($"Using BeatSync config '{beatSyncConfigPath}'.");
                     Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(File.ReadAllText(beatSyncConfigPath));
                 }
                 else
                 {
-                    Logger.log.Info($"{beatSyncConfigPath} not found, creating a new one.");
+                    Plugin.log.Info($"{beatSyncConfigPath} not found, creating a new one.");
                 }
             }
             catch (JsonReaderException ex)
@@ -115,8 +115,8 @@ namespace BeatSync
             }
             catch (Exception ex)
             {
-                Logger.log.Error($"Invalid BeatSync.json file, using defaults: {ex.Message}");
-                Logger.log.Debug(ex);
+                Plugin.log.Error($"Invalid BeatSync.json file, using defaults: {ex.Message}");
+                Plugin.log.Debug(ex);
             }
             if (Config.BeatSyncConfig == null)
             {
@@ -128,7 +128,7 @@ namespace BeatSync
             if (validConfig && favoriteMappersPath != null)
             {
                 FavoriteMappers favoriteMappers = new FavoriteMappers(favoriteMappersPath);
-                Logger.log.Info($"Getting FavoriteMappers from '{favoriteMappersPath.Replace(Directory.GetCurrentDirectory(), ".")}'.");
+                Plugin.log.Info($"Getting FavoriteMappers from '{favoriteMappersPath.Replace(Directory.GetCurrentDirectory(), ".")}'.");
                 List<string> mappers = favoriteMappers.ReadFromFile();
                 if (mappers.Count > 0)
                     Config.BeatSyncConfig.BeatSaver.FavoriteMappers.Mappers = mappers.ToArray();
@@ -159,8 +159,8 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
-                    Logger.log.Error("Error updating config file.");
-                    Logger.log.Info(ex);
+                    Plugin.log.Error("Error updating config file.");
+                    Plugin.log.Info(ex);
                     failed = true;
                 }
             }
@@ -177,8 +177,8 @@ namespace BeatSync
                 }
                 catch (Exception ex)
                 {
-                    Logger.log.Error("Error updating config file.");
-                    Logger.log.Info(ex);
+                    Plugin.log.Error("Error updating config file.");
+                    Plugin.log.Info(ex);
                     failed = true;
                 }
             }

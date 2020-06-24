@@ -176,7 +176,7 @@ namespace BeatSync.UI
                 }
                 catch (Exception ex)
                 {
-                    Logger.log?.Error(ex);
+                    Plugin.log?.Error(ex);
                 }
             }
         }
@@ -185,7 +185,7 @@ namespace BeatSync.UI
         {
             if (PostTexts == null)
             {
-                Logger.log?.Error("Unable to post text, PostTexts is null.");
+                Plugin.log?.Error("Unable to post text, PostTexts is null.");
                 return;
             }
             int textId = 0;
@@ -200,7 +200,7 @@ namespace BeatSync.UI
             }
             PostTexts[textId].PostId = postId;
             //if (PostTexts[Next].PostId == 0)
-            //    Logger.log?.Error($"postId is 0 during TextMeshList.Post for {text}, this shouldn't happen");
+            //    Plugin.log?.Error($"postId is 0 during TextMeshList.Post for {text}, this shouldn't happen");
             PostTexts[textId].FontColor = color;
             PostTexts[textId].DisplayedText = text;
 
@@ -235,7 +235,7 @@ namespace BeatSync.UI
 
         public bool Pin(int postId)
         {
-            //Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
+            //Plugin.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
             int firstFreeIndex = 0;
             while (PostTexts[firstFreeIndex].Pinned && firstFreeIndex < PostTexts.Length)
             {
@@ -261,7 +261,7 @@ namespace BeatSync.UI
                 else
                     break;
             }
-            //Logger.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
+            //Plugin.log?.Info($"Pinned Posts: {string.Join(", ", PostTexts.Select(p => p.Pinned))}");
             return true;
         }
 
@@ -484,7 +484,7 @@ namespace BeatSync.UI
 
         public void OnDisable()
         {
-            //Logger.log?.Info($"Disabling TextMeshList");
+            //Plugin.log?.Info($"Disabling TextMeshList");
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 var child = gameObject.transform.GetChild(i).gameObject;
@@ -494,11 +494,11 @@ namespace BeatSync.UI
         }
         public void OnEnable()
         {
-            //Logger.log?.Info($"Enabling TextMeshList");
+            //Plugin.log?.Info($"Enabling TextMeshList");
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 var child = gameObject.transform.GetChild(i).gameObject;
-                //Logger.log?.Info($"Enabling child {child?.gameObject.name}");
+                //Plugin.log?.Info($"Enabling child {child?.gameObject.name}");
                 if (child != null)
                     child.SetActive(true);
             }
@@ -506,7 +506,7 @@ namespace BeatSync.UI
 
         public void OnDestroy()
         {
-            //Logger.log?.Info($"Destroying TextMeshList");
+            //Plugin.log?.Info($"Destroying TextMeshList");
             for (int i = 0; i < gameObject.transform.childCount; i++)
             {
                 var child = gameObject.transform.GetChild(i).gameObject;
