@@ -94,7 +94,7 @@ namespace BeatSyncLib.Downloader
                 }
             }
 
-            Logger.log.Info($"  Finished ScoreSaber reading: ({sourceStats}).");
+            Logger.log?.Info($"  Finished ScoreSaber reading: ({sourceStats}).");
             return sourceStats;
         }
 
@@ -190,7 +190,7 @@ namespace BeatSyncLib.Downloader
                 FeedConfigBase feedConfig = sourceConfig.FavoriteMappers;
                 if (mappers.Length > 0)
                 {
-                    Logger.log.Info("  Starting FavoriteMappers feed...");
+                    Logger.log?.Info("  Starting FavoriteMappers feed...");
                     List<IPlaylist> playlists = new List<IPlaylist>();
                     List<IPlaylist> feedPlaylists = new List<IPlaylist>();
                     List<IPlaylist> recentPlaylists = new List<IPlaylist>();
@@ -198,7 +198,7 @@ namespace BeatSyncLib.Downloader
                     foreach (string? mapper in mappers)
                     {
 
-                        Logger.log.Info($"  Getting songs by {mapper}...");
+                        Logger.log?.Info($"  Getting songs by {mapper}...");
                         playlists.Clear();
                         foreach (ITargetWithPlaylists? targetWithPlaylist in jobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
                         {
@@ -245,18 +245,18 @@ namespace BeatSyncLib.Downloader
                         }
                         ProcessFinishedJobs(jobs, playlists, recentPlaylists);
 
-                        Logger.log.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
+                        Logger.log?.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
                     }
                     sourceStats += feedStats;
-                    Logger.log.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
+                    Logger.log?.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
                 }
                 else
                 {
-                    Logger.log.Warn("  No FavoriteMappers found, skipping...");
+                    Logger.log?.Warn("  No FavoriteMappers found, skipping...");
                 }
             }
 
-            Logger.log.Info($"  Finished BeatSaver reading: ({sourceStats}).");
+            Logger.log?.Info($"  Finished BeatSaver reading: ({sourceStats}).");
             return sourceStats;
         }
 
