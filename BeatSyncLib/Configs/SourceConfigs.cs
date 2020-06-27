@@ -34,7 +34,7 @@ namespace BeatSyncLib.Configs
             }
             set
             {
-                int newAdjustedVal = value;
+                int newAdjustedVal = Math.Max(10, value);
                 if (value <= 0)
                 {
                     newAdjustedVal = 5;
@@ -163,7 +163,7 @@ namespace BeatSyncLib.Configs
             Downloads.FillDefaults();
             Latest.FillDefaults();
             base.FillDefaults();
-            var __ = MaxConcurrentPageChecks;
+            _ = MaxConcurrentPageChecks;
         }
 
         public override bool ConfigMatches(ConfigBase other)
@@ -196,13 +196,13 @@ namespace BeatSyncLib.Configs
         protected override bool DefaultEnabled => true;
 
         [JsonIgnore]
-        private BeastSaberBookmarks _bookmarks;
+        private BeastSaberBookmarks? _bookmarks;
         [JsonIgnore]
-        private BeastSaberFollowings _follows;
+        private BeastSaberFollowings? _follows;
         [JsonIgnore]
-        private BeastSaberCuratorRecommended _curatorRecommended;
+        private BeastSaberCuratorRecommended? _curatorRecommended;
         [JsonIgnore]
-        private string _username;
+        private string? _username;
         [JsonIgnore]
         private int? _maxConcurrentPageChecks;
 
@@ -240,7 +240,7 @@ namespace BeatSyncLib.Configs
             }
             set
             {
-                int newAdjustedVal = value;
+                int newAdjustedVal = Math.Max(10, value);
                 if (value < 0)
                 {
                     newAdjustedVal = 5;
@@ -378,13 +378,13 @@ namespace BeatSyncLib.Configs
     public class ScoreSaberConfig : SourceConfigBase
     {
         [JsonIgnore]
-        private ScoreSaberTopRanked _topRanked;
+        private ScoreSaberTopRanked? _topRanked;
         [JsonIgnore]
-        private ScoreSaberLatestRanked _latestRanked;
+        private ScoreSaberLatestRanked? _latestRanked;
         [JsonIgnore]
-        private ScoreSaberTrending _trending;
+        private ScoreSaberTrending? _trending;
         [JsonIgnore]
-        private ScoreSaberTopPlayed _topPlayed;
+        private ScoreSaberTopPlayed? _topPlayed;
 
         [JsonProperty(Order = -60)]
         public ScoreSaberTopRanked TopRanked

@@ -107,8 +107,8 @@ namespace BeatSyncLib.Configs
                 int newAdjustedVal = value;
                 if (value < 1)
                     newAdjustedVal = 1;
-                else if (value > 10)
-                    newAdjustedVal = 10;
+                else if (value > 5)
+                    newAdjustedVal = 5;
                 if (value != newAdjustedVal)
                     SetInvalidInputFixed();
                 if (_maxConcurrentDownloads == newAdjustedVal)
