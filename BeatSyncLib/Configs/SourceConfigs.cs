@@ -20,32 +20,6 @@ namespace BeatSyncLib.Configs
         [JsonIgnore]
         private BeatSaverLatest? _latest;
 
-        [JsonProperty(Order = -60)]
-        public int MaxConcurrentPageChecks
-        {
-            get
-            {
-                if (_maxConcurrentPageChecks == null)
-                {
-                    _maxConcurrentPageChecks = 5;
-                    SetConfigChanged();
-                }
-                return _maxConcurrentPageChecks ?? 5;
-            }
-            set
-            {
-                int newAdjustedVal = Math.Max(10, value);
-                if (value <= 0)
-                {
-                    newAdjustedVal = 5;
-                    SetInvalidInputFixed();
-                }
-                if (_maxConcurrentPageChecks == newAdjustedVal)
-                    return;
-                _maxConcurrentPageChecks = newAdjustedVal;
-                SetConfigChanged();
-            }
-        }
         [JsonProperty(Order = -50)]
         public BeatSaverFavoriteMappers FavoriteMappers
         {
@@ -163,7 +137,6 @@ namespace BeatSyncLib.Configs
             Downloads.FillDefaults();
             Latest.FillDefaults();
             base.FillDefaults();
-            _ = MaxConcurrentPageChecks;
         }
 
         public override bool ConfigMatches(ConfigBase other)
@@ -171,8 +144,6 @@ namespace BeatSyncLib.Configs
             if(other is BeatSaverConfig castOther)
             {
                 if (!base.ConfigMatches(castOther))
-                    return false;
-                if (MaxConcurrentPageChecks != castOther.MaxConcurrentPageChecks)
                     return false;
                 if (!FavoriteMappers.ConfigMatches(castOther.FavoriteMappers))
                     return false;

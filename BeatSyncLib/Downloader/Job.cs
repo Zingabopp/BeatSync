@@ -149,7 +149,7 @@ namespace BeatSyncLib.Downloader
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (string.IsNullOrEmpty(Song.Key))
+                if (string.IsNullOrEmpty(Song.Key) && Song.Hash != null && Song.Hash.Length > 0)
                 {
                     SongInfoResponse? result = await WebUtils.SongInfoManager.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
                     if (result.Success)

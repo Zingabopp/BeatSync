@@ -97,18 +97,18 @@ namespace BeatSyncLib.Configs
             {
                 if (_maxConcurrentDownloads == null)
                 {
-                    _maxConcurrentDownloads = 3;
+                    _maxConcurrentDownloads = 2;
                     SetConfigChanged();
                 }
-                return _maxConcurrentDownloads ?? 3;
+                return _maxConcurrentDownloads.Value;
             }
             set
             {
                 int newAdjustedVal = value;
                 if (value < 1)
                     newAdjustedVal = 1;
-                else if (value > 5)
-                    newAdjustedVal = 5;
+                else if (value > 3)
+                    newAdjustedVal = 3;
                 if (value != newAdjustedVal)
                     SetInvalidInputFixed();
                 if (_maxConcurrentDownloads == newAdjustedVal)

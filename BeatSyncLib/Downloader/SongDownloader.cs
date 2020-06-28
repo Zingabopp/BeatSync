@@ -153,7 +153,7 @@ namespace BeatSyncLib.Downloader
             if (!sourceConfig.Enabled)
                 return sourceStats;
 
-            BeatSaverReader reader = new BeatSaverReader(sourceConfig.MaxConcurrentPageChecks);
+            BeatSaverReader reader = new BeatSaverReader();
             FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads, sourceConfig.Latest };
             if (!(feedConfigs.Any(f => f.Enabled) || sourceConfig.FavoriteMappers.Enabled))
             {
