@@ -88,7 +88,10 @@ namespace BeatSyncLib.Downloader
                 else
                 {
                     if (results.Exception != null)
-                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}{results.Exception.Message}\n{results.Exception.StackTrace}");
+                    {
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: {results.Exception.Message}");
+                        Logger.log?.Debug(results.Exception);
+                    }
                     else
                         Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: Unknown error.");
                 }
@@ -178,7 +181,10 @@ namespace BeatSyncLib.Downloader
                 else
                 {
                     if (results.Exception != null)
-                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}{results.Exception.Message}\n{results.Exception.StackTrace}");
+                    {
+                        Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}{results.Exception.Message}");
+                        Logger.log?.Debug($"{results.Exception}");
+                    }
                     else
                         Logger.log?.Error($"  Error getting results from {feedConfig.GetType().Name}: Unknown error.");
                 }
@@ -230,22 +236,36 @@ namespace BeatSyncLib.Downloader
                             }
                         }
                         FeedResult results = await reader.GetSongsFromFeedAsync(sourceConfig.FavoriteMappers.ToFeedSettings(mapper)).ConfigureAwait(false);
-                        IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
-                        JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
-                        JobStats mapperStats = new JobStats(jobResults);
-                        feedStats += mapperStats;
-                        if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
+                        if (results.Successful)
                         {
-                            // TODO: This should only apply to successful targets.
-                            foreach (IPlaylist? feedPlaylist in feedPlaylists)
-                            {
-                                feedPlaylist.Clear();
-                                feedPlaylist.RaisePlaylistChanged();
-                            }
-                        }
-                        ProcessFinishedJobs(jobs, playlists, recentPlaylists);
 
-                        Logger.log?.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
+                            IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
+                            JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                            JobStats mapperStats = new JobStats(jobResults);
+                            feedStats += mapperStats;
+                            if (jobs.Any(j => j.Result?.Successful ?? false) && feedConfig.PlaylistStyle == PlaylistStyle.Replace)
+                            {
+                                // TODO: This should only apply to successful targets.
+                                foreach (IPlaylist? feedPlaylist in feedPlaylists)
+                                {
+                                    feedPlaylist.Clear();
+                                    feedPlaylist.RaisePlaylistChanged();
+                                }
+                            }
+                            ProcessFinishedJobs(jobs, playlists, recentPlaylists);
+
+                            Logger.log?.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
+                        }
+                        else
+                        {
+                            if (results.Exception != null)
+                            {
+                                Logger.log?.Error($"Error getting songs by {mapper}: {results.Exception.Message}");
+                                Logger.log?.Debug(results.Exception);
+                            }
+                            else
+                                Logger.log?.Error($"Error getting songs by {mapper}");
+                        }
                     }
                     sourceStats += feedStats;
                     Logger.log?.Info($"  Finished {feedConfig.GetType().Name} feed: ({feedStats}).");
