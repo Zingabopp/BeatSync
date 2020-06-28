@@ -19,7 +19,7 @@ namespace BeatSyncLib.History
         }
         public HistoryEntry(string? songName, string? mapper, HistoryFlag flag = 0)
         {
-            if(songName != null && songName.Length > 0)
+            if (songName != null && songName.Length > 0)
             {
                 if (mapper != null && mapper.Length > 0)
                     SongInfo = $"{songName} by {mapper}";
@@ -67,6 +67,16 @@ namespace BeatSyncLib.History
                     _ => true
                 };
             }
+        }
+
+        public virtual HistoryEntry UpdateFrom(HistoryEntry source)
+        {
+            if (source.SongInfo != null && source.SongInfo.Length > 0)
+                SongInfo = source.SongInfo;
+            Flag = source.Flag;
+            if (source.Date != DateTime.MinValue)
+                Date = source.Date;
+            return this;
         }
     }
 

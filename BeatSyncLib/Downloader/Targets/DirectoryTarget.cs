@@ -81,7 +81,7 @@ namespace BeatSyncLib.Downloader.Targets
                 {
                     string? hashAfterDownload = (await SongHasher.GetSongHashDataAsync(zipResult.OutputDirectory).ConfigureAwait(false)).songHash;
                     if (hashAfterDownload == null)
-                        Logger.log.Warn($"Unable to get hash for '{song}', hasher returned null.");
+                        Logger.log?.Warn($"Unable to get hash for '{song}', hasher returned null.");
                     else if (hashAfterDownload != song.Hash)
                         throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
                 }

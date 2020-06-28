@@ -100,9 +100,14 @@ namespace BeatSyncConsole
                 {
                     // Add entry to history, this should only succeed for jobs that didn't get to the targets.
                     if (target is ITargetWithHistory targetWithHistory
-                        && targetWithHistory.HistoryManager != null
-                        && c.Song != null)
-                        targetWithHistory.HistoryManager.TryAdd(c.Song.Hash, entry);
+                        && targetWithHistory.HistoryManager != null)
+                    {
+                        string? songHash = c.Song?.Hash;
+                        if (songHash != null && songHash.Length > 0)
+                        {
+                            targetWithHistory.HistoryManager.AddOrUpdate(songHash, entry);
+                        }
+                    }
                 }
                 if (c.Successful)
                 {

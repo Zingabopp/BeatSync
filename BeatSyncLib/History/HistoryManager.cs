@@ -164,6 +164,14 @@ namespace BeatSyncLib.History
             return SongHistory.TryAdd(songHash.ToUpper(), historyEntry);
         }
 
+        public HistoryEntry AddOrUpdate(string songHash, HistoryEntry addValue)
+        {
+            return SongHistory.AddOrUpdate(songHash, addValue, (hash, oldValue) =>
+            {
+                return oldValue.UpdateFrom(addValue);
+            });
+        }
+
         /// <summary>
         /// Tries to add the provided songHash and songInfo to the history. Returns false if the hash is null/empty.
         /// </summary>
