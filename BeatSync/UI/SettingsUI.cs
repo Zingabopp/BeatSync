@@ -184,12 +184,6 @@ namespace BeatSync.UI
             get => BeatSyncConfig.BeatSaver.Enabled;
             set => BeatSyncConfig.BeatSaver.Enabled = value;
         }
-        [UIValue("BeatSaver.MaxConcurrentPageChecks")]
-        public int BeatSaver_MaxConcurrentPageChecks
-        {
-            get => BeatSyncConfig.BeatSaver.MaxConcurrentPageChecks;
-            set => BeatSyncConfig.BeatSaver.MaxConcurrentPageChecks = value;
-        }
         #region FavoriteMappers
         [UIValue("BeatSaver.FavoriteMappers.Enabled")]
         public bool BeatSaver_FavoriteMappers_Enabled

@@ -1,6 +1,6 @@
 ﻿<settings-container xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
   <slider-setting text='DownloadTimeout' min='10' max='300' value='DownloadTimeout' integer-only='true' increment='1' />
-  <slider-setting text='MaxConcurrentDownloads' min='1' max='10' value='MaxConcurrentDownloads' integer-only='true' increment='1' />
+  <slider-setting text='MaxConcurrentDownloads' min='1' max='3' value='MaxConcurrentDownloads' integer-only='true' increment='1' />
   <slider-setting text='RecentPlaylistDays' min='0' max='30' value='RecentPlaylistDays' integer-only='true' increment='1' />
   <bool-setting text='AllBeatSyncSongsPlaylist' value='AllBeatSyncSongsPlaylist' />
   <!--BeastSaber-->
@@ -62,7 +62,6 @@
         <text text='BeatSaver Settings' underlined='true' font-size='5'/>
       </horizontal>
       <bool-setting text='Enabled' value='BeatSaver.Enabled' />
-      <slider-setting text='MaxConcurrentPageChecks' min='1' max='10' value='BeatSaver.MaxConcurrentPageChecks' integer-only='true' increment='1' />
       <!--BeatSaver FavoriteMappers-->
       <settings-submenu underlined='true' text='FavoriteMappers'>
         <settings-container>
