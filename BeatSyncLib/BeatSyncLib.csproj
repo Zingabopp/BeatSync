@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>Enable</Nullable>
+    <Configurations>Debug;Release;Debug-BeatSaber;Release-BeatSaber</Configurations>
 	  <ReferencePath>$(ProjectDir)..\Refs</ReferencePath>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -83,6 +84,27 @@
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' == 'Debug-BeatSaber' OR '$(Configuration)' == 'Release-BeatSaber'">
+    <Reference Include="SongCore">
+      <HintPath>$(BeatSaberReferences)\Plugins\SongCore.dll</HintPath>
+    </Reference>
+    <Reference Include="Main">
+      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\Main.dll</HintPath>
+      <Aliases>BeatSaber</Aliases>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Aliases>BeatSaber</Aliases>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <Aliases>BeatSaber</Aliases>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Aliases>BeatSaber</Aliases>
+    </Reference>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
