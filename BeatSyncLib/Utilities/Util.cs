@@ -145,10 +145,19 @@ namespace BeatSyncLib.Utilities
         {
             if (string.IsNullOrEmpty(songDirectory))
                 throw new ArgumentNullException(nameof(songDirectory));
-            if (!Directory.Exists(songDirectory))
+            DirectoryInfo directory = new DirectoryInfo(songDirectory);
+            if (!directory.Exists)
                 throw new DirectoryNotFoundException($"Directory doesn't exist: '{songDirectory}'");
             byte[] combinedBytes = Array.Empty<byte>();
-            string infoFile = Path.Combine(songDirectory, "info.dat");
+            FileInfo[] files = directory.GetFiles();
+            // Could theoretically get the wrong hash if there are multiple 'info.dat' files with different cases on linux.
+            string? infoFileName = files.FirstOrDefault(f => f.Name.Equals("info.dat", StringComparison.OrdinalIgnoreCase))?.FullName;
+            if(infoFileName == null)
+            {
+                Logger.log?.Debug($"'{songDirectory}' does not have an 'info.dat' file.");
+                return null;
+            }
+            string infoFile = Path.Combine(songDirectory, infoFileName);
             if (!File.Exists(infoFile))
                 return null;
             combinedBytes = combinedBytes.Concat(File.ReadAllBytes(infoFile)).ToArray();
@@ -162,7 +171,8 @@ namespace BeatSyncLib.Utilities
                 for (int i2 = 0; i2 < numDiffs; i2++)
                 {
                     JToken? diff = diffs["_difficultyBeatmaps"].ElementAt(i2);
-                    string? beatmapFile = diff["_beatmapFilename"]?.Value<string>();
+                    string? beatmapFileName = diff["_beatmapFilename"]?.Value<string>();
+                    string? beatmapFile = files.FirstOrDefault(f => f.Name.Equals(beatmapFileName, StringComparison.OrdinalIgnoreCase))?.FullName;
                     if (beatmapFile != null)
                     {
                         string beatmapPath = Path.Combine(songDirectory, beatmapFile);
