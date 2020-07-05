@@ -25,7 +25,7 @@ namespace BeatSyncConsole.Configs
         public string BasePath { get; set; } = string.Empty;
 
         [JsonIgnore]
-        public string SongsDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Beat Saber_data", "CustomLevels") : string.Empty;
+        public string SongsDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Beat Saber_Data", "CustomLevels") : string.Empty;
         [JsonIgnore]
         public string PlaylistDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Playlists") : string.Empty;
         [JsonIgnore]
