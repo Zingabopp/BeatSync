@@ -6,6 +6,52 @@ namespace BeatSyncLibTests.Utilities
     [TestClass]
     public class Util_Tests
     {
+
+        [TestMethod]
+        public void GetSongDirectoryName_WithKey()
+        {
+            string key = "abcd";
+            string songName = "TestName";
+            string levelAuthorName = "TestAuthor";
+            string expected = $"{key} ({songName} - {levelAuthorName})";
+            string actual = GetSongDirectoryName(key, songName, levelAuthorName);
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetSongDirectoryName_InvalidCharacter()
+        {
+            string key = "abcd";
+            string songName = "Test|Name";
+            string filteredSongName = "TestName";
+            string levelAuthorName = "TestAuthor";
+            string expected = $"{key} ({filteredSongName} - {levelAuthorName})";
+            string actual = GetSongDirectoryName(key, songName, levelAuthorName);
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetSongDirectoryName_NoKey()
+        {
+            string key = null;
+            string songName = "TestName";
+            string levelAuthorName = "TestAuthor";
+            string expected = $"{songName} - {levelAuthorName}";
+            string actual = GetSongDirectoryName(key, songName, levelAuthorName);
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetSongDirectoryName_NoAuthor()
+        {
+            string key = null;
+            string songName = "TestName";
+            string levelAuthorName = null;
+            string expected = $"{songName}";
+            string actual = GetSongDirectoryName(key, songName, levelAuthorName);
+            Assert.AreEqual(expected, actual);
+        }
+
         [TestMethod]
         public void ConvertByteValue_BytesToMega()
         {
