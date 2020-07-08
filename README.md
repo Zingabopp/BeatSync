@@ -1,6 +1,6 @@
 <img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSyncLib/Icons/BeatSyncLogoBanner.png" height="150">
 
-Beat Saber plugin to automatically download songs.
+Beat Saber plugin to automatically download beatmaps.
 The following sources and feeds are currently supported:
  * Beast Saber: Bookmarks, Follows, Curator Recommended
  * Beat Saver: FavoriteMappers, Hot, Downloads, Latest
@@ -20,11 +20,24 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
     * If a single installation is found, it is automatically enabled and it will proceed with the default feeds.
     * If multiple installations are found, it will ask which installations you want to enable in BeatSync.
 * The config files `BeatSyncConsole.json` and `BeatSync.json` will be generated in the `configs` folder.
-  * `BeatSyncConsole.json` contains settings specific to the console app, such as target locations to download songs to.
+  * `BeatSyncConsole.json` contains settings specific to the console app, such as target locations to download beatmaps to.
     * The `BeatSyncConfigPath` can be used to use an alternate `BeatSync.json` file (such as the one located in your `Beat Saber\UserData` folder.
     * **Important**: For JSON strings `\` is a special character. If you manually add a path, make sure you separate directories using `\\`. i.e. `C:\\Program Files\\Steam`.
   * `BeatSync.json` contains the feed configurations and is shared between BeatSyncConsole and the BeatSync mod. You can view details for the feed configuration [Here](#feed-configuration).
-  * Once configured, run `BeatSyncConsole.exe` any time you want to download new songs.
+  * Once configured, run `BeatSyncConsole.exe` any time you want to download new beatmaps.
+## Configuration (BeatSyncConsole.json)
+* BeatSyncConfigPath: Path to the `BeatSync.json` config file you want to use. By default this is set to `%CONFIG%\BeatSync.json` which is in the `configs` folder in your `BeatSyncConsole` directory. This can be changed to point to the one in your `Beat Saber\UserData` folder so that BeatSyncConsole uses the same feed config as the BeatSync mod.
+* BeatSaberInstallLocations: This is a list of game install locations you want BeatSync to download beatmaps to. Each location has two properties:
+  * Enabled: Whether or not this location is enabled.
+  * GameDirectory: Path to your `Beat Saber` directory.
+* AlternateSongPaths: This is a list of locations you want beatmaps downloaded to that are *not* game install locations.
+  * Enabled: Whether or not this location is enabled.
+  * BasePath: Base directory of the location. Relative paths will start at this directory.
+  * SongsDirectory: Location the beatmaps are downloaded to.
+  * PlaylistDirectory: Location the playlists are stored.
+  * HistoryPath: Path to the history file, must include the file name.
+* CloseWhenFinished: If true, close the console window after finishing instead of waiting for keyboard input.
+* ConsoleLogLevel: Log message level to display in the console, default is `Info`. Options are `Debug`, `Info`, `Warn`, `Critical`, `Error`, `Disabled`.
 ## Have Issues?
 * BeatSyncConsole stores a log file from the last run in the `logs` folder.
 * Let me know of issues by creating an [Issue](https://github.com/Zingabopp/BeatSync/issues) or Ping/DM me in the [BeatSaberModdingGroup](https://discord.gg/beatsabermods) Discord server @Zingabopp#6764
@@ -40,38 +53,38 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
 ## Usage
 **First Run:**
 * Run Beat Saber after installing the mod and configure the settings in-game (Settings > BeatSync) or in UserData\BeatSync.json.
-* Beat Saber must be restarted (or disabled and reenabled via BSIPA ModList) for it to use the modified settings to download songs.
+* Beat Saber must be restarted (or disabled and reenabled via BSIPA ModList) for it to use the modified settings to download beatmaps.
 
 # Feed Configuration
 Configuration can be done in-game in Settings > BeatSync or by (carefully) editing the BeatSync.json file in your UserData folder.
 
 __Each feed has the following options:__
-* Enabled: If true, BeatSync will use this feed to download songs.
+* Enabled: If true, BeatSync will use this feed to download beatmaps.
 * MaxSongs: Maximum number of songs to download from that feed. Set to 0 for unlimited.
-* CreatePlaylist: Creates/Maintains a playlist using songs from the feed. Songs that are found by the feed but have already been downloaded are also added to the playlist.
-* PlaylistStyle: If set to 'Append', each session will add the songs it finds to the playlist. If set to 'Replace', the playlist will only contain songs that were found in the current session (useful for ScoreSaber's ranked feeds so songs that get unranked are removed).
+* CreatePlaylist: Creates/Maintains a playlist using beatmaps from the feed. Beatmaps that are found by the feed but have already been downloaded are also added to the playlist.
+* PlaylistStyle: If set to 'Append', each session will add the beatmaps it finds to the playlist. If set to 'Replace', the playlist will only contain beatmaps that were found in the current session (useful for ScoreSaber's ranked feeds so beatmaps that get unranked are removed).
 
 __BeatSync.json__
 * ~~RegenerateConfig: If true, set all options to defaults on next game start.~~
 * DownloadTimeout: How long to wait for a download response before giving up.
-* MaxConcurrentDownloads: How many queued songs to download at the same time, higher is not always better - use a reasonable value.
-* RecentPlaylistDays: How long recently downloaded songs stay in the BeatSync Recent playlist. (0 to disable the playlist)
-* AllBeatSyncSongsPlaylist: If enabled, BeatSync creates a playlist with all the songs it finds (large playlists can cause a big freeze after custom songs are initially loaded)
+* MaxConcurrentDownloads: How many queued beatmaps to download at the same time, higher is not always better - use a reasonable value.
+* RecentPlaylistDays: How long recently downloaded beatmaps stay in the BeatSync Recent playlist. (0 to disable the playlist)
+* AllBeatSyncSongsPlaylist: If enabled, BeatSync creates a playlist with all the beatmaps it finds (large playlists can cause a big freeze after custom songs are initially loaded)
 * BeastSaber:
   * Enabled: If false, disables all feeds from this source.
-  * Username: Your BeastSaber username. You must enter this to get songs from the Bookmarks and Follows feeds.
+  * Username: Your BeastSaber username. You must enter this to get beatmaps from the Bookmarks and Follows feeds.
   * MaxConcurrentPageChecks: Number of pages to check simultaneously when reading feeds.
-  * Bookmarks: Get bookmarked songs from BeastSaber.
+  * Bookmarks: Get bookmarked beatmaps from BeastSaber.
     * Enabled
     * MaxSongs
     * CreatePlaylist
     * PlaylistStyle
-  * Follows: Get songs from mappers you are following on BeastSaber.
+  * Follows: Get beatmaps from mappers you are following on BeastSaber.
     * Enabled
     * MaxSongs
     * CreatePlaylist
     * PlaylistStyle
-  * CuratorRecommended: Get songs from BeastSaber's Curator Recommended list.
+  * CuratorRecommended: Get beatmaps from BeastSaber's Curator Recommended list.
     * Enabled
     * MaxSongs
     * CreatePlaylist
@@ -79,61 +92,61 @@ __BeatSync.json__
 * BeatSaver
   * Enabled: If false, disables all feeds from this source.
   * MaxConcurrentPageChecks: Number of pages to check simultaneously when reading feeds.
-  * FavoriteMappers: Feed that downloads songs from each mapper specified in FavoriteMappers.ini in the UserData folder.
+  * FavoriteMappers: Feed that downloads beatmaps from each mapper specified in FavoriteMappers.ini in the UserData folder.
     * Enabled
     * MaxSongs: Maximum number of songs to download from each mapper.
     * CreatePlaylist
     * PlaylistStyle
     * SeparateMapperPlaylists: If true (along with CreatePlaylist), create a playlist for each mapper in your FavoriteMappers.ini file.
-  * Hot: Get songs using Beat Saver's "Hot" ordering.
+  * Hot: Get beatmaps using Beat Saver's "Hot" ordering.
     * Enabled
     * MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver.**
     * CreatePlaylist
     * PlaylistStyle
-  * Downloads: Get songs by most downloaded from Beat Saver
+  * Downloads: Get beatmaps by most downloaded from Beat Saver
     * Enabled
     * MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver.**
     * CreatePlaylist
     * PlaylistStyle
 * ScoreSaber
   * Enabled: If false, disables all feeds from this source.
-  * TopRanked: Get ranked songs by ScoreSaber's "Star" rating.
+  * TopRanked: Get ranked beatmaps by ScoreSaber's "Star" rating.
     * Enabled
     * MaxSongs
     * CreatePlaylist
-    * PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs get removed.
-    * IncludeUnstarred: Include songs that don't have a star rating (no affect on this feed, all songs will have a star rating).
-    * MaxStars: Maximum star rating for a song, 0 to disable (songs with a lower difficulty will be included if that difficulty is less than this.)
+    * PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked beatmaps get removed.
+    * IncludeUnstarred: Include beatmaps that don't have a star rating (no affect on this feed, all beatmaps will have a star rating).
+    * MaxStars: Maximum star rating for a song, 0 to disable (beatmaps with a lower difficulty will be included if that difficulty is less than this.)
     * MinStars: Maximum star rating for a song, 0 to disable.
-  * LatestRanked: Get ScoreSaber's ranked songs, most recently ranked first (more or less).
+  * LatestRanked: Get ScoreSaber's ranked beatmaps, most recently ranked first (more or less).
     * Enabled
     * MaxSongs
     * CreatePlaylist
-    * PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked songs get removed.
-    * IncludeUnstarred: Include songs that don't have a star rating (no affect on this feed, all songs will have a star rating).
-    * MaxStars: Maximum star rating for a song, 0 to disable (songs with a lower difficulty will be included if that difficulty is less than this.)
+    * PlaylistStyle: Recommended to leave this set to 'Replace' (1 in json) so that unranked beatmaps get removed.
+    * IncludeUnstarred: Include beatmaps that don't have a star rating (no affect on this feed, all beatmaps will have a star rating).
+    * MaxStars: Maximum star rating for a song, 0 to disable (beatmaps with a lower difficulty will be included if that difficulty is less than this.)
     * MinStars: Maximum star rating for a song, 0 to disable.
-  * Trending: Get songs using ScoreSaber's "Trending" ordering.
+  * Trending: Get beatmaps using ScoreSaber's "Trending" ordering.
     * Enabled
     * MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver if you don't have RankedOnly enabled.**
     * CreatePlaylist
     * PlaylistStyle
-    * RankedOnly: If true, only get ranked songs.
-    * IncludeUnstarred: Include songs that don't have a star rating (unranked songs can still have a star rating).
-    * MaxStars: Maximum star rating for a song, 0 to disable (songs with a lower difficulty will be included if that difficulty is less than this.)
+    * RankedOnly: If true, only get ranked beatmaps.
+    * IncludeUnstarred: Include beatmaps that don't have a star rating (unranked beatmaps can still have a star rating).
+    * MaxStars: Maximum star rating for a song, 0 to disable (beatmaps with a lower difficulty will be included if that difficulty is less than this.)
     * MinStars: Maximum star rating for a song, 0 to disable.
-  * TopPlayed: Get the most played songs as reported by ScoreSaber.
+  * TopPlayed: Get the most played beatmaps as reported by ScoreSaber.
     * Enabled
     * MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver if you don't have RankedOnly enabled.**
     * CreatePlaylist
     * PlaylistStyle
-    * RankedOnly: If true, only get ranked songs.
-    * IncludeUnstarred: Include songs that don't have a star rating (unranked songs can still have a star rating).
-    * MaxStars: Maximum star rating for a song, 0 to disable (songs with a lower difficulty will be included if that difficulty is less than this.)
+    * RankedOnly: If true, only get ranked beatmaps.
+    * IncludeUnstarred: Include beatmaps that don't have a star rating (unranked beatmaps can still have a star rating).
+    * MaxStars: Maximum star rating for a song, 0 to disable (beatmaps with a lower difficulty will be included if that difficulty is less than this.)
     * MinStars: Maximum star rating for a song, 0 to disable.
 	
 # Additional Information
-* BeatSync maintains a history file for songs it finds in the feeds. This is used to prevent BeatSync from redownloading songs you've deleted. It is sorted in descending order by date the song was added to the history. This file can safely be deleted (or carefully edited) if you want BeatSync to download songs you've deleted in the past.
+* BeatSync maintains a history file for beatmaps it finds in the feeds. This is used to prevent BeatSync from redownloading beatmaps you've deleted. It is sorted in descending order by date the song was added to the history. This file can safely be deleted (or carefully edited) if you want BeatSync to download beatmaps you've deleted in the past.
 * If you use the SongBrowser plugin, it will not show the playlists in the correct order (i.e. TopRanked and LatestRanked will be out of order).
 
 # Credits
