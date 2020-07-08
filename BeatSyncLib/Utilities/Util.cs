@@ -22,6 +22,30 @@ namespace BeatSyncLib.Utilities
             await SongFeedReaders.Utilities.WaitUntil(() => !Paused, 500, cancellationToken).ConfigureAwait(false);
         }
 
+        private static char[]? _invalidPathChars;
+
+        public static char[] InvalidPathChars
+        {
+            get { 
+                if(_invalidPathChars == null)
+                {
+                    _invalidPathChars = _baseInvalidPathChars.Concat(Path.GetInvalidPathChars()).Distinct().ToArray();
+                }
+                return _invalidPathChars; 
+            }
+        }
+
+
+        private static readonly char[] _baseInvalidPathChars = new char[]
+            {
+                '<', '>', ':', '/', '\\', '|', '?', '*', '"',
+                '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007',
+                '\u0008', '\u0009', '\u000a', '\u000b', '\u000c', '\u000d', '\u000e', '\u000d',
+                '\u000f', '\u0010', '\u0011', '\u0012', '\u0013', '\u0014', '\u0015', '\u0016',
+                '\u0017', '\u0018', '\u0019', '\u001a', '\u001b', '\u001c', '\u001d', '\u001f',
+            };
+
+
         #region IPA Utilities
         /// <summary>
         /// Converts a hex string to a byte array.
@@ -240,12 +264,17 @@ namespace BeatSyncLib.Utilities
         {
             // BeatSaverDownloader's method of naming the directory.
             string basePath;
+            string nameAuthor;
+            if (string.IsNullOrEmpty(levelAuthorName))
+                nameAuthor = songName;
+            else
+                nameAuthor = $"{songName} - {levelAuthorName}";
             songKey = songKey?.Trim();
             if (songKey != null && songKey.Length > 0)
-                basePath = songKey + " (" + string.Join(" - ", songName, levelAuthorName) + ")";
+                basePath = songKey + " (" + nameAuthor + ")";
             else
-                basePath = string.Join(" - ", songName, levelAuthorName);
-            basePath = string.Join("", basePath.Trim().Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
+                basePath = nameAuthor;
+            basePath = string.Concat(basePath.Trim().Split(Util.InvalidPathChars));
             return basePath;
         }
 
