@@ -105,6 +105,29 @@ namespace BeatSyncConsole.Configs
             }
         }
 
+        private bool? _closeWhenFinished;
+        [JsonProperty(nameof(CloseWhenFinished), Order = 30)]
+        public bool CloseWhenFinished
+        {
+            get
+            {
+                if(_closeWhenFinished == null)
+                {
+                    _closeWhenFinished = false;
+                    SetConfigChanged();
+                }
+                return _closeWhenFinished ?? false;
+            }
+            set
+            {
+                if (_closeWhenFinished == value)
+                    return;
+                _closeWhenFinished = value;
+                SetConfigChanged();
+            }
+        }
+
+
         private LogLevel? _consoleLogLevel;
         [JsonProperty(nameof(ConsoleLogLevel), Order = 100)]
         [JsonConverter(typeof(LogLevelConverter))]
@@ -141,7 +164,9 @@ namespace BeatSyncConsole.Configs
         {
             if (other is Config config)
             {
-                if (AlternateSongsPaths.Except(config.AlternateSongsPaths).Any() || config.AlternateSongsPaths.Except(AlternateSongsPaths).Any())
+                if (AlternateSongsPaths.Except(config.AlternateSongsPaths).Any() 
+                    || config.AlternateSongsPaths.Except(AlternateSongsPaths).Any()
+                    || config.CloseWhenFinished != CloseWhenFinished)
                     return false;
                 return true;
             }
@@ -159,6 +184,7 @@ namespace BeatSyncConsole.Configs
                 AlternateSongsPaths.Add(CustomSongLocation.CreateEmptyLocation());
             if (BeatSyncConfig != null)
                 BeatSyncConfig.FillDefaults();
+            _ = CloseWhenFinished;
         }
 
 
