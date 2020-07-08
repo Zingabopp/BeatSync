@@ -185,6 +185,7 @@ namespace BeatSyncConsole
 
         static async Task Main(string[] args)
         {
+            Config? config = null;
             try
             {
                 ConsoleLogWriter? consoleLogger = SetupLogging();
@@ -195,7 +196,7 @@ namespace BeatSyncConsole
                 bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
                 if (consoleLogger != null)
                     consoleLogger.LogLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
-                Config? config = ConfigManager.Config;
+                config = ConfigManager.Config;
                 if (validConfig && config != null && config.BeatSyncConfig != null)
                 {
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
@@ -267,8 +268,11 @@ namespace BeatSyncConsole
 
                 LogManager.Stop();
                 LogManager.Wait();
-                Console.WriteLine("Press Enter to continue...");
-                Console.Read();
+                if (!(config?.CloseWhenFinished ?? false))
+                {
+                    Console.WriteLine("Press Enter to continue...");
+                    Console.Read();
+                }
             }
             catch (Exception ex)
             {
@@ -287,8 +291,11 @@ namespace BeatSyncConsole
 
                 LogManager.Stop();
                 LogManager.Wait();
-                Console.WriteLine("Press Enter to continue...");
-                Console.Read();
+                if (!(config?.CloseWhenFinished ?? false))
+                {
+                    Console.WriteLine("Press Enter to continue...");
+                    Console.Read();
+                }
             }
             finally
             {
