@@ -112,7 +112,7 @@ namespace BeatSyncLib.Downloader.Downloading
         /// <param name="jobFinishedCallback"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public DownloadJob(string songHash, string songName, string songKey, string mapperName, DownloadContainer container, DownloadFinishedCallback jobFinishedCallback = null)
+        public DownloadJob(string songHash, string songName, string songKey, string mapperName, DownloadContainer container, DownloadFinishedCallback? jobFinishedCallback = null)
             : this(container, jobFinishedCallback)
         {
             if (string.IsNullOrEmpty(songHash))
@@ -224,7 +224,9 @@ namespace BeatSyncLib.Downloader.Downloading
                 else if (SongKey != null && SongKey.Length > 0)
                     stringForUri = BeatSaverKeyDownloadUrlBase + SongKey.ToLower();
                 else
-                    return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "No SongHash or SongKey provided to the DownloadJob.");
+                    return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, 
+                        "No SongHash or SongKey provided to the DownloadJob.", 
+                        new InvalidOperationException($"No SongHash or SongKey provided to the DownloadJob"));
                 downloadUri = new Uri(stringForUri);
             }
             catch (FormatException ex)

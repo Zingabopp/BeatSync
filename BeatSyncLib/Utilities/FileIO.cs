@@ -99,7 +99,8 @@ namespace BeatSyncLib.Utilities
         {
             int statusCode = 0;
             if (downloadUri == null)
-                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0);
+                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "DownloadUri is null.",
+                    new ArgumentException("DownloadUri is null.", nameof(downloadUri)));
             //if (!overwriteExisting && File.Exists(target))
             //    return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
@@ -140,7 +141,7 @@ namespace BeatSyncLib.Utilities
                 DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
                 if (faultedCode == 404)
                     downloadResultStatus = DownloadResultStatus.NetNotFound;
-                return new DownloadResult(null, downloadResultStatus, faultedCode, ex.Response?.ReasonPhrase, ex.Response?.Exception);
+                return new DownloadResult(null, downloadResultStatus, faultedCode, ex.Response?.ReasonPhrase, ex.Response?.Exception ?? ex);
             }
             catch (OperationCanceledException ex)
             {

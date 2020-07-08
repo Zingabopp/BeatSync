@@ -164,15 +164,24 @@ namespace BeatSyncLib.Downloader
                     downloadContainer = DownloadResult.DownloadContainer;
                     if (DownloadResult.Exception != null)
                         throw DownloadResult.Exception;
-                    _stageIndex = 1;
-                    ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, DownloadResult));
-                    JobStage = JobStage.TransferringToTargets;
-                    foreach (TargetResult? targetResult in completedTargets)
+                    if(downloadContainer != null)
                     {
-                        _stageIndex++;
-                        ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
+                        _stageIndex = 1;
+                        ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, DownloadResult));
+                        JobStage = JobStage.TransferringToTargets;
+                        // Report progress on the targets that do not want the song.
+                        foreach (TargetResult? targetResult in completedTargets)
+                        {
+                            _stageIndex++;
+                            ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, targetResult));
+                        }
+                        // Transfer to targets that do want the song.
+                        completedTargets.AddRange(await TransferToTargets(pendingTargets, downloadContainer, cancellationToken).ConfigureAwait(false));
                     }
-                    completedTargets.AddRange(await TransferToTargets(pendingTargets, downloadContainer, cancellationToken).ConfigureAwait(false));
+                    else
+                    {
+                        Logger.log?.Warn($"DownloadResult has no exception, but returned a null DownloadContainer.");
+                    }
                 }
                 else
                 {

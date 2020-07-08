@@ -13,7 +13,7 @@ namespace BeatSyncLib.Downloader.Downloading
 {
     public interface IDownloadJob
     {
-        string FileLocation { get; }
+        string? FileLocation { get; }
         string SongHash { get; }
         string SongKey { get; }
         string SongName { get; }
@@ -22,7 +22,7 @@ namespace BeatSyncLib.Downloader.Downloading
         bool SupportsProgressUpdates { get; }
         DownloadJobStatus Status { get; }
         DownloadResult DownloadResult { get; }
-        Exception Exception { get; }
+        Exception? Exception { get; }
 
         event EventHandler<DownloadJobFinishedEventArgs> JobFinished;
         event EventHandler<DownloadJobStartedEventArgs> JobStarted;
