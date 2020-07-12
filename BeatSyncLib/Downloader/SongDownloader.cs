@@ -206,40 +206,40 @@ namespace BeatSyncLib.Downloader
 
                         Logger.log?.Info($"  Getting songs by {mapper}...");
                         playlists.Clear();
-                        foreach (ITargetWithPlaylists? targetWithPlaylist in jobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
-                        {
-                            PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
-                            if (playlistManager != null)
-                            {
-                                if (config.RecentPlaylistDays > 0)
-                                    recentPlaylists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent));
-                                if (config.AllBeatSyncSongsPlaylist)
-                                    playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
-                                if (sourceConfig.FavoriteMappers.CreatePlaylist)
-                                {
-                                    IPlaylist feedPlaylist;
-                                    try
-                                    {
-                                        if (sourceConfig.FavoriteMappers.SeparateMapperPlaylists)
-                                            feedPlaylist = playlistManager.GetOrCreateAuthorPlaylist(mapper);
-                                        else
-                                            feedPlaylist = playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverFavoriteMappers);
-                                        feedPlaylists.Add(feedPlaylist);
-                                        playlists.Add(feedPlaylist);
-                                    }
-                                    catch (ArgumentException ex)
-                                    {
-                                        Logger.log?.Error($"Error getting playlist for FavoriteMappers: {ex.Message}");
-                                        Logger.log?.Debug(ex);
-                                    }
-                                }
-                            }
-                        }
+                        
                         FeedResult results = await reader.GetSongsFromFeedAsync(sourceConfig.FavoriteMappers.ToFeedSettings(mapper)).ConfigureAwait(false);
                         if (results.Successful)
                         {
-
-                            IEnumerable<IJob>? jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken);
+                            foreach (ITargetWithPlaylists? targetWithPlaylist in jobBuilder.SongTargets.Where(t => t is ITargetWithPlaylists).Select(t => (ITargetWithPlaylists)t))
+                            {
+                                PlaylistManager? playlistManager = targetWithPlaylist.PlaylistManager;
+                                if (playlistManager != null)
+                                {
+                                    if (config.RecentPlaylistDays > 0)
+                                        recentPlaylists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncRecent));
+                                    if (config.AllBeatSyncSongsPlaylist)
+                                        playlists.Add(playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSyncAll));
+                                    if (sourceConfig.FavoriteMappers.CreatePlaylist)
+                                    {
+                                        IPlaylist feedPlaylist;
+                                        try
+                                        {
+                                            if (sourceConfig.FavoriteMappers.SeparateMapperPlaylists)
+                                                feedPlaylist = playlistManager.GetOrCreateAuthorPlaylist(mapper);
+                                            else
+                                                feedPlaylist = playlistManager.GetOrAddPlaylist(BuiltInPlaylist.BeatSaverFavoriteMappers);
+                                            feedPlaylists.Add(feedPlaylist);
+                                            playlists.Add(feedPlaylist);
+                                        }
+                                        catch (ArgumentException ex)
+                                        {
+                                            Logger.log?.Error($"Error getting playlist for FavoriteMappers: {ex.Message}");
+                                            Logger.log?.Debug(ex);
+                                        }
+                                    }
+                                }
+                            }
+                            IEnumerable<IJob> jobs = CreateJobs(results, jobBuilder, jobManager, cancellationToken) ?? Array.Empty<IJob>();
                             JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
                             JobStats mapperStats = new JobStats(jobResults);
                             feedStats += mapperStats;
@@ -283,8 +283,12 @@ namespace BeatSyncLib.Downloader
 
 
 
-        public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<SongTarget> songTargets, BeatSyncConfig beatSyncConfig, FeedConfigBase feedConfig)
+        public static void ProcessFinishedJobs(IEnumerable<IJob> jobs, IEnumerable<SongTarget> songTargets, BeatSyncConfig beatSyncConfig, FeedConfigBase feedConfig)
         {
+            if(!jobs.Any(j => j.Result?.Successful ?? false))
+            {
+                return;
+            }
             List<IPlaylist> playlists = new List<IPlaylist>();
             List<IPlaylist> feedPlaylists = new List<IPlaylist>();
             List<IPlaylist> recentPlaylists = new List<IPlaylist>();
@@ -326,7 +330,7 @@ namespace BeatSyncLib.Downloader
             ProcessFinishedJobs(jobs, playlists, recentPlaylists);
         }
 
-        public static void ProcessFinishedJobs(IEnumerable<IJob>? jobs, IEnumerable<IPlaylist> playlists, IEnumerable<IPlaylist> recentPlaylists)
+        public static void ProcessFinishedJobs(IEnumerable<IJob> jobs, IEnumerable<IPlaylist> playlists, IEnumerable<IPlaylist> recentPlaylists)
         {
             TimeSpan offset = new TimeSpan(0, 0, 0, 0, 1);
             DateTime addedTime = DateTime.Now - offset;
