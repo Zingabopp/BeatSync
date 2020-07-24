@@ -1,4 +1,5 @@
 ﻿using BeatSyncLib.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -64,20 +65,31 @@ namespace BeatSyncLib.Hashing
                     Logger.log?.Warn("Somehow the directory is null in AddMissingHashes, this will [probably] never happen.");
                     return;
                 }
+                catch (JsonException ex)
+                {
+                    Logger.log?.Warn($"Invalid JSON in beatmap at '{d.FullName}', skipping. {ex.Message}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logger.log?.Warn($"Unhandled exception hashing beatmap at '{d.FullName}', skipping. {ex.Message}");
+                    Logger.log?.Debug(ex);
+                    return;
+                }
 
                 if (data == null)
                 {
                     Logger.log?.Warn($"GetSongHashData({d.FullName}) returned null");
                     return;
                 }
-                else if (string.IsNullOrEmpty(data.songHash))
+                else if (data.songHash == null || data.songHash.Length == 0)
                 {
                     Logger.log?.Warn($"GetSongHashData(\"{d.Name}\") returned a null string for hash (No info.dat?).");
                     return;
                 }
 
                 if (!ExistingSongs.TryAdd(data.songHash, d.FullName))
-                    Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash].Split('\\', '/').LastOrDefault()} : {d.Name}");
+                    Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {d.Name}");
                 if (!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log?.Warn($"Couldn't add {d.FullName} to HashDictionary");
@@ -145,7 +157,8 @@ namespace BeatSyncLib.Hashing
                     s += 2;
                 }
                 return hash1 + (hash2 * 1566083941);
-            }catch(Exception)
+            }
+            catch (Exception)
             {
 
                 return 0;

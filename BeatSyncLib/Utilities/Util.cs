@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Linq;
@@ -165,6 +166,7 @@ namespace BeatSyncLib.Utilities
         /// <returns>Hash of the song files. Null if the info.dat file doesn't exist</returns>
         /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="JsonException"
         public static string? GenerateHash(string songDirectory, string existingHash = "")
         {
             if (string.IsNullOrEmpty(songDirectory))
