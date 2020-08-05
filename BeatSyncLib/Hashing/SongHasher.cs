@@ -1,9 +1,12 @@
 ﻿using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,7 +51,7 @@ namespace BeatSyncLib.Hashing
                 throw new DirectoryNotFoundException($"Song Hasher's song directory doesn't exist: {songDir.FullName}");
             //Logger.log?.Info($"SongDir is {songDir.FullName}");
             int hashedSongs = 0;
-            var tasks = songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().Select(async d =>
+            IEnumerable<Task>? directoryTasks = songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().Select(async d =>
             {
                 ISongHashData? data = null;
                 try
@@ -103,7 +106,59 @@ namespace BeatSyncLib.Hashing
                 //    //Logger.log?.Info($"Added {d.Name} to the HashDictionary.");
                 //}
             });
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(directoryTasks).ConfigureAwait(false);
+            var files = songDir.GetFiles().Where(f => !HashDictionary.ContainsKey(f.FullName) && f.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase)).ToList();
+            IEnumerable<Task>? fileTasks = files.Select(async f =>
+            {
+                ISongHashData? data = null;
+                try
+                {
+                    data = await GetZippedSongHashAsync(f.FullName).ConfigureAwait(false);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    Logger.log?.Warn($"Zip file '{f.FullName}' does not exist, this will [probably] never happen.");
+                    return;
+                }
+                catch (ArgumentNullException)
+                {
+                    Logger.log?.Warn("Somehow the file is null in AddMissingHashes, this will [probably] never happen.");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logger.log?.Warn($"Unhandled exception hashing beatmap at '{f.FullName}', skipping. {ex.Message}");
+                    Logger.log?.Debug(ex);
+                    return;
+                }
+
+                if (data == null)
+                {
+                    Logger.log?.Warn($"GetZippedSongHashAsync({f.FullName}) returned null");
+                    return;
+                }
+                else if (data.songHash == null || data.songHash.Length == 0)
+                {
+                    Logger.log?.Warn($"GetZippedSongHashAsync(\"{f.Name}\") returned a null string for hash (No info.dat?).");
+                    return;
+                }
+
+                if (!ExistingSongs.TryAdd(data.songHash, f.FullName))
+                    Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {f.Name}");
+                if (!HashDictionary.TryAdd(f.FullName, data))
+                {
+                    Logger.log?.Warn($"Couldn't add {f.FullName} to HashDictionary");
+                }
+                else
+                {
+                    hashedSongs++;
+                }
+                //else
+                //{
+                //    //Logger.log?.Info($"Added {d.Name} to the HashDictionary.");
+                //}
+            });
+            await Task.WhenAll(fileTasks).ConfigureAwait(false);
             sw.Stop();
             Initialized = true;
             Logger.log?.Debug($"Finished hashing in {sw.ElapsedMilliseconds}ms.");
@@ -123,6 +178,89 @@ namespace BeatSyncLib.Hashing
             return Task.Run<ISongHashData>(() => new SongHashData() { songHash = Util.GenerateHash(songDirectory) });
         }
 
+        public static Task<ISongHashData> GetZippedSongHashAsync(string zipPath, string existingHash = "")
+            => Task.Run<ISongHashData>(() => new SongHashData() { songHash = GetZippedSongHash(zipPath) });
+
+        public static string? GetZippedSongHash(string zipPath, string existingHash = "")
+        {
+            if (!File.Exists(zipPath))
+                return null;
+            ZipArchive zip;
+            try
+            {
+                zip = ZipFile.OpenRead(zipPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Warn($"Unable to hash beatmap zip '{zipPath}': {ex.Message}");
+                Logger.log?.Debug(ex);
+                return null;
+            }
+            ZipArchiveEntry infoFile = zip.Entries.FirstOrDefault(e => e.FullName.Equals("info.dat", StringComparison.OrdinalIgnoreCase));
+            if (infoFile == null)
+            {
+                Logger.log?.Debug($"'{zipPath}' does not have an 'info.dat' file.");
+                return null;
+            }
+            try
+            {
+                List<byte> combinedBytes = new List<byte>((int)infoFile.Length);
+                using (Stream infoStream = infoFile.Open())
+                {
+                    int current = infoStream.ReadByte();
+                    while (current != -1)
+                    {
+                        combinedBytes.Add((byte)current);
+                        current = infoStream.ReadByte();
+                    }
+                }
+                string infoString;
+                using (Stream infoStream = infoFile.Open())
+                {
+                    using StreamReader reader = new StreamReader(infoStream);
+                    infoString = reader.ReadToEnd();
+                }
+
+                JToken? token = JToken.Parse(infoString);
+                JToken? beatMapSets = token["_difficultyBeatmapSets"];
+                int numChars = beatMapSets?.Children().Count() ?? 0;
+                for (int i = 0; i < numChars; i++)
+                {
+                    JToken? diffs = beatMapSets.ElementAt(i);
+                    int numDiffs = diffs["_difficultyBeatmaps"]?.Children().Count() ?? 0;
+                    for (int i2 = 0; i2 < numDiffs; i2++)
+                    {
+                        JToken? diff = diffs["_difficultyBeatmaps"].ElementAt(i2);
+                        string? beatmapFileName = diff["_beatmapFilename"]?.Value<string>();
+                        ZipArchiveEntry beatmapFile = zip.Entries.FirstOrDefault(e => e.Name.Equals(beatmapFileName, StringComparison.OrdinalIgnoreCase));
+                        if (beatmapFile != null)
+                        {
+                            using Stream beatmapStream = beatmapFile.Open();
+                            int current = beatmapStream.ReadByte();
+                            while (current != -1)
+                            {
+                                combinedBytes.Add((byte)current);
+                                current = beatmapStream.ReadByte();
+                            }
+                        }
+                        else
+                            Logger.log?.Debug($"Missing difficulty file {beatmapFileName} in {zipPath}");
+                    }
+                }
+                zip.Dispose();
+                string hash = Util.CreateSha1FromBytes(combinedBytes.ToArray());
+                if (!string.IsNullOrEmpty(existingHash) && existingHash != hash)
+                    Logger.log?.Warn($"Hash doesn't match the existing hash for {zipPath}");
+                return hash;
+            }
+            catch (Exception ex)
+            {
+                Logger.log?.Warn($"Unable to hash beatmap zip '{zipPath}': {ex.Message}");
+                Logger.log?.Debug(ex);
+                return null;
+            }
+        }
+
         public static long GetDirectoryHash(string directory)
         {
             long hash = 0;
@@ -134,6 +272,17 @@ namespace BeatSyncLib.Hashing
                 hash ^= GetStringHash(f.Name);
                 hash ^= f.Length;
             }
+            return hash;
+        }
+
+        public static long GetQuickZipHash(string zipPath)
+        {
+            long hash = 6271;
+            FileInfo f = new FileInfo(zipPath);
+            hash ^= f.CreationTimeUtc.ToFileTimeUtc();
+            hash ^= f.LastWriteTimeUtc.ToFileTimeUtc();
+            hash ^= GetStringHash(f.Name);
+            hash ^= f.Length;
             return hash;
         }
 
