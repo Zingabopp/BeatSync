@@ -18,8 +18,10 @@ namespace BeatSyncLib.Downloader.Targets
         public PlaylistManager? PlaylistManager { get; protected set; }
         public string SongsDirectory { get; protected set; }
         public bool OverwriteTarget { get; protected set; }
+        public bool UnzipBeatmaps { get; protected set; } = true;
 
-        public DirectoryTarget(string songsDirectory, bool overwriteTarget, SongHasher songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
+
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, SongHasher songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
             : base()
         {
             SongsDirectory = Path.GetFullPath(songsDirectory);
@@ -27,6 +29,7 @@ namespace BeatSyncLib.Downloader.Targets
             HistoryManager = historyManager;
             PlaylistManager = playlistManager;
             OverwriteTarget = overwriteTarget;
+            UnzipBeatmaps = unzipBeatmaps;
         }
 
         public override async Task<SongState> CheckSongExistsAsync(string songHash)
@@ -74,19 +77,42 @@ namespace BeatSyncLib.Downloader.Targets
                 if (cancellationToken.IsCancellationRequested)
                     return new TargetResult(this, SongState.Wanted, false, new OperationCanceledException());
                 directoryPath = Path.Combine(SongsDirectory, directoryName);
-                if (!Directory.Exists(SongsDirectory))
-                    throw new SongTargetTransferException($"Parent directory doesn't exist: '{SongsDirectory}'");
-                zipResult = await Task.Run(() => FileIO.ExtractZip(sourceStream, directoryPath, OverwriteTarget)).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(song.Hash) && zipResult.OutputDirectory != null)
+                if (UnzipBeatmaps)
                 {
-                    string? hashAfterDownload = (await SongHasher.GetSongHashDataAsync(zipResult.OutputDirectory).ConfigureAwait(false)).songHash;
-                    if (hashAfterDownload == null)
-                        Logger.log?.Warn($"Unable to get hash for '{song}', hasher returned null.");
-                    else if (hashAfterDownload != song.Hash)
-                        throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
+                    if (!Directory.Exists(SongsDirectory))
+                        throw new SongTargetTransferException($"Parent directory doesn't exist: '{SongsDirectory}'");
+                    zipResult = await Task.Run(() => FileIO.ExtractZip(sourceStream, directoryPath, OverwriteTarget)).ConfigureAwait(false);
+                    if (!string.IsNullOrEmpty(song.Hash) && zipResult.OutputDirectory != null)
+                    {
+                        string? hashAfterDownload = (await SongHasher.GetSongHashDataAsync(zipResult.OutputDirectory).ConfigureAwait(false)).songHash;
+                        if (hashAfterDownload == null)
+                            Logger.log?.Warn($"Unable to get hash for '{song}', hasher returned null.");
+                        else if (hashAfterDownload != song.Hash)
+                            throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
+                    }
+                    TargetResult = new DirectoryTargetResult(this, SongState.Wanted, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
                 }
-                TargetResult = new DirectoryTargetResult(this, SongState.Wanted, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
-                return TargetResult;
+                else
+                {
+                    string zipDestination = directoryPath + ".zip";
+                    using FileStream fs = File.Open(zipDestination, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                    try
+                    {
+                        await sourceStream.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
+                        TargetResult = new DirectoryTargetResult(this, SongState.Wanted, true, null);
+                    }
+                    catch(OperationCanceledException ex)
+                    {
+                        TargetResult = new DirectoryTargetResult(this, SongState.Wanted, false, ex);
+                    }
+#pragma warning disable CA1031 // Do not catch general exception types
+                    catch (Exception ex)
+                    {
+                        TargetResult = new DirectoryTargetResult(this, SongState.Wanted, false, ex);
+                    }
+#pragma warning restore CA1031 // Do not catch general exception types
+                    return TargetResult;
+                }
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
@@ -95,12 +121,18 @@ namespace BeatSyncLib.Downloader.Targets
                 return TargetResult;
             }
 #pragma warning restore CA1031 // Do not catch general exception types
+
+            return TargetResult;
         }
     }
 
     public class DirectoryTargetResult : TargetResult
     {
         public ZipExtractResult? ZipExtractResult { get; protected set; }
+        public DirectoryTargetResult(SongTarget target, SongState songState, bool success, Exception? exception)
+            : base(target, songState, success, exception)
+        { }
+
         public DirectoryTargetResult(SongTarget target, SongState songState, bool success, ZipExtractResult? zipExtractResult, Exception? exception)
             : base(target, songState, success, exception)
         {

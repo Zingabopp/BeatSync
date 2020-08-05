@@ -19,6 +19,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities.DownloadContainers;
@@ -28,13 +29,19 @@ namespace BeatSyncConsole
     class Program
     {
         private const string ReleaseUrl = @"https://github.com/Zingabopp/BeatSync/releases";
-        private const string ConfigDirectory = "configs";
-        internal const string ConfigBackupPath = "config.json.bak";
+        private static readonly string ConfigDirectory = Paths.GetFullPath("configs", PathRoot.AssemblyDirectory);
+        internal static readonly string ConfigBackupPath = Paths.GetFullPath("config.json.bak", PathRoot.AssemblyDirectory);
         private static ConfigManager? ConfigManager;
+        private static string? createdTempDir;
+
         public static async Task<IJobBuilder> CreateJobBuilderAsync(Config config)
         {
-            string tempDirectory = "Temp";
-            Directory.CreateDirectory(tempDirectory);
+            string tempDirectory = Paths.TempDirectory;
+            if (!Directory.Exists(tempDirectory))
+            {
+                Directory.CreateDirectory(tempDirectory);
+                createdTempDir = tempDirectory;
+            }
             IDownloadJobFactory downloadJobFactory = new DownloadJobFactory(song =>
             {
                 // return new DownloadMemoryContainer();
@@ -48,6 +55,11 @@ namespace BeatSyncConsole
             foreach (ISongLocation location in songLocations)
             {
                 bool overwriteTarget = false;
+                bool unzipBeatmaps = true;
+                if(location is CustomSongLocation customLocation)
+                {
+                    unzipBeatmaps = customLocation.UnzipBeatmaps;
+                }
                 HistoryManager? historyManager = null;
                 SongHasher? songHasher = null;
                 PlaylistManager? playlistManager = null;
@@ -87,7 +99,7 @@ namespace BeatSyncConsole
                 await songHasher.InitializeAsync().ConfigureAwait(false);
                 sw.Stop();
                 Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)} in {sw.Elapsed.Seconds}sec.");
-                SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
+                SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, unzipBeatmaps, songHasher, historyManager, playlistManager);
                 //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);
             }
@@ -190,7 +202,7 @@ namespace BeatSyncConsole
             {
                 ConsoleLogWriter? consoleLogger = SetupLogging();
                 string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
-                Logger.log.Info($"Starting BeatSyncConsole v{version}");
+                Logger.log.Info($"Starting BeatSyncConsole v{version} |{VersionInfo.Description}");
                 await CheckVersion().ConfigureAwait(false);
                 ConfigManager = new ConfigManager(ConfigDirectory);
                 bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
@@ -200,7 +212,7 @@ namespace BeatSyncConsole
                 if (validConfig && config != null && config.BeatSyncConfig != null)
                 {
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
-                    SongFeedReaders.WebUtils.WebClient.SetUserAgent("BeatSyncConsole/" + version);
+                    SongFeedReaders.WebUtils.WebClient.SetUserAgent($"BeatSyncConsole/{version} ({RuntimeInformation.OSDescription}){VersionInfo.Description}");
                     JobManager manager = new JobManager(config.BeatSyncConfig.MaxConcurrentDownloads);
                     manager.Start(CancellationToken.None);
                     IJobBuilder jobBuilder = await CreateJobBuilderAsync(config).ConfigureAwait(false);
@@ -260,12 +272,13 @@ namespace BeatSyncConsole
                     sw.Stop();
                     Logger.log.Info($"Finished after {sw.Elapsed.TotalSeconds}s: {beatSyncStats}");
                     config.BeatSyncConfig.LastRun = DateTime.Now;
+                    await ConfigManager.StoreBeatSyncConfig().ConfigureAwait(false);
                 }
                 else
                 {
                     Logger.log.Info("BeatSyncConsole cannot run without a valid config, exiting.");
                 }
-
+                Cleanup();
                 LogManager.Stop();
                 LogManager.Wait();
                 if (!(config?.CloseWhenFinished ?? false))
@@ -288,7 +301,7 @@ namespace BeatSyncConsole
                     Console.WriteLine(message);
                     Console.ForegroundColor = previousColor;
                 }
-
+                Cleanup();
                 LogManager.Stop();
                 LogManager.Wait();
                 if (!(config?.CloseWhenFinished ?? false))
@@ -300,6 +313,36 @@ namespace BeatSyncConsole
             finally
             {
                 LogManager.Abort();
+            }
+        }
+
+        public static void Cleanup()
+        {
+            if (createdTempDir != null && Directory.Exists(createdTempDir))
+            {
+                try
+                {
+                    Directory.Delete(createdTempDir, true);
+                }
+                catch (Exception ex)
+                {
+                    string message = $"Error deleting temp directory '{createdTempDir}': {ex.Message}";
+                    if (LogManager.IsAlive && LogManager.HasWriters && Logger.log != null)
+                    {
+
+                        Logger.log?.Error(message);
+                        Logger.log?.Debug(ex);
+                    }
+                    else
+                    {
+                        ConsoleColor previousColor = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine(message);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine(ex);
+                        Console.ForegroundColor = previousColor;
+                    }
+                }
             }
         }
     }

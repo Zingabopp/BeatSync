@@ -40,6 +40,8 @@ namespace BeatSyncConsole.Configs
         private string? _songsDirectory;
         [JsonIgnore]
         private string? _historyPath;
+        [JsonIgnore]
+        private bool? _unzipBeatmaps;
 
         [JsonProperty("Enabled", Order = 0)]
         public bool Enabled { get; set; }
@@ -69,6 +71,15 @@ namespace BeatSyncConsole.Configs
                 _historyPath = value;
             }
         }
+
+
+        [JsonProperty("UnzipBeatmaps", Order = 30)]
+        public bool UnzipBeatmaps
+        {
+            get { return _unzipBeatmaps ??= true; }
+            set { _unzipBeatmaps = value; }
+        }
+
 
         public override string ToString()
         {
