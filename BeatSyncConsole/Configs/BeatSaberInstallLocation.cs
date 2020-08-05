@@ -23,13 +23,20 @@ namespace BeatSyncConsole.Configs
 
         [JsonProperty("GameDirectory", Order = 5)]
         public string BasePath { get; set; } = string.Empty;
-
         [JsonIgnore]
         public string SongsDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Beat Saber_Data", "CustomLevels") : string.Empty;
         [JsonIgnore]
         public string PlaylistDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Playlists") : string.Empty;
         [JsonIgnore]
         public string HistoryPath => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "UserData", "BeatSyncHistory.json") : string.Empty;
+
+        [JsonIgnore]
+        public string FullBasePath => BasePath;
+        public string FullSongsPath => SongsDirectory;
+
+        public string FullPlaylistsPath => PlaylistDirectory;
+
+        public string FullHistoryPath => HistoryPath;
 
         public bool IsValid(out string? reason)
         {

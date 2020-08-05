@@ -84,6 +84,18 @@ namespace BeatSyncConsole.Utilities
             }
         }
 
+        private static string? _logDirectory;
+        public static string LogDirectory
+        {
+            get
+            {
+                //if (UseLocalTemp)
+                //    return GetFullPath("Temp", PathRoot.AssemblyDirectory);
+                if (_logDirectory == null)
+                    _logDirectory = Paths.GetFullPath("logs", PathRoot.AssemblyDirectory);
+                return _logDirectory;
+            }
+        }
         public static string WorkingDirectory => Directory.GetCurrentDirectory();
 
         public const string Path_CustomLevels = @"Beat Saber_Data\CustomLevels";
@@ -96,24 +108,38 @@ namespace BeatSyncConsole.Utilities
 
         public static string ReplaceWorkingDirectory(string fullPath) => GetRelativeDirectory(fullPath, PathRoot.WorkingDirectory);
 
-        public static string GetRelativeDirectory(string path, PathRoot pathRoot)
+        public static string GetRelativeDirectory(string path, PathRoot pathRoot = PathRoot.AssemblyDirectory)
         {
             return pathRoot switch
             {
-                PathRoot.WorkingDirectory => path.Replace(WorkingDirectory, ""),
-                PathRoot.AssemblyDirectory => path.Replace(AssemblyDirectory, ""),
-                PathRoot.UserDirectory => path.Replace(UserDirectory, ""),
-                PathRoot.TempDirectory => path.Replace(TempDirectory, ""),
+                PathRoot.WorkingDirectory => path.Replace(WorkingDirectory, WorkingDirectoryFlag),
+                PathRoot.AssemblyDirectory => path.Replace(AssemblyDirectory, AssemblyDirectoryFlag),
+                PathRoot.UserDirectory => path.Replace(UserDirectory, UserDirectoryFlag),
+                PathRoot.TempDirectory => path.Replace(TempDirectory, TempDirectoryFlag),
                 _ => path
             };
         }
 
-        public static string GetFullPath(string path, PathRoot relativeRoot = PathRoot.WorkingDirectory)
+
+        public static string GetFullPath(string path, PathRoot relativeRoot = PathRoot.AssemblyDirectory)
+        {
+            string basePath = relativeRoot switch
+            {
+                PathRoot.WorkingDirectory => WorkingDirectory,
+                PathRoot.AssemblyDirectory => AssemblyDirectory,
+                PathRoot.UserDirectory => UserDirectory,
+                PathRoot.TempDirectory => TempDirectory,
+                _ => AssemblyDirectory
+            };
+            return GetFullPath(path, basePath);
+        }
+
+        public static string GetFullPath(string path, string basePath)
         {
             string fullPathStr;
             if (path.StartsWith('~') && UserDirectory.Length > 0)
             {
-                fullPathStr = Path.Combine(UserDirectory, path.Substring(1).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                fullPathStr = Path.Combine(UserDirectory, path.Substring(1).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
             }
             else if (Path.IsPathFullyQualified(path))
                 return path;
@@ -126,14 +152,7 @@ namespace BeatSyncConsole.Utilities
             else if (path.StartsWith(TempDirectoryFlag))
                 fullPathStr = Path.Combine(TempDirectory, path.Substring(TempDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
             else
-                fullPathStr = relativeRoot switch
-                {
-                    PathRoot.WorkingDirectory => Path.GetFullPath(path, WorkingDirectory),
-                    PathRoot.AssemblyDirectory => Path.GetFullPath(path, AssemblyDirectory),
-                    PathRoot.UserDirectory => Path.GetFullPath(path, UserDirectory),
-                    PathRoot.TempDirectory => Path.GetFullPath(path, TempDirectory),
-                    _ => Path.GetFullPath(path)
-                };
+                return Path.Combine(basePath, path);
 
             return fullPathStr;
         }

@@ -29,8 +29,7 @@ namespace BeatSyncConsole
     class Program
     {
         private const string ReleaseUrl = @"https://github.com/Zingabopp/BeatSync/releases";
-        private static readonly string ConfigDirectory = Paths.GetFullPath("configs", PathRoot.AssemblyDirectory);
-        internal static readonly string ConfigBackupPath = Paths.GetFullPath("config.json.bak", PathRoot.AssemblyDirectory);
+        private static readonly string ConfigDirectory = Path.Combine("%ASSEMBLYDIR%", "configs");
         private static ConfigManager? ConfigManager;
         private static string? createdTempDir;
 
@@ -65,9 +64,7 @@ namespace BeatSyncConsole
                 PlaylistManager? playlistManager = null;
                 if (!string.IsNullOrEmpty(location.HistoryPath))
                 {
-                    string historyPath = location.HistoryPath;
-                    if (!Path.IsPathFullyQualified(historyPath))
-                        historyPath = Path.Combine(location.BasePath, historyPath);
+                    string historyPath = location.FullHistoryPath;
                     string historyDirectory = Path.GetDirectoryName(historyPath) ?? string.Empty;
                     try
                     {
@@ -82,23 +79,19 @@ namespace BeatSyncConsole
                 }
                 if (!string.IsNullOrEmpty(location.PlaylistDirectory))
                 {
-                    string playlistDirectory = location.PlaylistDirectory;
-                    if (!Path.IsPathFullyQualified(playlistDirectory))
-                        playlistDirectory = Path.Combine(location.BasePath, playlistDirectory);
+                    string playlistDirectory = location.FullPlaylistsPath;
                     Directory.CreateDirectory(playlistDirectory);
                     playlistManager = new PlaylistManager(playlistDirectory, new LegacyPlaylistHandler(), new BlistPlaylistHandler());
                 }
-                string songsDirectory = location.SongsDirectory;
-                if (!Path.IsPathFullyQualified(songsDirectory))
-                    songsDirectory = Path.Combine(location.BasePath, songsDirectory);
+                string songsDirectory = location.FullSongsPath;
                 Directory.CreateDirectory(songsDirectory);
                 songHasher = new SongHasher<SongHashData>(songsDirectory);
                 Stopwatch sw = new Stopwatch();
-                Logger.log.Info($"Hashing songs in '{Paths.ReplaceWorkingDirectory(songsDirectory)}'...");
+                Logger.log.Info($"Hashing songs in '{Paths.GetRelativeDirectory(songsDirectory)}'...");
                 sw.Start();
                 await songHasher.InitializeAsync().ConfigureAwait(false);
                 sw.Stop();
-                Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.ReplaceWorkingDirectory(songsDirectory)} in {sw.Elapsed.Seconds}sec.");
+                Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.GetRelativeDirectory(songsDirectory)} in {sw.Elapsed.Seconds}sec.");
                 SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, unzipBeatmaps, songHasher, historyManager, playlistManager);
                 //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);
@@ -151,8 +144,9 @@ namespace BeatSyncConsole
             SongFeedReaders.Logging.LoggingController.DefaultLogger = feedReaderLogger;
             try
             {
-                string logFilePath = Path.Combine("logs", "log.txt");
-                Directory.CreateDirectory("logs");
+                string logDirectory = Paths.LogDirectory;
+                string logFilePath = Path.Combine(logDirectory, "log.txt");
+                Directory.CreateDirectory(logDirectory);
                 LogManager.AddLogWriter(new FileLogWriter(logFilePath));
             }
             catch (Exception ex)

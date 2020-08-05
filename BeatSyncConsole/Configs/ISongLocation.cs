@@ -12,6 +12,11 @@ namespace BeatSyncConsole.Configs
         string? PlaylistDirectory { get; }
         string HistoryPath { get; }
 
+        public string FullBasePath { get; }
+        public string FullSongsPath { get; }
+        public string FullPlaylistsPath { get; }
+        public string FullHistoryPath { get; }
+
         bool IsValid();
         bool IsValid(out string? reason);
     }

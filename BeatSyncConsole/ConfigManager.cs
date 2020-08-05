@@ -24,7 +24,7 @@ namespace BeatSyncConsole
             if (string.IsNullOrEmpty(configDirectory))
                 throw new ArgumentNullException(nameof(configDirectory));
             ConfigDirectory = configDirectory;
-            Directory.CreateDirectory(ConfigDirectory);
+            Directory.CreateDirectory(Paths.GetFullPath(ConfigDirectory, PathRoot.AssemblyDirectory));
         }
 
         public string BeatSyncConfigPath
@@ -87,14 +87,15 @@ namespace BeatSyncConsole
 
         public async Task<bool> InitializeConfigAsync()
         {
-            Directory.CreateDirectory(ConfigDirectory);
+            Directory.CreateDirectory(Paths.GetFullPath(ConfigDirectory, PathRoot.AssemblyDirectory));
             ConsoleConfigPath = Path.Combine(ConfigDirectory, BeatSyncConsoleConfigName);
+            string fullConsolePath = Paths.GetFullPath(ConsoleConfigPath, PathRoot.AssemblyDirectory);
             bool validConfig = true;
             try
             {
-                if (File.Exists(ConsoleConfigPath))
+                if (File.Exists(fullConsolePath))
                 {
-                    Config = JsonConvert.DeserializeObject<Config>(await File.ReadAllTextAsync(ConsoleConfigPath).ConfigureAwait(false));
+                    Config = JsonConvert.DeserializeObject<Config>(await File.ReadAllTextAsync(fullConsolePath).ConfigureAwait(false));
                 }
                 else
                 {
@@ -124,12 +125,13 @@ namespace BeatSyncConsole
                     return false;
             }
             Paths.UseLocalTemp = !Config.UseSystemTemp;
+            string fullBeatSyncConfigPath = Paths.GetFullPath(BeatSyncConfigPath, PathRoot.AssemblyDirectory);
             try
             {
-                if (File.Exists(BeatSyncConfigPath))
+                if (File.Exists(fullBeatSyncConfigPath))
                 {
                     Logger.log.Info($"Using BeatSync config '{BeatSyncConfigPath}'.");
-                    Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(await File.ReadAllTextAsync(BeatSyncConfigPath).ConfigureAwait(false));
+                    Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(await File.ReadAllTextAsync(fullBeatSyncConfigPath).ConfigureAwait(false));
                 }
                 else
                 {
@@ -280,10 +282,11 @@ namespace BeatSyncConsole
         {
             try
             {
-                string backup = ConsoleConfigPath + ".bak";
-                if (File.Exists(ConsoleConfigPath))
-                    File.Copy(ConsoleConfigPath, backup);
-                await File.WriteAllTextAsync(ConsoleConfigPath, JsonConvert.SerializeObject(Config, Formatting.Indented)).ConfigureAwait(false);
+                string fullConsolePath = Paths.GetFullPath(ConsoleConfigPath, PathRoot.AssemblyDirectory);
+                string backup = fullConsolePath + ".bak";
+                if (File.Exists(fullConsolePath))
+                    File.Copy(fullConsolePath, backup);
+                await File.WriteAllTextAsync(fullConsolePath, JsonConvert.SerializeObject(Config, Formatting.Indented)).ConfigureAwait(false);
                 if (File.Exists(backup))
                     File.Delete(backup);
             }
@@ -305,10 +308,11 @@ namespace BeatSyncConsole
                 throw new InvalidOperationException("Nothing to store, Config is null.");
             try
             {
-                string backup = BeatSyncConfigPath + ".bak";
-                if (File.Exists(BeatSyncConfigPath))
-                    File.Copy(BeatSyncConfigPath, backup);
-                await File.WriteAllTextAsync(BeatSyncConfigPath, JsonConvert.SerializeObject(Config.BeatSyncConfig, Formatting.Indented)).ConfigureAwait(false);
+                string fullBeatSyncConfigPath = Paths.GetFullPath(BeatSyncConfigPath, PathRoot.AssemblyDirectory);
+                string backup = fullBeatSyncConfigPath + ".bak";
+                if (File.Exists(fullBeatSyncConfigPath))
+                    File.Copy(fullBeatSyncConfigPath, backup);
+                await File.WriteAllTextAsync(fullBeatSyncConfigPath, JsonConvert.SerializeObject(Config.BeatSyncConfig, Formatting.Indented)).ConfigureAwait(false);
                 if (File.Exists(backup))
                     File.Delete(backup);
             }
@@ -340,13 +344,13 @@ namespace BeatSyncConsole
                 return Path.GetFullPath(fileName);
             foreach (var location in songLocations.Where(l => l is BeatSaberInstallLocation))
             {
-                string path = Path.Combine(location.BasePath, "UserData", fileName);
+                string path = Path.Combine(location.FullBasePath, "UserData", fileName);
                 if (File.Exists(path))
                     return path;
             }
             foreach (var location in songLocations.Where(l => l is CustomSongLocation))
             {
-                string path = Path.Combine(location.BasePath, fileName);
+                string path = Path.Combine(location.FullBasePath, fileName);
                 if (File.Exists(path))
                     return path;
             }
