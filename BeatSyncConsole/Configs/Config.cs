@@ -127,6 +127,26 @@ namespace BeatSyncConsole.Configs
             }
         }
 
+        private bool? _useSystemTemp;
+        [JsonProperty("UseSystemTemp", Order = 35)]
+        public bool UseSystemTemp {
+            get
+            {
+                if (_useSystemTemp == null)
+                {
+                    _useSystemTemp = false;
+                    SetConfigChanged();
+                }
+                return _useSystemTemp ?? false;
+            }
+            set
+            {
+                if (_useSystemTemp == value)
+                    return;
+                _useSystemTemp = value;
+                SetConfigChanged();
+            }
+        }
 
         private LogLevel? _consoleLogLevel;
         [JsonProperty(nameof(ConsoleLogLevel), Order = 100)]
