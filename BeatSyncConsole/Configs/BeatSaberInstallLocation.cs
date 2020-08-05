@@ -32,10 +32,11 @@ namespace BeatSyncConsole.Configs
 
         [JsonIgnore]
         public string FullBasePath => BasePath;
+        [JsonIgnore]
         public string FullSongsPath => SongsDirectory;
-
+        [JsonIgnore]
         public string FullPlaylistsPath => PlaylistDirectory;
-
+        [JsonIgnore]
         public string FullHistoryPath => HistoryPath;
 
         public bool IsValid(out string? reason)
