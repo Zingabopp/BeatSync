@@ -57,7 +57,7 @@
       <InformationalVersion>$(VersionType)-$(GitBranch)-$(CommitHash)</InformationalVersion>
     </PropertyGroup>
     <PropertyGroup Condition="'$(GitModified)' == 'Modified'">
-      <InformationalVersion>$(VersionType)-$(CommitHash)-$(GitModified)</InformationalVersion>
+      <InformationalVersion>$(VersionType)-$(GitBranch)-$(CommitHash)-$(GitModified)</InformationalVersion>
     </PropertyGroup>
   </Target>
   <Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
