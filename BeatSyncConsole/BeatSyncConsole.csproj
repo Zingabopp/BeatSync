@@ -70,24 +70,18 @@
     <ReplaceInFile File="$(IntermediateSourcePath)VersionInfo.cs" Pattern="GitCommit = null" Substitute="GitCommit = &quot;$(GitInfo)&quot;" />
   </Target>
   <Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
-    <GetCommitHash ProjectDir="$(ProjectDir)">
-      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
-    </GetCommitHash>
     <PropertyGroup>
       <ArtifactDirectory>$(ProjectDir)bin\Release\Artifacts\</ArtifactDirectory>
-      <OutputFile>BeatSyncConsole-$(Version)-$(RuntimeIdentifier)-$(CommitShortHash)</OutputFile>
+      <OutputFile>BeatSyncConsole-$(Version)-$(RuntimeIdentifier)-$(CommitHash)</OutputFile>
     </PropertyGroup>
     <Message Text="Published '$(RuntimeIdentifier)' to '$(ProjectDir)$(PublishDir)' for Continuous Integration" Importance="high" />
     <Message Text="::set-output name=filename::$(OutputFile)" Importance="high" />
     <Message Text="::set-output name=artifactpath::$(ProjectDir)$(PublishDir)../" Importance="high" />
   </Target>
   <Target Name="ZipRelease" AfterTargets="Publish" Condition="'$(DisableZipRelease)' != 'True'">
-    <GetCommitHash ProjectDir="$(ProjectDir)">
-      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
-    </GetCommitHash>
     <PropertyGroup>
       <ArtifactDirectory>$(ProjectDir)bin\Release\Artifacts\</ArtifactDirectory>
-      <OutputFile>BeatSyncConsole-$(Version)-$(RuntimeIdentifier)-$(CommitShortHash).zip</OutputFile>
+      <OutputFile>BeatSyncConsole-$(Version)-$(RuntimeIdentifier)-$(CommitHash).zip</OutputFile>
     </PropertyGroup>
     <Message Text="Published '$(RuntimeIdentifier)' to '$(ProjectDir)$(PublishDir)'" Importance="high" />
     <MakeDir Directories="$(ArtifactDirectory)" />

@@ -25,10 +25,10 @@
       <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
     </GetManifestInfo>
     <GetCommitHash ProjectDir="$(ProjectDir)">
-      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
+      <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
     </GetCommitHash>
     <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
-    <Message Text="::set-output name=filename::$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash)" Importance="high" />
+    <Message Text="::set-output name=filename::$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitHash)" Importance="high" />
     <Message Text="::set-output name=assemblyname::$(AssemblyName)" Importance="high" />
     <Message Text="::set-output name=artifactpath::$(ProjectDir)$(ArtifactDestination)" Importance="high" />
     <Message Text="Copying '$(OutputAssemblyName).dll' to '$(ProjectDir)$(ArtifactDestination)/Plugins/$(AssemblyName).dll'" Importance="high" />
@@ -38,7 +38,7 @@
   <Target Name="ZipRelease" AfterTargets="ILRepack" Condition="'$(DisableZipRelease)' != 'True' AND '$(Configuration)' == 'Release' AND '$(BSMTTaskAssembly)' != ''">
     <Message Text="Zipping '$(ArtifactDestination)' for release." Importance="high" />
     <GetCommitHash ProjectDir="$(ProjectDir)">
-      <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
+      <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
     </GetCommitHash>
     <Copy SourceFiles="$(OutputAssemblyName).dll" DestinationFiles="$(ArtifactDestination)\Plugins\$(AssemblyName).dll" />
     <GetManifestInfo ErrorOnMismatch="True">
@@ -47,7 +47,7 @@
       <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
     </GetManifestInfo>
     <Message Text="PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
-    <ZipDir SourceDirectory="$(ArtifactDestination)" DestinationFile="$(OutDir)zip\$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitShortHash).zip" />
+    <ZipDir SourceDirectory="$(ArtifactDestination)" DestinationFile="$(OutDir)zip\$(AssemblyName)-$(PluginVersion)-bs$(GameVersion)-$(CommitHash).zip" />
   </Target>
   <!--Copies the assembly and pdb to the Beat Saber folder.-->
   <Target Name="CopyToPlugins" AfterTargets="ILRepack" Condition="'$(DisableCopyToPlugins)' != 'True' AND '$(ContinuousIntegrationBuild)' != 'True'">
