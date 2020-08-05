@@ -58,16 +58,9 @@
     <PropertyGroup Condition="'$(GitModified)' == 'Modified'">
       <GitInfo>$(VersionType)-$(CommitHash)-$(GitModified)</GitInfo>
     </PropertyGroup>
-    <Message Text="GitInfo: $(GitInfo)" Importance="high" />
-    <RemoveDir Directories="$(IntermediateSourcePath)" />
-    <ItemGroup>
-      <ToCompile Include="@(Compile)" />
-      <Compile Remove="@(Compile)" />
-    </ItemGroup>
-    <Copy SourceFiles="@(ToCompile)" DestinationFiles="@(ToCompile->'$(IntermediateSourcePath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true">
-      <Output TaskParameter="CopiedFiles" ItemName="Compile" />
-    </Copy>
-    <ReplaceInFile File="$(IntermediateSourcePath)VersionInfo.cs" Pattern="GitCommit = null" Substitute="GitCommit = &quot;$(GitInfo)&quot;" />
+    <PropertyGroup>
+      <InformationalVersion>$(GitInfo)</InformationalVersion>
+    </PropertyGroup>
   </Target>
   <Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
     <PropertyGroup>

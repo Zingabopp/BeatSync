@@ -1,8 +1,9 @@
-﻿namespace BeatSyncConsole
+﻿using System.Reflection;
+
+namespace BeatSyncConsole
 {
     public static class VersionInfo
     {
-        private const string GitCommit = null;
         private static string? _versionDescription;
 
         public static string Description
@@ -11,12 +12,12 @@
             { 
                 if(_versionDescription == null)
                 {
-                    string gitInfo = GitCommit;
-                    if (gitInfo != null && gitInfo.Length > 0)
-                        gitInfo = $" {gitInfo}";
+                    string? versionDescription = Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                    if (versionDescription != null && versionDescription.Length > 0)
+                        versionDescription = $" {versionDescription}";
                     else
-                        gitInfo = " Unofficial";
-                    _versionDescription = gitInfo;
+                        versionDescription = " Unofficial";
+                    _versionDescription = versionDescription;
                 }
                 return _versionDescription; 
             }
