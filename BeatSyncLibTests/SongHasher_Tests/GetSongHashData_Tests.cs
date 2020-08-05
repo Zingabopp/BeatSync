@@ -13,6 +13,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
         private static readonly string SongCoreCachePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\Hyperbolic Magnetism\Beat Saber\SongHashData.dat";
         private static readonly string TestCacheDir = Path.GetFullPath(Path.Combine("Data", "SongHashData"));
         private static readonly string TestSongsDir = Path.GetFullPath(Path.Combine("Data", "Songs"));
+        private static readonly string TestSongZipsDir = Path.GetFullPath(Path.Combine("Data", "SongZips"));
 
         static GetSongHashData_Tests()
         {
@@ -45,6 +46,43 @@ namespace BeatSyncLibTests.SongHasher_Tests
             var songDir = @"Data\Songs\0 (Missing ExpectedDiff)";
             var hashData = SongHasher.GetSongHashDataAsync(songDir).Result;
             Assert.IsNotNull(hashData.songHash);
+        }
+
+        [TestMethod]
+        public void ZipHash_NoFile()
+        {
+            string expectedHash = null;
+            string zipPath = Path.Combine(TestSongZipsDir, "DoesntExist.zip");
+            string actualHash = SongHasher.GetZippedSongHash(zipPath);
+            Assert.AreEqual(expectedHash, actualHash);
+        }
+
+        [TestMethod]
+        public void ZipMissingInfo()
+        {
+            string expectedHash = null;
+            string zipPath = Path.Combine(TestSongZipsDir, "MissingInfo.zip");
+            string actualHash = SongHasher.GetZippedSongHash(zipPath);
+            Assert.AreEqual(expectedHash, actualHash);
+        }
+
+        [TestMethod]
+        public void ZipMissingDiff()
+        {
+            string expectedHash = "BD8CB1F979B29760D4B623E65A59ACD217F093F3";
+            string zipPath = Path.Combine(TestSongZipsDir, "MissingDiff.zip");
+            string actualHash = SongHasher.GetZippedSongHash(zipPath);
+            Assert.AreEqual(expectedHash, actualHash);
+        }
+
+        [TestMethod]
+        public void HashSongZip()
+        {
+            string expectedHash = "ea2d289fb640ce8a0d7302ae36bfa3a5710d9ee8".ToUpper();
+            string zipPath = Path.Combine(TestSongZipsDir, "2cd (Yee - katiedead).zip");
+            long quickHash = SongHasher.GetQuickZipHash(zipPath);
+            string actualHash = SongHasher.GetZippedSongHash(zipPath);
+            Assert.AreEqual(expectedHash, actualHash);
         }
 
         [TestMethod]

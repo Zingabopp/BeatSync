@@ -25,7 +25,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
             string nonExistantCacheFile = Path.Combine(TestCacheDir, "DoesntExist.dat");
             SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir);
             int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
-            Assert.AreEqual(newHashes, 6);
+            Assert.AreEqual(newHashes, 7);
         }
 
         [TestMethod]
@@ -33,7 +33,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
         {
             SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir);
             int newHashes = await hasher.HashDirectoryAsync().ConfigureAwait(false);
-            Assert.AreEqual(newHashes, 6);
+            Assert.AreEqual(newHashes, 7);
         }
 
         //[TestMethod]
