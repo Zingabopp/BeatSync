@@ -53,8 +53,20 @@ namespace BeatSyncConsole
             if (Config == null)
                 throw new InvalidOperationException("Config is null.");
             List<ISongLocation> songLocations = new List<ISongLocation>();
-            songLocations.AddRange(Config.BeatSaberInstallLocations.Where(l => l.IsValid()));
-            songLocations.AddRange(Config.AlternateSongsPaths.Where(l => l.IsValid()));
+            foreach (var l in Config.BeatSaberInstallLocations)
+            {
+                if (l.IsValid(out string? invalidReason))
+                    songLocations.Add(l);
+                else
+                    Logger.log?.Warn($"Location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
+            }
+            foreach (var l in Config.AlternateSongsPaths)
+            {
+                if (l.IsValid(out string? invalidReason))
+                    songLocations.Add(l);
+                else if(!string.IsNullOrEmpty(l.BasePath))
+                    Logger.log?.Warn($"Location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
+            }
             return songLocations;
         }
 
