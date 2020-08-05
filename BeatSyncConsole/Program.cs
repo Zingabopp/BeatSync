@@ -12,6 +12,7 @@ using BeatSyncLib.Hashing;
 using BeatSyncLib.History;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
+using CommandLine;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,7 +30,8 @@ namespace BeatSyncConsole
     class Program
     {
         private const string ReleaseUrl = @"https://github.com/Zingabopp/BeatSync/releases";
-        private static readonly string ConfigDirectory = Path.Combine("%ASSEMBLYDIR%", "configs");
+        private static string ConfigDirectory = Path.Combine("%ASSEMBLYDIR%", "configs");
+        private static string LogDirectory;
         private static ConfigManager? ConfigManager;
         private static string? createdTempDir;
 
@@ -55,7 +57,7 @@ namespace BeatSyncConsole
             {
                 bool overwriteTarget = false;
                 bool unzipBeatmaps = true;
-                if(location is CustomSongLocation customLocation)
+                if (location is CustomSongLocation customLocation)
                 {
                     unzipBeatmaps = customLocation.UnzipBeatmaps;
                 }
@@ -144,7 +146,7 @@ namespace BeatSyncConsole
             SongFeedReaders.Logging.LoggingController.DefaultLogger = feedReaderLogger;
             try
             {
-                string logDirectory = Paths.LogDirectory;
+                string logDirectory = LogDirectory ?? Paths.LogDirectory;
                 string logFilePath = Path.Combine(logDirectory, "log.txt");
                 Directory.CreateDirectory(logDirectory);
                 LogManager.AddLogWriter(new FileLogWriter(logFilePath));
@@ -189,21 +191,90 @@ namespace BeatSyncConsole
 
         }
 
+        static void RunOptions(Options options)
+        {
+            if (options.LogDirectory != null)
+            {
+                string logPath = Paths.GetFullPath(options.LogDirectory, PathRoot.AssemblyDirectory);
+                try
+                {
+                    Directory.CreateDirectory(logPath);
+                    if (Directory.Exists(logPath))
+                    {
+                        LogDirectory = logPath;
+                        ArgDebugMsgs.Add($"Set log directory to '{logPath}'");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ArgErrorMsgs.Add($"Error setting Logging directory: {ex.Message}");
+                }
+            }
+            if (options.ConfigDirectory != null)
+            {
+                string configPath = Paths.GetFullPath(options.ConfigDirectory, PathRoot.AssemblyDirectory);
+                try
+                {
+                    Directory.CreateDirectory(configPath);
+                    if (Directory.Exists(configPath))
+                    {
+                        ConfigDirectory = configPath;
+                        ArgDebugMsgs.Add($"Set config directory to '{configPath}'");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ArgErrorMsgs.Add($"Error setting Config directory: {ex.Message}");
+                }
+            }
+        }
+
+        static void HandleParseErrors(IEnumerable<Error> errors)
+        {
+            ArgErrors.Add(errors);
+        }
+
+        static List<IEnumerable<Error>> ArgErrors = new List<IEnumerable<Error>>();
+        static List<string> ArgErrorMsgs = new List<string>();
+        static List<string> ArgDebugMsgs = new List<string>();
         static async Task Main(string[] args)
         {
             Config? config = null;
+            bool breakEarly = false;
             try
             {
+                var parseResult = CommandLine.Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed(RunOptions)
+                    .WithNotParsed(HandleParseErrors);
                 ConsoleLogWriter? consoleLogger = SetupLogging();
                 string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
                 Logger.log.Info($"Starting BeatSyncConsole v{version} |{VersionInfo.Description}");
+                foreach (var msg in ArgErrorMsgs)
+                {
+                    Logger.log?.Error(msg);
+                }
+                foreach (var error in ArgErrors)
+                {
+                    if (error.IsVersion())
+                        breakEarly = true;
+                    if (error.IsHelp())
+                        breakEarly = true;
+                }
+                foreach (var msg in ArgDebugMsgs)
+                {
+                    Logger.log?.Debug(msg);
+                }
                 await CheckVersion().ConfigureAwait(false);
-                ConfigManager = new ConfigManager(ConfigDirectory);
-                bool validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
-                if (consoleLogger != null)
-                    consoleLogger.LogLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
-                config = ConfigManager.Config;
-                if (validConfig && config != null && config.BeatSyncConfig != null)
+                bool validConfig = false;
+                if (!breakEarly)
+                {
+                    ConfigManager = new ConfigManager(ConfigDirectory);
+                    validConfig = await ConfigManager.InitializeConfigAsync().ConfigureAwait(false);
+                    if (consoleLogger != null)
+                        consoleLogger.LogLevel = ConfigManager.Config?.ConsoleLogLevel ?? BeatSyncLib.Logging.LogLevel.Info;
+                    config = ConfigManager.Config;
+                }
+                if (!breakEarly && validConfig && config != null && config.BeatSyncConfig != null)
                 {
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent($"BeatSyncConsole/{version} ({RuntimeInformation.OSDescription}){VersionInfo.Description}");
@@ -270,7 +341,8 @@ namespace BeatSyncConsole
                 }
                 else
                 {
-                    Logger.log.Info("BeatSyncConsole cannot run without a valid config, exiting.");
+                    if (!breakEarly)
+                        Logger.log.Info("BeatSyncConsole cannot run without a valid config, exiting.");
                 }
                 Cleanup();
                 LogManager.Stop();

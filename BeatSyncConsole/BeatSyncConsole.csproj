@@ -33,6 +33,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
   </ItemGroup>
 
@@ -53,13 +54,10 @@
       <IntermediateSourcePath>$(IntermediateOutputPath)src\</IntermediateSourcePath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(GitModified)' != 'Modified'">
-      <GitInfo>$(VersionType)-$(GitBranch)-$(CommitHash)</GitInfo>
+      <InformationalVersion>$(VersionType)-$(GitBranch)-$(CommitHash)</InformationalVersion>
     </PropertyGroup>
     <PropertyGroup Condition="'$(GitModified)' == 'Modified'">
-      <GitInfo>$(VersionType)-$(CommitHash)-$(GitModified)</GitInfo>
-    </PropertyGroup>
-    <PropertyGroup>
-      <InformationalVersion>$(GitInfo)</InformationalVersion>
+      <InformationalVersion>$(VersionType)-$(CommitHash)-$(GitModified)</InformationalVersion>
     </PropertyGroup>
   </Target>
   <Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
