@@ -134,15 +134,39 @@ namespace BeatSyncConsole.Utilities
             return GetFullPath(path, basePath);
         }
 
+        public static string ExpandPath(string path)
+        {
+            if (path == null || path.Length == 0)
+                return path;
+            string expandedPath;
+            if (path.StartsWith('~') && UserDirectory.Length > 0)
+            {
+                expandedPath = Path.Combine(UserDirectory, path.Substring(1).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
+            }
+            else if (path.StartsWith(WorkingDirectoryFlag))
+                expandedPath = Path.Combine(WorkingDirectory, path.Substring(WorkingDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
+            else if (path.StartsWith(AssemblyDirectoryFlag))
+                expandedPath = Path.Combine(AssemblyDirectory, path.Substring(AssemblyDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
+            else if (path.StartsWith(UserDirectoryFlag))
+                expandedPath = Path.Combine(UserDirectory, path.Substring(UserDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
+            else if (path.StartsWith(TempDirectoryFlag))
+                expandedPath = Path.Combine(TempDirectory, path.Substring(TempDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
+            else
+                return path;
+            return expandedPath;
+        }
+
         public static string GetFullPath(string path, string basePath)
         {
             string fullPathStr;
-            if (path.StartsWith('~') && UserDirectory.Length > 0)
+            if (basePath != null && path.StartsWith('~') && UserDirectory.Length > 0)
             {
                 fullPathStr = Path.Combine(UserDirectory, path.Substring(1).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
             }
             else if (Path.IsPathFullyQualified(path))
                 return path;
+            else if(string.IsNullOrEmpty(basePath))
+                fullPathStr = Path.Combine(AssemblyDirectory, path.Substring(AssemblyDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
             else if (path.StartsWith(WorkingDirectoryFlag))
                 fullPathStr = Path.Combine(WorkingDirectory, path.Substring(WorkingDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
             else if (path.StartsWith(AssemblyDirectoryFlag))
@@ -152,7 +176,7 @@ namespace BeatSyncConsole.Utilities
             else if (path.StartsWith(TempDirectoryFlag))
                 fullPathStr = Path.Combine(TempDirectory, path.Substring(TempDirectoryFlag.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '\\'));
             else
-                return Path.Combine(basePath, path);
+                return Path.Combine(ExpandPath(basePath), path);
 
             return fullPathStr;
         }

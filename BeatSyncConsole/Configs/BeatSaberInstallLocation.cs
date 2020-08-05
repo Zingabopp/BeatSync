@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BeatSyncConsole.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,14 +25,26 @@ namespace BeatSyncConsole.Configs
         [JsonProperty("GameDirectory", Order = 5)]
         public string BasePath { get; set; } = string.Empty;
         [JsonIgnore]
-        public string SongsDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Beat Saber_Data", "CustomLevels") : string.Empty;
+        public string SongsDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(FullBasePath, "Beat Saber_Data", "CustomLevels") : string.Empty;
         [JsonIgnore]
-        public string PlaylistDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "Playlists") : string.Empty;
+        public string PlaylistDirectory => !string.IsNullOrEmpty(BasePath) ? Path.Combine(FullBasePath, "Playlists") : string.Empty;
         [JsonIgnore]
-        public string HistoryPath => !string.IsNullOrEmpty(BasePath) ? Path.Combine(BasePath, "UserData", "BeatSyncHistory.json") : string.Empty;
+        public string HistoryPath => !string.IsNullOrEmpty(BasePath) ? Path.Combine(FullBasePath, "UserData", "BeatSyncHistory.json") : string.Empty;
 
+        private string? _fullBasePath;
         [JsonIgnore]
-        public string FullBasePath => BasePath;
+        public string FullBasePath
+        {
+            get
+            {
+                if (_fullBasePath != null)
+                    return _fullBasePath;
+                if (string.IsNullOrEmpty(BasePath))
+                    return BasePath;
+                _fullBasePath = Paths.ExpandPath(BasePath);
+                return _fullBasePath;
+            }
+        }
         [JsonIgnore]
         public string FullSongsPath => SongsDirectory;
         [JsonIgnore]
@@ -46,9 +59,9 @@ namespace BeatSyncConsole.Configs
                 reason = "Path is empty.";
                 return false;
             }
-            if (!Directory.Exists(BasePath))
+            if (!Directory.Exists(FullBasePath))
             {
-                reason = $"'{BasePath}' does not exist.";
+                reason = $"'{FullBasePath}' does not exist.";
                 return false;
             }
 
@@ -58,9 +71,9 @@ namespace BeatSyncConsole.Configs
         public override string ToString()
         {
             if (Enabled)
-                return $"GameInstall: {BasePath}";
+                return $"GameInstall: {FullBasePath}";
             else
-                return $"(Disabled) GameInstall: {BasePath}";
+                return $"(Disabled) GameInstall: {FullBasePath}";
         }
 
         public bool IsValid() => IsValid(out _);
