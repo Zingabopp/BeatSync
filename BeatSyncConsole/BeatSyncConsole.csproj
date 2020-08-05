@@ -12,17 +12,24 @@
     <Authors>Zingabopp</Authors>
     <Description>A console app to automatically download Beat Saber beatmaps.</Description>
     <Copyright>Copyright © Zingabopp 2020</Copyright>
+    <VersionType>Unofficial</VersionType>
+    <CommitHash>local</CommitHash>
+    <GitBranch></GitBranch>
+    <GitModified></GitModified>
   </PropertyGroup>
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <DisableCopyToPlugins>true</DisableCopyToPlugins>
+    <DisableZipRelease>true</DisableZipRelease>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NCRUNCH)' == '1'">
+    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
     <DisableZipRelease>true</DisableZipRelease>
   </PropertyGroup>
   <ItemGroup Condition="'$(ContinuousIntegrationBuild)' == 'True'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="1.1.6">
+    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="1.2.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -35,7 +42,34 @@
     <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
     <ProjectReference Include="..\Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj" />
   </ItemGroup>
-<Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
+  
+  <Target Name="PreBuild" BeforeTargets="BeforeBuild" Condition="'$(NCRUNCH)' != '1'">
+    <GetCommitInfo ProjectDir="$(ProjectDir)">
+      <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
+      <Output TaskParameter="Branch" PropertyName="GitBranch" />
+      <Output TaskParameter="Modified" PropertyName="GitModified" />
+    </GetCommitInfo>
+    <PropertyGroup>
+      <IntermediateSourcePath>$(IntermediateOutputPath)src\</IntermediateSourcePath>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(GitModified)' != 'Modified'">
+      <GitInfo>$(VersionType)-$(GitBranch)-$(CommitHash)</GitInfo>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(GitModified)' == 'Modified'">
+      <GitInfo>$(VersionType)-$(CommitHash)-$(GitModified)</GitInfo>
+    </PropertyGroup>
+    <Message Text="GitInfo: $(GitInfo)" Importance="high" />
+    <RemoveDir Directories="$(IntermediateSourcePath)" />
+    <ItemGroup>
+      <ToCompile Include="@(Compile)" />
+      <Compile Remove="@(Compile)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ToCompile)" DestinationFiles="@(ToCompile->'$(IntermediateSourcePath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="Compile" />
+    </Copy>
+    <ReplaceInFile File="$(IntermediateSourcePath)VersionInfo.cs" Pattern="GitCommit = null" Substitute="GitCommit = &quot;$(GitInfo)&quot;" />
+  </Target>
+  <Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
     <GetCommitHash ProjectDir="$(ProjectDir)">
       <Output TaskParameter="CommitShortHash" PropertyName="CommitShortHash" />
     </GetCommitHash>
