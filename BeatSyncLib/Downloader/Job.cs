@@ -6,6 +6,7 @@ using SongFeedReaders.Readers.BeatSaver;
 using SongFeedReaders.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,7 +108,11 @@ namespace BeatSyncLib.Downloader
             foreach (SongTarget? target in targets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                TargetResult result = await target.TransferAsync(Song, downloadContainer.GetResultStream(), cancellationToken).ConfigureAwait(false);
+                TargetResult result;
+                using (Stream fs = downloadContainer.GetResultStream())
+                {
+                    result = await target.TransferAsync(Song, fs, cancellationToken).ConfigureAwait(false);
+                }
                 completedTargets.Add(result);
                 _stageIndex++;
                 ReportProgress(JobProgress.CreateTargetCompletion(CurrentProgress, result));
