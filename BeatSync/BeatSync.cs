@@ -107,7 +107,7 @@ namespace BeatSync
 
             bool overwriteTarget = false;
             Plugin.log.Info($"Adding target for '{CustomLevelsDirectory}'");
-            SongTarget songTarget = new DirectoryTarget(CustomLevelsDirectory, overwriteTarget, songHasher, historyManager, playlistManager);
+            SongTarget songTarget = new DirectoryTarget(CustomLevelsDirectory, overwriteTarget, true, songHasher, historyManager, playlistManager);
             //SongTarget songTarget = new MockSongTarget();
             jobBuilder.AddTarget(songTarget);
 
