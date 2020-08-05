@@ -10,8 +10,6 @@ namespace BeatSyncLib.Configs
     public class BeatSaverConfig : SourceConfigBase
     {
         [JsonIgnore]
-        private int? _maxConcurrentPageChecks;
-        [JsonIgnore]
         private BeatSaverFavoriteMappers? _favoriteMappers;
         [JsonIgnore]
         private BeatSaverHot? _hot;
