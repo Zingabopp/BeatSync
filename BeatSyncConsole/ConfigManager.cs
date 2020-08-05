@@ -36,6 +36,8 @@ namespace BeatSyncConsole
             }
         }
 
+        public string ConsoleConfigPath { get; protected set; }
+
         public IEnumerable<ISongLocation> GetValidEnabledLocations()
         {
             if (Config == null)
@@ -86,23 +88,23 @@ namespace BeatSyncConsole
         public async Task<bool> InitializeConfigAsync()
         {
             Directory.CreateDirectory(ConfigDirectory);
-            string consoleConfigPath = Path.Combine(ConfigDirectory, BeatSyncConsoleConfigName);
+            ConsoleConfigPath = Path.Combine(ConfigDirectory, BeatSyncConsoleConfigName);
             bool validConfig = true;
             try
             {
-                if (File.Exists(consoleConfigPath))
+                if (File.Exists(ConsoleConfigPath))
                 {
-                    Config = JsonConvert.DeserializeObject<Config>(await File.ReadAllTextAsync(consoleConfigPath).ConfigureAwait(false));
+                    Config = JsonConvert.DeserializeObject<Config>(await File.ReadAllTextAsync(ConsoleConfigPath).ConfigureAwait(false));
                 }
                 else
                 {
-                    Logger.log.Info($"{consoleConfigPath} not found, creating a new one.");
+                    Logger.log.Info($"{ConsoleConfigPath} not found, creating a new one.");
                     Config = Config.GetDefaultConfig();
                 }
             }
             catch (JsonReaderException ex)
             {
-                WriteJsonException(consoleConfigPath, ex);
+                WriteJsonException(ConsoleConfigPath, ex);
                 Config = null;
             }
             catch (Exception ex)
@@ -113,7 +115,7 @@ namespace BeatSyncConsole
             }
             if (Config == null)
             {
-                string? response = LogManager.GetUserInput($"Would you like to replace the existing {consoleConfigPath} with a new one? (Y/N): ");
+                string? response = LogManager.GetUserInput($"Would you like to replace the existing {ConsoleConfigPath} with a new one? (Y/N): ");
                 if (response?.Equals("y", StringComparison.OrdinalIgnoreCase) ?? false)
                 {
                     Config = Config.GetDefaultConfig();
@@ -121,23 +123,22 @@ namespace BeatSyncConsole
                 else
                     return false;
             }
-            string beatSyncConfigPath = Config.BeatSyncConfigPath.Replace("%CONFIG%", ConfigDirectory, StringComparison.OrdinalIgnoreCase);
-
+            Paths.UseLocalTemp = !Config.UseSystemTemp;
             try
             {
-                if (File.Exists(beatSyncConfigPath))
+                if (File.Exists(BeatSyncConfigPath))
                 {
-                    Logger.log.Info($"Using BeatSync config '{beatSyncConfigPath}'.");
-                    Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(await File.ReadAllTextAsync(beatSyncConfigPath).ConfigureAwait(false));
+                    Logger.log.Info($"Using BeatSync config '{BeatSyncConfigPath}'.");
+                    Config.BeatSyncConfig = JsonConvert.DeserializeObject<BeatSyncConfig>(await File.ReadAllTextAsync(BeatSyncConfigPath).ConfigureAwait(false));
                 }
                 else
                 {
-                    Logger.log.Info($"{beatSyncConfigPath} not found, creating a new one.");
+                    Logger.log.Info($"{BeatSyncConfigPath} not found, creating a new one.");
                 }
             }
             catch (JsonReaderException ex)
             {
-                WriteJsonException(beatSyncConfigPath, ex);
+                WriteJsonException(BeatSyncConfigPath, ex);
             }
             catch (Exception ex)
             {
@@ -146,7 +147,7 @@ namespace BeatSyncConsole
             }
             if (Config.BeatSyncConfig == null)
             {
-                string? response = LogManager.GetUserInput($"Would you like to replace the existing {beatSyncConfigPath} with a new one? (Y/N): ");
+                string? response = LogManager.GetUserInput($"Would you like to replace the existing {BeatSyncConfigPath} with a new one? (Y/N): ");
                 if (response?.Equals("y", StringComparison.OrdinalIgnoreCase) ?? false)
                 {
                     Config.BeatSyncConfig = new BeatSyncConfig(true);
@@ -162,7 +163,7 @@ namespace BeatSyncConsole
                 if (validPaths.Length == 0)
                 {
 #if !NOREGISTRY
-                    string? response = LogManager.GetUserInput($"No song paths found in {consoleConfigPath}, should I search for game installs? (Y/N): ");
+                    string? response = LogManager.GetUserInput($"No song paths found in {ConsoleConfigPath}, should I search for game installs? (Y/N): ");
                     if (response == "Y" || response == "y")
                     {
                         BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
@@ -265,39 +266,56 @@ namespace BeatSyncConsole
             }
             if (Config.ConfigChanged || Config.legacyValueChanged)
             {
-                try
-                {
-                    string backup = consoleConfigPath + ".bak";
-                    if (File.Exists(consoleConfigPath))
-                        File.Copy(consoleConfigPath, backup);
-                    await File.WriteAllTextAsync(consoleConfigPath, JsonConvert.SerializeObject(Config, Formatting.Indented)).ConfigureAwait(false);
-                    if (File.Exists(backup))
-                        File.Delete(backup);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log.Error("Error updating config file.");
-                    Logger.log.Info(ex);
-                }
+                await StoreConsoleConfig().ConfigureAwait(false);
             }
             if (Config.BeatSyncConfig.ConfigChanged)
             {
-                try
-                {
-                    string backup = beatSyncConfigPath + ".bak";
-                    if (File.Exists(beatSyncConfigPath))
-                        File.Copy(beatSyncConfigPath, backup);
-                    await File.WriteAllTextAsync(beatSyncConfigPath, JsonConvert.SerializeObject(Config.BeatSyncConfig, Formatting.Indented)).ConfigureAwait(false);
-                    if (File.Exists(backup))
-                        File.Delete(backup);
-                }
-                catch (Exception ex)
-                {
-                    Logger.log.Error("Error updating config file.");
-                    Logger.log.Info(ex);
-                }
+                await StoreBeatSyncConfig().ConfigureAwait(false);
             }
             return validConfig;
+        }
+
+        public async Task StoreConsoleConfig()
+        {
+            try
+            {
+                string backup = ConsoleConfigPath + ".bak";
+                if (File.Exists(ConsoleConfigPath))
+                    File.Copy(ConsoleConfigPath, backup);
+                await File.WriteAllTextAsync(ConsoleConfigPath, JsonConvert.SerializeObject(Config, Formatting.Indented)).ConfigureAwait(false);
+                if (File.Exists(backup))
+                    File.Delete(backup);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error("Error updating config file.");
+                Logger.log.Info(ex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown if Config is null.</exception>
+        public async Task StoreBeatSyncConfig()
+        {
+            if (Config == null || Config.BeatSyncConfig == null)
+                throw new InvalidOperationException("Nothing to store, Config is null.");
+            try
+            {
+                string backup = BeatSyncConfigPath + ".bak";
+                if (File.Exists(BeatSyncConfigPath))
+                    File.Copy(BeatSyncConfigPath, backup);
+                await File.WriteAllTextAsync(BeatSyncConfigPath, JsonConvert.SerializeObject(Config.BeatSyncConfig, Formatting.Indented)).ConfigureAwait(false);
+                if (File.Exists(backup))
+                    File.Delete(backup);
+            }
+            catch (Exception ex)
+            {
+                Logger.log.Error("Error updating config file.");
+                Logger.log.Info(ex);
+            }
         }
 
         public string? GetFavoriteMappersLocation(IEnumerable<ISongLocation> songLocations)
