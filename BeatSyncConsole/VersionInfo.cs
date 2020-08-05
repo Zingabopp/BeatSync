@@ -16,7 +16,7 @@ namespace BeatSyncConsole
                     if (versionDescription != null && versionDescription.Length > 0)
                         versionDescription = $" {versionDescription}";
                     else
-                        versionDescription = " Unofficial";
+                        versionDescription = " Unknown Build";
                     _versionDescription = versionDescription;
                 }
                 return _versionDescription; 
