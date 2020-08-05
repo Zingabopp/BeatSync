@@ -115,7 +115,7 @@ namespace BeatSyncConsole
             }
             if (Config == null)
             {
-                string? response = LogManager.GetUserInput($"Would you like to replace the existing {ConsoleConfigPath} with a new one? (Y/N): ");
+                string? response = LogManager.GetUserInput($"Would you like to replace the existing '{ConsoleConfigPath}' with a new one? (Y/N): ");
                 if (response?.Equals("y", StringComparison.OrdinalIgnoreCase) ?? false)
                 {
                     Config = Config.GetDefaultConfig();
@@ -134,6 +134,7 @@ namespace BeatSyncConsole
                 else
                 {
                     Logger.log.Info($"{BeatSyncConfigPath} not found, creating a new one.");
+                    Config.BeatSyncConfig = new BeatSyncConfig(true);
                 }
             }
             catch (JsonReaderException ex)
@@ -147,7 +148,7 @@ namespace BeatSyncConsole
             }
             if (Config.BeatSyncConfig == null)
             {
-                string? response = LogManager.GetUserInput($"Would you like to replace the existing {BeatSyncConfigPath} with a new one? (Y/N): ");
+                string? response = LogManager.GetUserInput($"Would you like to replace the existing '{BeatSyncConfigPath}' with a new one? (Y/N): ");
                 if (response?.Equals("y", StringComparison.OrdinalIgnoreCase) ?? false)
                 {
                     Config.BeatSyncConfig = new BeatSyncConfig(true);
@@ -163,7 +164,7 @@ namespace BeatSyncConsole
                 if (validPaths.Length == 0)
                 {
 #if !NOREGISTRY
-                    string? response = LogManager.GetUserInput($"No song paths found in {ConsoleConfigPath}, should I search for game installs? (Y/N): ");
+                    string? response = LogManager.GetUserInput($"No song paths found in '{ConsoleConfigPath}', should I search for game installs? (Y/N): ");
                     if (response == "Y" || response == "y")
                     {
                         BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
@@ -237,7 +238,7 @@ namespace BeatSyncConsole
             }
             else
             {
-                Logger.log.Warn("No enabled custom songs paths found, please manually enter a target directory for your songs in config.json.");
+                Logger.log.Warn($"No enabled custom songs paths found, please manually enter a target directory for your songs in '{ConsoleConfigPath}'.");
                 validConfig = false;
             }
             string? favoriteMappersPath = GetFavoriteMappersLocation(enabledPaths);
