@@ -30,10 +30,10 @@ jobs:
       run: dotnet build BeatSyncConsole/BeatSyncConsole.csproj --configuration Release
     - name: Publish_Win_x64
       id: publish-win64
-      run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release /p:PublishProfile=win-x64 /p:VersionType=Official
+      run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release /p:PublishProfile=win-x64
     - name: Publish_Linux_x64
       id: publish-linux64
-      run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release /p:PublishProfile=linux-x64 /p:VersionType=Official
+      run: dotnet publish BeatSyncConsole/BeatSyncConsole.csproj --configuration Release /p:PublishProfile=linux-x64
     - name: Upload Win64 Artifact
       uses: actions/upload-artifact@v1
       with:
