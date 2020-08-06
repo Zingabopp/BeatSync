@@ -17,77 +17,7 @@ namespace BeatSyncConsole.Utilities
         private static readonly string OCULUS_LM_KEY = Path.Combine("SOFTWARE", "WOW6432Node", "Oculus VR, LLC", "Oculus", "Config");
         private static readonly string OCULUS_CU_KEY = Path.Combine("SOFTWARE", "Oculus VR, LLC", "Oculus", "Libraries");
         //private const string OCULUS_REG_KEY = @"SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus\Config";
-#if !NOREGISTRY
-        public static BeatSaberInstall[] GetBeatSaberPathsFromRegistry()
-        {
-            List<BeatSaberInstall>? installList = new List<BeatSaberInstall>();
-            using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))// Doesn't work in 32 bit mode without this
-            {
-                using (RegistryKey? steamKey = hklm?.OpenSubKey(STEAM_REG_KEY))
-                {
-                    string? path = (string?)steamKey?.GetValue("InstallLocation", string.Empty);
-                    if (path != null && IsBeatSaberDirectory(path))
-                        installList.Add(new BeatSaberInstall(path, InstallType.Steam));
-                }
-                string[] oculusLibraries = GetOculusLibraryPaths();
-                foreach (string? library in oculusLibraries)
-                {
-                    string? matchedLocation = FindBeatSaberInOculusLibrary(library);
-                    if (!string.IsNullOrEmpty(matchedLocation))
-                        installList.Add(new BeatSaberInstall(matchedLocation, InstallType.Oculus));
-                }
-            }
-            return installList.ToArray();
-        }
-#endif
-        public static string? FindBeatSaberInOculusLibrary(string oculusLibraryPath)
-        {
-            if (oculusLibraryPath == null) return null;
-            string possibleLocation = Path.Combine(oculusLibraryPath, "hyperbolic-magnetism-beat-saber");
-            string? matchedLocation = null;
-            if (Directory.Exists(possibleLocation))
-            {
-                if (IsBeatSaberDirectory(possibleLocation))
-                    return possibleLocation;
-            }
-            else
-            {
-                string softwareFolder = Path.Combine(oculusLibraryPath, "Software");
-                if (Directory.Exists(softwareFolder))
-                    matchedLocation = FindBeatSaberInOculusLibrary(softwareFolder);
-            }
-            return matchedLocation;
-        }
-#if !NOREGISTRY
-        public static string[] GetOculusLibraryPaths()
-        {
-            List<string> paths = new List<string>();
-            using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)) // Doesn't work in 32 bit mode without this
-            {
-                using RegistryKey? oculusKey = hklm?.OpenSubKey(OCULUS_LM_KEY);
-                string? path = (string?)oculusKey?.GetValue("InitialAppLibrary", string.Empty);
-                if (!string.IsNullOrEmpty(path))
-                {
-                    paths.Add(path);
-                }
-            }
-            using (RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64)) // Doesn't work in 32 bit mode without this
-            {
-                using RegistryKey? oculusKey = hkcu?.OpenSubKey(OCULUS_CU_KEY);
-                if (oculusKey != null && oculusKey.SubKeyCount > 0)
-                {
-                    foreach (string? libraryKeyName in oculusKey.GetSubKeyNames())
-                    {
-                        using RegistryKey? library = oculusKey.OpenSubKey(libraryKeyName);
-                        string? path = (string?)library?.GetValue("OriginalPath", string.Empty);
-                        if (!string.IsNullOrEmpty(path) && !paths.Contains(path))
-                            paths.Add(path);
-                    }
-                }
-            }
-            return paths.ToArray();
-        }
-#endif
+
         public static readonly char[] IllegalCharacters = new char[]
             {
                 '<', '>', ':', '/', '\\', '|', '?', '*', '"',
@@ -152,5 +82,107 @@ namespace BeatSyncConsole.Utilities
 
             return false;
         }
+
+        public static BeatSaberInstall[] GetBeatSaberInstalls()
+        {
+#if !NOREGISTRY
+            return GetBeatSaberPathsFromRegistry();
+#else
+            return GetLinuxBeatSaberInstalls();
+#endif
+        }
+
+#if !NOREGISTRY
+        public static BeatSaberInstall[] GetBeatSaberPathsFromRegistry()
+        {
+            List<BeatSaberInstall>? installList = new List<BeatSaberInstall>();
+            using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))// Doesn't work in 32 bit mode without this
+            {
+                using (RegistryKey? steamKey = hklm?.OpenSubKey(STEAM_REG_KEY))
+                {
+                    string? path = (string?)steamKey?.GetValue("InstallLocation", string.Empty);
+                    if (path != null && IsBeatSaberDirectory(path))
+                        installList.Add(new BeatSaberInstall(path, InstallType.Steam));
+                }
+                string[] oculusLibraries = GetOculusLibraryPaths();
+                foreach (string? library in oculusLibraries)
+                {
+                    string? matchedLocation = FindBeatSaberInOculusLibrary(library);
+                    if (!string.IsNullOrEmpty(matchedLocation))
+                        installList.Add(new BeatSaberInstall(matchedLocation, InstallType.Oculus));
+                }
+            }
+            return installList.ToArray();
+        }
+
+        public static string? FindBeatSaberInOculusLibrary(string oculusLibraryPath)
+        {
+            if (oculusLibraryPath == null) return null;
+            string possibleLocation = Path.Combine(oculusLibraryPath, "hyperbolic-magnetism-beat-saber");
+            string? matchedLocation = null;
+            if (Directory.Exists(possibleLocation))
+            {
+                if (IsBeatSaberDirectory(possibleLocation))
+                    return possibleLocation;
+            }
+            else
+            {
+                string softwareFolder = Path.Combine(oculusLibraryPath, "Software");
+                if (Directory.Exists(softwareFolder))
+                    matchedLocation = FindBeatSaberInOculusLibrary(softwareFolder);
+            }
+            return matchedLocation;
+        }
+
+        public static string[] GetOculusLibraryPaths()
+        {
+            List<string> paths = new List<string>();
+            using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)) // Doesn't work in 32 bit mode without this
+            {
+                using RegistryKey? oculusKey = hklm?.OpenSubKey(OCULUS_LM_KEY);
+                string? path = (string?)oculusKey?.GetValue("InitialAppLibrary", string.Empty);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    paths.Add(path);
+                }
+            }
+            using (RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64)) // Doesn't work in 32 bit mode without this
+            {
+                using RegistryKey? oculusKey = hkcu?.OpenSubKey(OCULUS_CU_KEY);
+                if (oculusKey != null && oculusKey.SubKeyCount > 0)
+                {
+                    foreach (string? libraryKeyName in oculusKey.GetSubKeyNames())
+                    {
+                        using RegistryKey? library = oculusKey.OpenSubKey(libraryKeyName);
+                        string? path = (string?)library?.GetValue("OriginalPath", string.Empty);
+                        if (!string.IsNullOrEmpty(path) && !paths.Contains(path))
+                            paths.Add(path);
+                    }
+                }
+            }
+            return paths.ToArray();
+        }
+#else
+        public static readonly string[] LinuxSteamLocations = new string[]
+        {
+            @"~/.local/share/Steam/steamapps/common/Beat Saber",
+            @"~/.steam/steam/SteamApps/common/Beat Saber",
+            @"~/.steam/steam/steamapps/common/Beat Saber"
+        };
+
+        public static BeatSaberInstall[] GetLinuxBeatSaberInstalls()
+        {
+            List<BeatSaberInstall> installs = new List<BeatSaberInstall>();
+            for(int i = 0; i < LinuxSteamLocations.Length; i++)
+            {
+                string directory = Paths.GetFullPath(LinuxSteamLocations[i]);
+                if(IsBeatSaberDirectory(directory))
+                {
+                    installs.Add(new BeatSaberInstall(LinuxSteamLocations[i], InstallType.Steam));
+                }
+            }
+            return installs.ToArray();
+        }
+#endif
     }
 }

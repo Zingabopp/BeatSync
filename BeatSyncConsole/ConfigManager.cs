@@ -177,12 +177,10 @@ namespace BeatSyncConsole
             {
                 if (validPaths.Length == 0)
                 {
-#if !NOREGISTRY
                     string? response = LogManager.GetUserInput($"No song paths found in '{ConsoleConfigPath}', should I search for game installs? (Y/N): ");
                     if (response == "Y" || response == "y")
                     {
-                        BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberPathsFromRegistry();
-                        //BeatSaberInstall[] gameInstalls = Array.Empty<BeatSaberInstall>();
+                        BeatSaberInstall[] gameInstalls = BeatSaberTools.GetBeatSaberInstalls();
                         if (gameInstalls.Length > 0)
                         {
                             Config.BeatSaberInstallLocations.Clear();
@@ -205,7 +203,7 @@ namespace BeatSyncConsole
                             Config.SetConfigChanged(true, nameof(Config.BeatSaberInstallLocations));
                         }
                     }
-#endif
+
                 }
                 enabledPaths = GetValidEnabledLocations().ToArray();
                 validPaths = GetValidLocations().ToArray();
