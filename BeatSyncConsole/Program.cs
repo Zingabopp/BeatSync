@@ -234,9 +234,9 @@ namespace BeatSyncConsole
             ArgErrors.Add(errors);
         }
 
-        static List<IEnumerable<Error>> ArgErrors = new List<IEnumerable<Error>>();
-        static List<string> ArgErrorMsgs = new List<string>();
-        static List<string> ArgDebugMsgs = new List<string>();
+        static readonly List<IEnumerable<Error>> ArgErrors = new List<IEnumerable<Error>>();
+        static readonly List<string> ArgErrorMsgs = new List<string>();
+        static readonly List<string> ArgDebugMsgs = new List<string>();
         static async Task Main(string[] args)
         {
             Config? config = null;
