@@ -57,8 +57,10 @@ namespace BeatSyncConsole
             {
                 if (l.IsValid(out string? invalidReason))
                     songLocations.Add(l);
-                else if(!string.IsNullOrEmpty(l.BasePath))
+                else if (!string.IsNullOrEmpty(l.BasePath))
                     Logger.log?.Warn($"Location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
+                else if (l.Enabled)
+                    Logger.log?.Warn($"Enabled location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
             }
             foreach (var l in Config.AlternateSongsPaths)
             {
@@ -66,6 +68,8 @@ namespace BeatSyncConsole
                     songLocations.Add(l);
                 else if(!string.IsNullOrEmpty(l.BasePath))
                     Logger.log?.Warn($"Location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
+                else if (l.Enabled)
+                    Logger.log?.Warn($"Enabled location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
             }
             return songLocations;
         }
