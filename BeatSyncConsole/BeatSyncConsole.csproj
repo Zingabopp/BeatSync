@@ -29,7 +29,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="1.2.1">
+    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="1.2.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -49,9 +49,10 @@
       <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
       <Output TaskParameter="Branch" PropertyName="GitBranch" />
       <Output TaskParameter="Modified" PropertyName="GitModified" />
+      <Output TaskParameter="GitUser" PropertyName="GitUser" />
     </GetCommitInfo>
-    <PropertyGroup>
-      <IntermediateSourcePath>$(IntermediateOutputPath)src\</IntermediateSourcePath>
+    <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' AND '$(GitUser)' == 'Zingabopp'">
+      <VersionType>Official</VersionType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(GitModified)' != 'Modified'">
       <InformationalVersion>$(VersionType)-$(GitBranch)-$(CommitHash)</InformationalVersion>
