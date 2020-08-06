@@ -17,7 +17,7 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
   * Optional command line arguments:
     * `-c <PATH>`: Path to the directory containing `BeatSyncConsole.json`. Use this if you want to use a different location for the config file.
     * `-L <PATH>`: Path to the directory to store BeatSyncConsole's log file in.
-* On Windows, if you don't have an existing config it will ask if you want it to search your PC for Beat Saber installations.
+* If you don't have an existing config it will ask if you want it to search your PC for Beat Saber installations.
   * Type `Y` and press `Enter` to automatically add Beat Saber installations to your config.
   * If Beat Saber installations are found:
     * If a single installation is found, it is automatically enabled and it will proceed with the default feeds.
