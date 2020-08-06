@@ -26,6 +26,5 @@ namespace BeatSyncConsole
                 return _versionDescription;
             }
         }
-
     }
 }
