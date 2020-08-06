@@ -14,6 +14,9 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
   * It is recommended to extract to a folder in your user folder to avoid NTFS file permissions problems that can occur if you extract to a folder like `Program Files` or `Program Files (x86)`.
 ## Usage
 * Run `BeatSyncConsole.exe`.
+  * Optional command line arguments:
+    * `-c <PATH>`: Path to the directory containing `BeatSyncConsole.json`. Use this if you want to use a different location for the config file.
+    * `-L <PATH>`: Path to the directory to store BeatSyncConsole's log file in.
 * On Windows, if you don't have an existing config it will ask if you want it to search your PC for Beat Saber installations.
   * Type `Y` and press `Enter` to automatically add Beat Saber installations to your config.
   * If Beat Saber installations are found:
@@ -26,7 +29,7 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
   * `BeatSync.json` contains the feed configurations and is shared between BeatSyncConsole and the BeatSync mod. You can view details for the feed configuration [Here](#feed-configuration).
   * Once configured, run `BeatSyncConsole.exe` any time you want to download new beatmaps.
 ## Configuration (BeatSyncConsole.json)
-* BeatSyncConfigPath: Path to the `BeatSync.json` config file you want to use. By default this is set to `%CONFIG%\BeatSync.json` which is in the `configs` folder in your `BeatSyncConsole` directory. This can be changed to point to the one in your `Beat Saber\UserData` folder so that BeatSyncConsole uses the same feed config as the BeatSync mod.
+* BeatSyncConfigPath: Path to the `BeatSync.json` config file you want to use. By default this is set to `%CONFIG%\BeatSync.json` which is in the `configs` folder in your `BeatSyncConsole` directory. This can be changed to point to the one in your `Beat Saber\UserData` folder so that BeatSyncConsole uses the same feed config as the BeatSync mod. `%CONFIG%` will be substituted for the directory `BeatSyncConsole.json` is read from.
 * BeatSaberInstallLocations: This is a list of game install locations you want BeatSync to download beatmaps to. Each location has two properties:
   * Enabled: Whether or not this location is enabled.
   * GameDirectory: Path to your `Beat Saber` directory.
@@ -36,7 +39,14 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
   * SongsDirectory: Location the beatmaps are downloaded to.
   * PlaylistDirectory: Location the playlists are stored.
   * HistoryPath: Path to the history file, must include the file name.
+  * UnzipBeatmaps: If true, downloaded beatmaps will be unzipped to the songs directory. If false, beatmaps will be copied as-is to the `SongsDirectory`.
+* Special path substitutes: These variables can be used at the **start** of any path in `BeatSyncConsole.json`.
+  * `%WORKINGDIR%`: The current working directory.
+  * `%ASSEMBLYDIR%`: The directory of the BeatSyncConsole executable.
+  * `%USER%` or `~`: The user's home folder.
+  * `%TEMP%`: The temporary directory used by BeatSyncConsole.
 * CloseWhenFinished: If true, close the console window after finishing instead of waiting for keyboard input.
+* UseSystemTemp: If true, BeatSyncConsole will use the system's temporary folder (beatmaps will be downloaded here before they are distributed to their destinations). If false, a `Temp` folder will be created in the same directory as the BeatSyncConsole executable.
 * ConsoleLogLevel: Log message level to display in the console, default is `Info`. Options are `Debug`, `Info`, `Warn`, `Critical`, `Error`, `Disabled`.
 ## Have Issues?
 * BeatSyncConsole stores a log file from the last run in the `logs` folder.
