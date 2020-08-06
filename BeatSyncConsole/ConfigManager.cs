@@ -57,7 +57,7 @@ namespace BeatSyncConsole
             {
                 if (l.IsValid(out string? invalidReason))
                     songLocations.Add(l);
-                else
+                else if(!string.IsNullOrEmpty(l.BasePath))
                     Logger.log?.Warn($"Location '{l.BasePath}' is invalid: {(invalidReason ?? "Unknown reason.")}");
             }
             foreach (var l in Config.AlternateSongsPaths)
@@ -250,7 +250,7 @@ namespace BeatSyncConsole
             }
             else
             {
-                Logger.log.Warn($"No enabled custom songs paths found, please manually enter a target directory for your songs in '{ConsoleConfigPath}'.");
+                Logger.log.Warn($"No enabled custom songs paths found. If you want songs downloaded to your Beat Saber game, please manually enter a 'GameDirectory' path  for your songs in '{ConsoleConfigPath}' under 'BeatSaberInstallLocations'. Otherwise, add a 'BasePath' to the entry under 'AlternateSongsPaths'.");
                 validConfig = false;
             }
             string? favoriteMappersPath = GetFavoriteMappersLocation(enabledPaths);
