@@ -209,10 +209,10 @@ namespace BeatSyncLib.Configs
             }
             set
             {
-                int newAdjustedVal = Math.Max(10, value);
+                int newAdjustedVal = Math.Min(10, value);
                 if (value < 0)
                 {
-                    newAdjustedVal = 5;
+                    newAdjustedVal = 1;
                     SetInvalidInputFixed();
                 }
                 if (_maxConcurrentPageChecks == newAdjustedVal)
