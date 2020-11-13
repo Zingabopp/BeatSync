@@ -154,7 +154,11 @@ __BeatSync.json__
     * IncludeUnstarred: Include beatmaps that don't have a star rating (unranked beatmaps can still have a star rating).
     * MaxStars: Maximum star rating for a song, 0 to disable (beatmaps with a lower difficulty will be included if that difficulty is less than this.)
     * MinStars: Maximum star rating for a song, 0 to disable.
-	
+
+# Known Issues
+* **Linux:**
+  * Some Linux distributions may not work with .Net Core and give the message "No usable version of libssl was found". This may happen for distros, such as Void Linux, that use LibreSSL instead of OpenSSL. .Net Core does not support using LibreSSL, but a possible workaround is to run `ln -s /lib/libssl.so /lib/libssl.so.1.0.0` as root.
+
 # Additional Information
 * BeatSync maintains a history file for beatmaps it finds in the feeds. This is used to prevent BeatSync from redownloading beatmaps you've deleted. It is sorted in descending order by date the song was added to the history. This file can safely be deleted (or carefully edited) if you want BeatSync to download beatmaps you've deleted in the past.
 * If you use the SongBrowser plugin, it will not show the playlists in the correct order (i.e. TopRanked and LatestRanked will be out of order).
