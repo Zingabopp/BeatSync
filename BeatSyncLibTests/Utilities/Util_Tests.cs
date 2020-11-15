@@ -1,5 +1,8 @@
+using BeatSyncLib.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.IO;
+using System.Linq;
 using static BeatSyncLib.Utilities.Util;
 namespace BeatSyncLibTests.Utilities
 {
@@ -28,6 +31,16 @@ namespace BeatSyncLibTests.Utilities
             string expected = $"{key} ({filteredSongName} - {levelAuthorName})";
             string actual = GetSongDirectoryName(key, songName, levelAuthorName);
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetValidPath_TrimmedWithTrailingSpace()
+        {
+            string originalPath = @"K:\Oculus\Software\hyperbolic - magnetism - beat - saber\Beat Saber_Data\CustomLevels\4B48(Camellia(Feat.Nanahira) - Can I Friend You On Bassbook L- . - .- . - . - .- ";
+            int longestFileName = @"Camellia (Feat. Nanahira) - Can I Friend You On Bassbook Lol [Bassline Yatteru LOL].egg".Length;
+
+            string validPath = FileIO.GetValidPath(originalPath, longestFileName);
+            Assert.IsFalse(FileIO.InvalidTrailingPathChars.Any(c => validPath.Last() == c));
         }
 
         [TestMethod]

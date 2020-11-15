@@ -154,6 +154,8 @@ namespace BeatSyncLib.Utilities
             return new DownloadResult(downloadContainer, DownloadResultStatus.Success, statusCode);
         }
 
+        public static char[] InvalidTrailingPathChars = new char[] {' ', '.', '-' };
+
         /// <summary>
         /// 
         /// </summary>
@@ -183,7 +185,7 @@ namespace BeatSyncLib.Utilities
                     throw new PathTooLongException(extractDirectory);
                 }
             }
-            return extractDirectory;
+            return extractDirectory.TrimEnd(InvalidTrailingPathChars);
         }
 
         public static ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)
