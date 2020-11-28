@@ -60,7 +60,7 @@
     <PropertyGroup Condition="'$(GitModified)' == 'Modified'">
       <InformationalVersion>$(VersionType)-$(GitBranch)-$(CommitHash)-$(GitModified)</InformationalVersion>
     </PropertyGroup>
-    <Message Text="$(InformationalVersion)" Importance="high" />
+    <Message Text="$(InformationalVersion)" Importance="high" /> 
   </Target>
   <Target Name="PublishForCI" AfterTargets="Publish" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
     <PropertyGroup>
