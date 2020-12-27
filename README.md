@@ -46,6 +46,7 @@ BeatSyncConsole is a standalone application that runs separately from Beat Saber
   * `%USER%` or `~`: The user's home folder.
   * `%TEMP%`: The temporary directory used by BeatSyncConsole.
 * CloseWhenFinished: If true, close the console window after finishing instead of waiting for keyboard input.
+* DeleteDuplicateSongs: If true, automatically delete duplicate songs in your library.
 * UseSystemTemp: If true, BeatSyncConsole will use the system's temporary folder (beatmaps will be downloaded here before they are distributed to their destinations). If false, a `Temp` folder will be created in the same directory as the BeatSyncConsole executable.
 * ConsoleLogLevel: Log message level to display in the console, default is `Info`. Options are `Debug`, `Info`, `Warn`, `Critical`, `Error`, `Disabled`.
 ## Have Issues?
