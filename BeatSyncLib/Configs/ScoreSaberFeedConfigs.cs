@@ -103,7 +103,10 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            ScoreSaberFeedSettings feedSettings = new ScoreSaberFeedSettings(ScoreSaberFeed);
+            ScoreSaberFeedSettings feedSettings = new ScoreSaberFeedSettings(ScoreSaberFeed)
+            {
+                StartingPage = this.StartingPage
+            };
             if (!IncludeUnstarred || MinStars > 0 || MaxStars > 0)
             {
                 feedSettings.Filter = s =>

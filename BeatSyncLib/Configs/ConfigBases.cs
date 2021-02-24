@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using SongFeedReaders.Readers;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Configs.Converters;
+using System.ComponentModel;
 
 namespace BeatSyncLib.Configs
 {
@@ -145,14 +146,17 @@ namespace BeatSyncLib.Configs
         public override void FillDefaults()
         {
             var _ = Enabled;
-            var __ = MaxSongs;
-            var ___ = CreatePlaylist;
-            var ____ = PlaylistStyle;
-            var _____ = FeedPlaylist;
+            var __ = StartingPage;
+            var ___ = MaxSongs;
+            var ____ = CreatePlaylist;
+            var _____ = PlaylistStyle;
+            var ______ = FeedPlaylist;
         }
 
         [JsonIgnore]
         private bool? _enabled;
+        [JsonIgnore]
+        private int? _startingPage;
         [JsonIgnore]
         private int? _maxSongs;
         [JsonIgnore]
@@ -164,6 +168,8 @@ namespace BeatSyncLib.Configs
 
         [JsonIgnore]
         protected abstract bool DefaultEnabled { get; }
+        [JsonIgnore]
+        protected int DefaultStartingPage { get; set; } = 1;
         [JsonIgnore]
         protected abstract int DefaultMaxSongs { get; }
         [JsonIgnore]
@@ -190,6 +196,30 @@ namespace BeatSyncLib.Configs
                 if (_enabled == value)
                     return;
                 _enabled = value;
+                SetConfigChanged();
+            }
+        }
+
+        [JsonProperty(Order = -95, NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [DefaultValue(1)]
+        public int StartingPage
+        {
+            get
+            {
+                return _startingPage ?? DefaultStartingPage;
+            }
+            set
+            {
+                int newAdjustedVal = value;
+                if (value < 1)
+                {
+                    newAdjustedVal = DefaultStartingPage;
+                    SetInvalidInputFixed();
+                }
+                if (_startingPage == newAdjustedVal)
+                    return;
+                _startingPage = newAdjustedVal;
                 SetConfigChanged();
             }
         }

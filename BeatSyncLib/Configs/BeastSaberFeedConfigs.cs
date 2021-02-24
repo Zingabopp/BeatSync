@@ -28,7 +28,8 @@ namespace BeatSyncLib.Configs
         {
             return new BeastSaberFeedSettings((int)BeastSaberFeedName.Following)
             {
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage
             };
         }
     }
@@ -51,7 +52,8 @@ namespace BeatSyncLib.Configs
         {
             return new BeastSaberFeedSettings((int)BeastSaberFeedName.Bookmarks)
             {
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage
             };
         }
     }
@@ -74,6 +76,7 @@ namespace BeatSyncLib.Configs
         {
             return new BeastSaberFeedSettings((int)BeastSaberFeedName.CuratorRecommended)
             {
+                StartingPage = this.StartingPage,
                 MaxSongs = this.MaxSongs
             };
         }
