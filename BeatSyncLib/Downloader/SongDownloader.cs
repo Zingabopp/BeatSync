@@ -43,9 +43,14 @@ namespace BeatSyncLib.Downloader
                 Logger.log?.Info("No songs");
                 return Array.Empty<IJob>();
             }
-            List<IJob> jobs = new List<IJob>(feedResult.Count);
+            return CreateJobs(feedResult.Songs.Values.Reverse(), jobBuilder, jobManager, cancellationToken);
+        }
 
-            foreach (ScrapedSong song in feedResult.Songs.Values)
+        public static IEnumerable<IJob>? CreateJobs(IEnumerable<SongFeedReaders.Data.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        {
+            List<IJob> jobs = new List<IJob>(songs.Count());
+
+            foreach (SongFeedReaders.Data.ISong song in songs)
             {
                 Job newJob = jobBuilder.CreateJob(song);
                 newJob.RegisterCancellationToken(cancellationToken);
