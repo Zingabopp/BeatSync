@@ -127,6 +127,29 @@ namespace BeatSyncConsole.Configs
             }
         }
 
+        private bool? _deleteDuplicateSongs;
+        [JsonProperty(nameof(DeleteDuplicateSongs), Order = 31)]
+        public bool DeleteDuplicateSongs {
+            get
+            {
+                if (_deleteDuplicateSongs == null)
+                {
+                    _deleteDuplicateSongs = false;
+                    SetConfigChanged();
+                }
+
+                return _deleteDuplicateSongs ?? false;
+            }
+            set
+            {
+                if (_deleteDuplicateSongs == value)
+                    return;
+                _deleteDuplicateSongs = value;
+                SetConfigChanged();
+            } 
+        }
+
+
         private bool? _useSystemTemp;
         [JsonProperty("UseSystemTemp", Order = 35)]
         public bool UseSystemTemp {

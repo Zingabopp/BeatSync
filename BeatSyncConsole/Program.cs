@@ -88,7 +88,7 @@ namespace BeatSyncConsole
                 }
                 string songsDirectory = location.FullSongsPath;
                 Directory.CreateDirectory(songsDirectory);
-                songHasher = new SongHasher<SongHashData>(songsDirectory);
+                songHasher = new SongHasher<SongHashData>(songsDirectory, config.DeleteDuplicateSongs);
                 Stopwatch sw = new Stopwatch();
                 Logger.log.Info($"Hashing songs in '{Paths.GetRelativeDirectory(songsDirectory)}'...");
                 sw.Start();

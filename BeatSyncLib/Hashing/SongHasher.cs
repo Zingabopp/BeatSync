@@ -23,6 +23,8 @@ namespace BeatSyncLib.Hashing
         /// Directory where custom levels folders are.
         /// </summary>
         public string CustomLevelsPath { get; protected set; }
+        
+        public bool DeDuplicate { get; protected set; }
 
         private Task<int> _initializingTask;
         private object _initializingLock = new object();
@@ -92,7 +94,22 @@ namespace BeatSyncLib.Hashing
                 }
 
                 if (!ExistingSongs.TryAdd(data.songHash, d.FullName))
-                    Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {d.Name}");
+                {
+                    Logger.log?.Debug(
+                        $"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {d.Name}");
+                    if (DeDuplicate)
+                    {
+                        try
+                        {
+                            d.Delete(true);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.log?.Warn($"Couldn't delete duplicate song: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {d.Name}");
+                        }
+                    }
+                }
+
                 if (!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log?.Warn($"Couldn't add {d.FullName} to HashDictionary");
@@ -144,7 +161,23 @@ namespace BeatSyncLib.Hashing
                 }
 
                 if (!ExistingSongs.TryAdd(data.songHash, f.FullName))
-                    Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {f.Name}");
+                {
+                    Logger.log?.Debug(
+                        $"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {f.Name}");
+                    
+                    if (DeDuplicate)
+                    {
+                        try
+                        {
+                            f.Delete();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.log?.Warn($"Couldn't delete duplicate song: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {f.Name}");
+                        }
+                    }
+                }
+
                 if (!HashDictionary.TryAdd(f.FullName, data))
                 {
                     Logger.log?.Warn($"Couldn't add {f.FullName} to HashDictionary");
@@ -348,9 +381,10 @@ namespace BeatSyncLib.Hashing
         /// Creates a new SongHasher with the specified customLevelsPath.
         /// </summary>
         /// <param name="customLevelsPath"></param>
-        public SongHasher(string customLevelsPath)
+        public SongHasher(string customLevelsPath, bool deDuplicate = false)
         {
             SongHashType = typeof(T);
+            DeDuplicate = deDuplicate;
             CustomLevelsPath = customLevelsPath;
             HashDictionary = new ConcurrentDictionary<string, ISongHashData>();
             ExistingSongs = new ConcurrentDictionary<string, string>();
