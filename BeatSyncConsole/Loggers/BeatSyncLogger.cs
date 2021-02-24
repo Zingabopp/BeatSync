@@ -9,6 +9,7 @@ namespace BeatSyncConsole.Loggers
     public class BeatSyncLogger : BeatSyncLoggerBase
     {
         public readonly string SourceName;
+
         public BeatSyncLogger(string sourceName)
         {
             SourceName = sourceName;
@@ -17,7 +18,7 @@ namespace BeatSyncConsole.Loggers
         {
             if (LoggingLevel > logLevel)
                 return;
-            string prefix = $"[{SourceName} - {logLevel}]: ";
+            string prefix = $"[{logLevel} @ {Logger.GetCurrentTime()} | {SourceName}]: ";
             ColoredSection[]? sections = coloredSections?.ToArray();
             if(sections != null && sections.Length > 0)
             {
@@ -40,14 +41,9 @@ namespace BeatSyncConsole.Loggers
         {
             if (LoggingLevel > logLevel)
                 return;
-            LogManager.QueueMessage($"[{SourceName} - {logLevel}]: {message}", logLevel);
+            LogManager.QueueMessage($"[{logLevel} @ {Logger.GetCurrentTime()} | {SourceName}]: {message}", logLevel);
         }
 
-        public override void Log(Exception ex, LogLevel logLevel)
-        {
-            if (LoggingLevel > logLevel)
-                return;
-            LogManager.QueueMessage($"[{SourceName} - {logLevel}]: {ex}", logLevel);
-        }
+        public override void Log(Exception ex, LogLevel logLevel) => Log(ex.ToString(), logLevel);
     }
 }
