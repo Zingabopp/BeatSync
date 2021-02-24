@@ -13,6 +13,7 @@ using BeatSyncLib.History;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
 using CommandLine;
+using SongFeedReaders.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -278,6 +279,7 @@ namespace BeatSyncConsole
                 {
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent($"BeatSyncConsole/{version} ({RuntimeInformation.OSDescription}){VersionInfo.Description}");
+                    SongFeedReaders.WebUtils.SongInfoManager.AddProvider<AndruzzScrapedInfoProvider>("AndruzzScrapedInfo", 50);
                     JobManager manager = new JobManager(config.BeatSyncConfig.MaxConcurrentDownloads);
                     manager.Start(CancellationToken.None);
                     IJobBuilder jobBuilder = await CreateJobBuilderAsync(config).ConfigureAwait(false);

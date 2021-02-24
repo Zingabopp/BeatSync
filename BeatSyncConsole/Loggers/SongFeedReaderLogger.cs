@@ -14,14 +14,14 @@ namespace BeatSyncConsole.Loggers
         {
             if (LogLevel > logLevel)
                 return;
-            LogManager.QueueMessage($"[{SourceName} - {logLevel}]: {message}", ConvertLogLevel(logLevel));
+            LogManager.QueueMessage($"[{logLevel} @ {Logger.GetCurrentTime()} | {SourceName}]: {message}", ConvertLogLevel(logLevel));
         }
 
         public override void Log(string message, Exception ex, LogLevel logLevel, string file, string member, int line)
         {
             if (LogLevel > logLevel)
                 return;
-            LogManager.QueueMessage($"[{SourceName} - {logLevel}]: {ex}", ConvertLogLevel(logLevel));
+            LogManager.QueueMessage($"[{logLevel} @ {Logger.GetCurrentTime()} | {SourceName}]: {ex}", ConvertLogLevel(logLevel));
         }
 
         public static BeatSyncLib.Logging.LogLevel ConvertLogLevel(LogLevel logLevel)

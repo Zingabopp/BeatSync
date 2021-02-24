@@ -51,10 +51,10 @@ namespace BeatSyncLib.Downloader
                 Logger.log?.Info("No songs");
                 return Array.Empty<IJob>();
             }
-            return CreateJobs(feedResult.Songs.Values, jobBuilder, jobManager, cancellationToken);
+            return CreateJobs(feedResult.Songs.Values.Reverse(), jobBuilder, jobManager, cancellationToken);
         }
 
-            public static IEnumerable<IJob>? CreateJobs(IEnumerable<SongFeedReaders.Data.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        public static IEnumerable<IJob>? CreateJobs(IEnumerable<SongFeedReaders.Data.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             List<IJob> jobs = new List<IJob>(songs.Count());
 

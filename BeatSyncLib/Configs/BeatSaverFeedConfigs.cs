@@ -77,6 +77,7 @@ namespace BeatSyncLib.Configs
             return new BeatSaverFeedSettings((int)BeatSaverFeedName.Author)
             {
                 MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage,
                 SearchQuery = queryBuilder.GetQuery()
             };
 
@@ -115,7 +116,8 @@ namespace BeatSyncLib.Configs
         {
             return new BeatSaverFeedSettings((int)BeatSaverFeedName.Latest)
             {
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage
             };
         }
     }
@@ -138,7 +140,8 @@ namespace BeatSyncLib.Configs
         {
             return new BeatSaverFeedSettings((int)BeatSaverFeedName.Hot)
             {
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage
             };
         }
     }
@@ -162,7 +165,8 @@ namespace BeatSyncLib.Configs
         {
             return new BeatSaverFeedSettings((int)BeatSaverFeedName.Plays)
             {
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage
             };
         }
     }
@@ -185,7 +189,8 @@ namespace BeatSyncLib.Configs
         {
             return new BeatSaverFeedSettings((int)BeatSaverFeedName.Downloads)
             {
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                StartingPage = this.StartingPage
             };
         }
     }
