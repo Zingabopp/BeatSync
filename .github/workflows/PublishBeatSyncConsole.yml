@@ -15,6 +15,7 @@ on:
       - 'BeatSyncConsole/**'
       - 'BeatSyncPlaylists/**'
       - 'BeatSyncLib/**'
+      - '.github/workflows/PublishBeatSyncConsole.yml'
 
 jobs:
   publish:
