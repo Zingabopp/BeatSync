@@ -29,10 +29,18 @@ namespace BeatSyncLib.Downloader
                     {
                         GetBeatSaverAsync(config, jobBuilder, manager, cancellationToken),
                         GetBeastSaberAsync(config, jobBuilder, manager, cancellationToken),
-                        GetScoreSaberAsync(config, jobBuilder, manager, cancellationToken)
+                        GetScoreSaberAsync(config, jobBuilder, manager, cancellationToken),
+                        GetPlaylistsAsync(config, jobBuilder, manager, cancellationToken)
                     };
-            return await Task.WhenAll(downloadTasks).ConfigureAwait(false);
+            var mainStats = await Task.WhenAll(downloadTasks).ConfigureAwait(false);
+            var playlistStats = await GetPlaylistsAsync(config, jobBuilder, manager, cancellationToken);
+            var stats = new JobStats[mainStats.Length + 1];
+            for (int i = 0; i < mainStats.Length; i++)
+                stats[i] = mainStats[i];
+            stats[3] = playlistStats;
+            return stats;
         }
+
 
         public static IEnumerable<IJob>? CreateJobs(FeedResult feedResult, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
@@ -285,7 +293,55 @@ namespace BeatSyncLib.Downloader
             return sourceStats;
         }
 
+        protected async Task<JobStats> GetPlaylistsAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        {
+            PlaylistFeeds feedConfig = config.PlaylistsFeed;
+            JobStats sourceStats = new JobStats();
 
+            if (!feedConfig.Enabled)
+                return sourceStats;
+            foreach (var target in jobBuilder.SongTargets)
+            {
+                if(target is ITargetWithPlaylists playlistTarget)
+                {
+                    var playlists = playlistTarget.PlaylistManager?.GetAllPlaylists() ?? Array.Empty<IPlaylist>();
+                    List<SongFeedReaders.Data.ISong> songList = new List<SongFeedReaders.Data.ISong>();
+                    foreach (var playlist in playlists)
+                    {
+                        Logger.log?.Info($"Checking playlist {playlist.Title} for missing songs...");
+                        foreach (var song in playlist)
+                        {
+                            string? hash = song.Hash;
+                            if (hash == null)
+                                break;
+                            SongState songState = await target.CheckSongExistsAsync(hash);
+                            if(songState == SongState.Wanted)
+                            {
+                                string? logText = song.Name;
+                                if(!string.IsNullOrEmpty(logText))
+                                {
+                                    if (!string.IsNullOrEmpty(song.LevelAuthorName))
+                                        logText = $"{logText} by {song.LevelAuthorName}";
+                                    else
+                                        logText = hash;
+                                }
+                                Logger.log?.Debug($"Missing song '{logText}'");
+                                songList.Add(new ScrapedSong(hash, song.Name, song.LevelAuthorName));
+                            }
+                        }
+
+                        IEnumerable<IJob>? jobs = CreateJobs(songList, jobBuilder, jobManager, cancellationToken) ?? Array.Empty<IJob>();
+                        JobResult[] jobResults = await Task.WhenAll(jobs.Select(j => j.JobTask).ToArray());
+                        JobStats feedStats = new JobStats(jobResults);
+                        ProcessFinishedJobs(jobs, jobBuilder.SongTargets, config, feedConfig);
+                        Logger.log?.Info($"  Finished downloading songs for playlist {playlist.Title}: ({feedStats}).");
+                        sourceStats += feedStats;
+                    }
+
+                }
+            }
+            return sourceStats;
+        }
 
 
         public static void ProcessFinishedJobs(IEnumerable<IJob> jobs, IEnumerable<SongTarget> songTargets, BeatSyncConfig beatSyncConfig, FeedConfigBase feedConfig)

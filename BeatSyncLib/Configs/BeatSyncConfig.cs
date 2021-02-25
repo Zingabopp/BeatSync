@@ -223,6 +223,27 @@ namespace BeatSyncLib.Configs
                 SetConfigChanged();
             }
         }
+        private PlaylistFeeds _playlistFeed;
+        [JsonProperty(Order = -30)]
+        public PlaylistFeeds PlaylistsFeed
+        {
+            get
+            {
+                if (_playlistFeed == null)
+                {
+                    _playlistFeed = new PlaylistFeeds();
+                    SetConfigChanged();
+                }
+                return _playlistFeed;
+            }
+            set
+            {
+                if (_playlistFeed == value)
+                    return;
+                _playlistFeed = value;
+                SetConfigChanged();
+            }
+        }
         [JsonProperty(Order = 100)]
         public DateTime LastRun
         {
@@ -256,7 +277,8 @@ namespace BeatSyncLib.Configs
                 return (base.ConfigChanged 
                     || BeatSaver.ConfigChanged 
                     || BeastSaber.ConfigChanged 
-                    || ScoreSaber.ConfigChanged);
+                    || ScoreSaber.ConfigChanged
+                    || PlaylistsFeed.ConfigChanged);
             }
             protected set => base.ConfigChanged = value;
         }
@@ -266,6 +288,7 @@ namespace BeatSyncLib.Configs
             BeastSaber.ResetConfigChanged();
             BeatSaver.ResetConfigChanged();
             ScoreSaber.ResetConfigChanged();
+            PlaylistsFeed.ResetConfigChanged();
             base.ResetConfigChanged();
         }
 
@@ -274,6 +297,7 @@ namespace BeatSyncLib.Configs
             BeastSaber.ResetFlags();
             BeatSaver.ResetFlags();
             ScoreSaber.ResetFlags();
+            PlaylistsFeed.ResetFlags();
             base.ResetFlags();
         }
 
@@ -288,6 +312,7 @@ namespace BeatSyncLib.Configs
             BeatSaver.FillDefaults();
             BeastSaber.FillDefaults();
             ScoreSaber.FillDefaults();
+            PlaylistsFeed.FillDefaults();
         }
 
         public BeatSyncConfig Clone()
