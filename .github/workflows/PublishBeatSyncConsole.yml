@@ -41,10 +41,12 @@ jobs:
         name: ${{ steps.publish-win64.outputs.filename }}
         path: ${{ steps.publish-win64.outputs.artifactpath }}
     - name: Make Executable
-      run: chmod +x ${{ steps.publish-linux64.outputs.artifactpath }}/BeatSyncConsole/BeatSyncConsole
+      run: chmod +x ${{ steps.publish-linux64.outputs.artifactpath }}BeatSyncConsole/BeatSyncConsole
+    - name: Make Tar
+      run: tar -cvf ${{ steps.publish-linux64.outputs.artifactpath }} ${{ steps.publish-linux64.outputs.artifactpath }}${{ steps.publish-linux64.outputs.filename }}.tar
     - name: Upload Linux64 Artifact
       uses: actions/upload-artifact@v1
       with:
         name: ${{ steps.publish-linux64.outputs.filename }}
-        path: ${{ steps.publish-linux64.outputs.artifactpath }}
+        path: ${{ steps.publish-linux64.outputs.artifactpath }}${{ steps.publish-linux64.outputs.filename }}.tar
 
