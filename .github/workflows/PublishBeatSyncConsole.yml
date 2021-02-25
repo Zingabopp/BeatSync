@@ -44,7 +44,7 @@ jobs:
     - name: Make Executable
       run: chmod +x ${{ steps.publish-linux64.outputs.artifactpath }}BeatSyncConsole/BeatSyncConsole
     - name: Make Tar
-      run: tar -cvf ${{ steps.publish-linux64.outputs.artifactpath }} ${{ steps.publish-linux64.outputs.artifactpath }}${{ steps.publish-linux64.outputs.filename }}.tar
+      run: tar -cvf ${{ steps.publish-linux64.outputs.artifactpath }}${{ steps.publish-linux64.outputs.filename }}.tar ${{ steps.publish-linux64.outputs.artifactpath }}
     - name: Upload Linux64 Artifact
       uses: actions/upload-artifact@v1
       with:
