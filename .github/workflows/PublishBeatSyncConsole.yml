@@ -40,6 +40,8 @@ jobs:
       with:
         name: ${{ steps.publish-win64.outputs.filename }}
         path: ${{ steps.publish-win64.outputs.artifactpath }}
+    - name: Make Executable
+      run: chmod +x ${{ steps.publish-linux64.outputs.artifactpath }}/BeatSyncConsole/BeatSyncConsole
     - name: Upload Linux64 Artifact
       uses: actions/upload-artifact@v1
       with:
