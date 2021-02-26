@@ -34,23 +34,23 @@ namespace BeatSyncLib.Downloader
             return await Task.WhenAll(downloadTasks).ConfigureAwait(false);
         }
 
-        public static IEnumerable<IJob>? CreateJobs(FeedResult feedResult, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        public static IEnumerable<IJob> CreateJobs(FeedResult feedResult, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             if (!feedResult.Successful)
-                return null;
+                return Array.Empty<IJob>();
             if (feedResult.Songs.Count == 0)
             {
                 Logger.log?.Info("No songs");
                 return Array.Empty<IJob>();
             }
-            return CreateJobs(feedResult.Songs.Values.Reverse(), jobBuilder, jobManager, cancellationToken);
+            return CreateJobs(feedResult.Songs.Values, jobBuilder, jobManager, cancellationToken);
         }
 
-        public static IEnumerable<IJob>? CreateJobs(IEnumerable<SongFeedReaders.Data.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        public static IEnumerable<IJob> CreateJobs(IEnumerable<SongFeedReaders.Data.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             List<IJob> jobs = new List<IJob>(songs.Count());
 
-            foreach (SongFeedReaders.Data.ISong song in songs)
+            foreach (SongFeedReaders.Data.ISong song in songs.Reverse())
             {
                 Job newJob = jobBuilder.CreateJob(song);
                 newJob.RegisterCancellationToken(cancellationToken);
@@ -60,7 +60,7 @@ namespace BeatSyncLib.Downloader
                 else
                     Logger.log?.Info($"Posted job is null for {song}, this shouldn't happen.");
             }
-            return jobs;
+            return jobs.Reverse<IJob>();
         }
 
         protected async Task<JobStats> GetScoreSaberAsync(BeatSyncConfig config, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
@@ -257,7 +257,7 @@ namespace BeatSyncLib.Downloader
                                     feedPlaylist.RaisePlaylistChanged();
                                 }
                             }
-                            ProcessFinishedJobs(jobs, playlists, recentPlaylists);
+                            ProcessFinishedJobs(jobs, playlists, recentPlaylists, feedConfig);
 
                             Logger.log?.Info($"  Finished getting songs by {mapper}: ({mapperStats}).");
                         }
@@ -332,10 +332,10 @@ namespace BeatSyncLib.Downloader
                     feedPlaylist.RaisePlaylistChanged();
                 }
             }
-            ProcessFinishedJobs(jobs, playlists, recentPlaylists);
+            ProcessFinishedJobs(jobs, playlists, recentPlaylists, feedConfig);
         }
 
-        public static void ProcessFinishedJobs(IEnumerable<IJob> jobs, IEnumerable<IPlaylist> playlists, IEnumerable<IPlaylist> recentPlaylists)
+        public static void ProcessFinishedJobs(IEnumerable<IJob> jobs, IEnumerable<IPlaylist> playlists, IEnumerable<IPlaylist> recentPlaylists, FeedConfigBase feedConfig)
         {
             TimeSpan offset = new TimeSpan(0, 0, 0, 0, 1);
             DateTime addedTime = DateTime.Now - offset;
