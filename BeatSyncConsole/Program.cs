@@ -36,6 +36,15 @@ namespace BeatSyncConsole
         private static ConfigManager? ConfigManager;
         private static string? createdTempDir;
 
+        public static string FormatTimeSpan(TimeSpan ts)
+        {
+            if (ts.TotalMinutes >= 1)
+            {
+                return string.Format("{0}m {1}s", (int)ts.TotalMinutes, ts.Seconds);
+            }
+            else
+                return string.Format("{0}.{1:D2}s", ts.Seconds, (int)Math.Round(ts.Milliseconds / 10d));
+        }
         public static async Task<IJobBuilder> CreateJobBuilderAsync(Config config)
         {
             string tempDirectory = Paths.TempDirectory;
@@ -63,7 +72,7 @@ namespace BeatSyncConsole
                     unzipBeatmaps = customLocation.UnzipBeatmaps;
                 }
                 HistoryManager? historyManager = null;
-                SongHasher? songHasher = null;
+                ISongHashCollection? songHasher = null;
                 PlaylistManager? playlistManager = null;
                 if (!string.IsNullOrEmpty(location.HistoryPath))
                 {
@@ -88,13 +97,14 @@ namespace BeatSyncConsole
                 }
                 string songsDirectory = location.FullSongsPath;
                 Directory.CreateDirectory(songsDirectory);
-                songHasher = new SongHasher<SongHashData>(songsDirectory);
+                songHasher = new DirectoryHasher(songsDirectory);
                 Stopwatch sw = new Stopwatch();
-                Logger.log.Info($"Hashing songs in '{Paths.GetRelativeDirectory(songsDirectory)}'...");
+                Logger.log.Info($"Hashing beatmaps in '{Paths.GetRelativeDirectory(songsDirectory)}'...");
                 sw.Start();
-                await songHasher.InitializeAsync().ConfigureAwait(false);
+                int hashedCount = await songHasher.RefreshHashesAsync(false, null, CancellationToken.None).ConfigureAwait(false);
                 sw.Stop();
-                Logger.log.Info($"Hashed {songHasher.HashDictionary.Count} songs in {Paths.GetRelativeDirectory(songsDirectory)} in {sw.Elapsed.Seconds}sec.");
+                TimeSpan ts = sw.Elapsed;
+                Logger.log.Info($"Hashed {hashedCount} beatmaps in {Paths.GetRelativeDirectory(songsDirectory)} in {FormatTimeSpan(ts)}.");
                 SongTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, unzipBeatmaps, songHasher, historyManager, playlistManager);
                 //SongTarget songTarget = new MockSongTarget();
                 jobBuilder.AddTarget(songTarget);

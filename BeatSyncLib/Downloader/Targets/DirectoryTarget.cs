@@ -7,13 +7,15 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSaber.SongHashing;
 
 namespace BeatSyncLib.Downloader.Targets
 {
     public class DirectoryTarget : SongTarget, ITargetWithHistory, ITargetWithPlaylists
     {
+        public static Hasher Hasher = new Hasher();
         public override string TargetName => nameof(DirectoryTarget);
-        public SongHasher SongHasher { get; protected set; }
+        public ISongHashCollection SongHasher { get; protected set; }
         public HistoryManager? HistoryManager { get; protected set; }
         public PlaylistManager? PlaylistManager { get; protected set; }
         public string SongsDirectory { get; protected set; }
@@ -21,7 +23,7 @@ namespace BeatSyncLib.Downloader.Targets
         public bool UnzipBeatmaps { get; protected set; } = true;
 
 
-        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, SongHasher songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, ISongHashCollection songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
             : base()
         {
             SongsDirectory = Path.GetFullPath(songsDirectory);
@@ -32,15 +34,18 @@ namespace BeatSyncLib.Downloader.Targets
             UnzipBeatmaps = unzipBeatmaps;
         }
 
-        public override async Task<SongState> CheckSongExistsAsync(string songHash)
+        public override Task<SongState> CheckSongExistsAsync(string songHash)
         {
             SongState state = SongState.Wanted;
 
             if (SongHasher != null)
             {
-                if (!SongHasher.Initialized)
-                    await SongHasher.InitializeAsync().ConfigureAwait(false);
-                if (SongHasher.ExistingSongs.ContainsKey(songHash))
+                if (SongHasher.HashingState == HashingState.NotStarted)
+                    Logger.log?.Warn($"SongHasher hasn't hashed any songs yet.");
+                else if (SongHasher.HashingState == HashingState.InProgress)
+                    Logger.log?.Warn($"SongHasher hasn't finished hashing.");
+                //await SongHasher.InitializeAsync().ConfigureAwait(false);
+                if (SongHasher.HashExists(songHash))
                     state = SongState.Exists;
             }
             if (state == SongState.Wanted && HistoryManager != null)
@@ -56,7 +61,7 @@ namespace BeatSyncLib.Downloader.Targets
                     }
                 }
             }
-            return state;
+            return Task.FromResult(state);
         }
 
         public override async Task<TargetResult> TransferAsync(ISong song, Stream sourceStream, CancellationToken cancellationToken)
@@ -84,11 +89,17 @@ namespace BeatSyncLib.Downloader.Targets
                     zipResult = await Task.Run(() => FileIO.ExtractZip(sourceStream, directoryPath, OverwriteTarget)).ConfigureAwait(false);
                     if (!string.IsNullOrEmpty(song.Hash) && zipResult.OutputDirectory != null)
                     {
-                        string? hashAfterDownload = (await SongHasher.GetSongHashDataAsync(zipResult.OutputDirectory).ConfigureAwait(false)).songHash;
-                        if (hashAfterDownload == null)
-                            Logger.log?.Warn($"Unable to get hash for '{song}', hasher returned null.");
-                        else if (hashAfterDownload != song.Hash)
-                            throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
+                        var hashResult = await Task.Run(() => Hasher.HashDirectory(zipResult.OutputDirectory, cancellationToken)).ConfigureAwait(false);
+                        if (hashResult.ResultType == HashResultType.Error)
+                            Logger.log?.Warn($"Unable to get hash for '{song}': {hashResult.Message}.");
+                        else if (hashResult.ResultType == HashResultType.Warn)
+                            Logger.log?.Warn($"Hash warning for '{song}': {hashResult.Message}.");
+                        else
+                        {
+                            string? hashAfterDownload = hashResult.Hash;
+                            if (hashAfterDownload != song.Hash)
+                                throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
+                        }
                     }
                     TargetResult = new DirectoryTargetResult(this, SongState.Wanted, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
                 }
@@ -101,7 +112,7 @@ namespace BeatSyncLib.Downloader.Targets
                         await sourceStream.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
                         TargetResult = new DirectoryTargetResult(this, SongState.Wanted, true, null);
                     }
-                    catch(OperationCanceledException ex)
+                    catch (OperationCanceledException ex)
                     {
                         TargetResult = new DirectoryTargetResult(this, SongState.Wanted, false, ex);
                     }
