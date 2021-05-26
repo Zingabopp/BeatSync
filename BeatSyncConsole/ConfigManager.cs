@@ -77,11 +77,12 @@ namespace BeatSyncConsole
         public static void WriteJsonException(string sourceFile, JsonReaderException ex)
         {
             Logger.log.Error($"Invalid JSON in {sourceFile} on line {ex.LineNumber} position {ex.LinePosition}.");
+            string sourcePath = Paths.GetFullPath(sourceFile, PathRoot.AssemblyDirectory);
             string? line = null;
             try
             {
                 int skip = Math.Max(ex.LineNumber - 1, 0);
-                line = File.ReadLines(sourceFile).Skip(skip).Take(1).FirstOrDefault();
+                line = File.ReadLines(sourcePath).Skip(skip).Take(1).FirstOrDefault();
             }
             catch { }
             if (line != null)

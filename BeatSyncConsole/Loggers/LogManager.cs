@@ -117,7 +117,7 @@ namespace BeatSyncConsole.Loggers
                 catch (Exception ex)
                 {
                     RemoveWriter(logger, "Caused error.", LogLevel.Error);
-                    ConsoleWriteError($"Error writing to {typeof(Logger)}: {ex.Message}\n{ex.StackTrace}");
+                    ConsoleWriteError($"Error writing to {logger?.GetType()}: {ex.Message}\n{ex.StackTrace}");
                 }
             }
         }
