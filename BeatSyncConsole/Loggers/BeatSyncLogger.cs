@@ -14,11 +14,12 @@ namespace BeatSyncConsole.Loggers
         {
             SourceName = sourceName;
         }
-        public void Log(string message, LogLevel logLevel, IEnumerable<ColoredSection> coloredSections)
+        public void Log(string message, LogLevel logLevel, IEnumerable<ColoredSection>? coloredSections)
         {
             if (LoggingLevel > logLevel)
                 return;
-            string prefix = $"[{logLevel} @ {Logger.GetCurrentTime()} | {SourceName}]: ";
+            string logLevelStr = logLevel.ToString();
+            string prefix = $"[{logLevelStr} @ {Logger.GetCurrentTime()} | {SourceName}]: ";
             ColoredSection[]? sections = coloredSections?.ToArray();
             if(sections != null && sections.Length > 0)
             {
@@ -38,11 +39,7 @@ namespace BeatSyncConsole.Loggers
         }
 
         public override void Log(string message, LogLevel logLevel)
-        {
-            if (LoggingLevel > logLevel)
-                return;
-            LogManager.QueueMessage($"[{logLevel} @ {Logger.GetCurrentTime()} | {SourceName}]: {message}", logLevel);
-        }
+            => Log(message, logLevel, null);
 
         public override void Log(Exception ex, LogLevel logLevel) => Log(ex.ToString(), logLevel);
     }
