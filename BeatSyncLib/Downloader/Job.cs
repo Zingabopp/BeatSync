@@ -169,7 +169,7 @@ namespace BeatSyncLib.Downloader
                     downloadContainer = DownloadResult.DownloadContainer;
                     if (DownloadResult.Exception != null)
                         throw DownloadResult.Exception;
-                    if(downloadContainer != null)
+                    if (downloadContainer != null)
                     {
                         _stageIndex = 1;
                         ReportProgress(JobProgress.CreateDownloadCompletion(CurrentProgress, DownloadResult));
@@ -243,12 +243,9 @@ namespace BeatSyncLib.Downloader
                 {
                     // TODO: What was this for?
                 }
-                FinishJob(canceled, exception);
-                JobFinishedAsyncCallback? asyncCallback = JobFinishedAsyncCallback;
-                if (asyncCallback != null)
-                    await asyncCallback(Result).ConfigureAwait(false);
+                await FinishJob(canceled, exception);
             }
-            
+
         }
 
         private void _downloadJob_JobProgressChanged(object sender, DownloadJobProgressChangedEventArgs e)
@@ -262,7 +259,7 @@ namespace BeatSyncLib.Downloader
             //throw new NotImplementedException();
         }
 
-        protected virtual void FinishJob(bool canceled = false, Exception? exception = null)
+        protected virtual async Task FinishJob(bool canceled = false, Exception? exception = null)
         {
             Exception = exception;
             if (canceled || exception is OperationCanceledException)
@@ -281,12 +278,22 @@ namespace BeatSyncLib.Downloader
                 Exception = exception
             };
             JobStage = JobStage.Finished;
-            EventHandler<JobResult>? handler = JobFinished;
-            handler?.Invoke(this, Result);
-            ReportProgress(JobProgress.CreateJobFinished(CurrentProgress));
-            JobFinishedCallback? callback = JobFinishedCallback;
-            callback?.Invoke(Result);
-            TaskCompletionSource.SetResult(Result);
+            try
+            {
+
+                EventHandler<JobResult>? handler = JobFinished;
+                handler?.Invoke(this, Result);
+                Task? asyncCallback = JobFinishedAsyncCallback?.Invoke(Result);
+                JobFinishedCallback? callback = JobFinishedCallback;
+                callback?.Invoke(Result);
+                if (asyncCallback != null)
+                    await asyncCallback.ConfigureAwait(false);
+            }
+            finally
+            {
+                ReportProgress(JobProgress.CreateJobFinished(CurrentProgress));
+                TaskCompletionSource.SetResult(Result);
+            }
         }
 
         public Task RunAsync()
