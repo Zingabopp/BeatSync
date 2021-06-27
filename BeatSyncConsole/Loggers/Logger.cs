@@ -6,7 +6,7 @@ namespace BeatSyncConsole.Loggers
 {
     public static class Logger
     {
-        internal const string _timePattern = "HH:mm:ss";
+        internal const string _timePattern = "yyyy-MM-dd HH:mm:ss";
         internal static bool _useUtcTime = false;
         internal static DateTime GetTime()
         {
