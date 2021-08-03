@@ -1,5 +1,7 @@
 <img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSyncLib/Icons/BeatSyncLogoBanner.png" height="150">
 
+## IMPORTANT: As announced in the Beat Saber Modding Group Discord server on Aug. 2nd, 2021, ownership of Beat Saver has been changed from the Jellyfish to Top_Cat. Along with the handover, there were some major changes to the site and API. This is a breaking change for anything using Beat Saver. I will hopefully have an update to accommodate these changes soon.
+
 Beat Saber plugin to automatically download beatmaps.
 The following sources and feeds are currently supported:
  * Beast Saber: Bookmarks, Follows, Curator Recommended
