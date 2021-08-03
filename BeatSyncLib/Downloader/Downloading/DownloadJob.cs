@@ -13,8 +13,6 @@ namespace BeatSyncLib.Downloader.Downloading
 {
     public class DownloadJob : IDownloadJob
     {
-        private static readonly string BeatSaverHashDownloadUrlBase = "https://beatsaver.com/api/download/hash/";
-        private static readonly string BeatSaverKeyDownloadUrlBase = "https://beatsaver.com/api/download/key/";
         public Exception? Exception { get; private set; }
         public event EventHandler<DownloadJobStartedEventArgs> JobStarted;
         public event EventHandler<DownloadJobFinishedEventArgs> JobFinished;
@@ -215,23 +213,19 @@ namespace BeatSyncLib.Downloader.Downloading
         /// <returns></returns>
         public async Task<DownloadResult> DownloadSongAsync(DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
-            string? stringForUri = null;
             Uri downloadUri;
             try
             {
                 if (SongHash != null && SongHash.Length > 0)
-                    stringForUri = BeatSaverHashDownloadUrlBase + SongHash.ToLower();
-                else if (SongKey != null && SongKey.Length > 0)
-                    stringForUri = BeatSaverKeyDownloadUrlBase + SongKey.ToLower();
+                    downloadUri = SongFeedReaders.WebUtils.GetDownloadUriByHash(SongHash);
                 else
                     return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, 
-                        "No SongHash or SongKey provided to the DownloadJob.", 
-                        new InvalidOperationException($"No SongHash or SongKey provided to the DownloadJob"));
-                downloadUri = new Uri(stringForUri);
+                        "No SongHash provided to the DownloadJob.", 
+                        new InvalidOperationException($"No SongHash provided to the DownloadJob"));
             }
             catch (FormatException ex)
             {
-                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, $"Could not create a valid Uri from '{stringForUri}'.", ex);
+                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, $"Could not create a valid Uri.", ex);
             }
             DownloadResult result = await FileIO.DownloadFileAsync(downloadUri, downloadContainer, cancellationToken).ConfigureAwait(false);
             return result;
