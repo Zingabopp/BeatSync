@@ -1,6 +1,8 @@
 <img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSyncLib/Icons/BeatSyncLogoBanner.png" height="150">
 
-## IMPORTANT: As announced in the Beat Saber Modding Group Discord server on Aug. 2nd, 2021, ownership of Beat Saver has been changed from the Jellyfish to Top_Cat. Along with the handover, there were some major changes to the site and API. This is a breaking change for anything using Beat Saver. I will hopefully have an update to accommodate these changes soon. Some mostly working prerelease builds are available [Here](https://github.com/Zingabopp/BeatSync/actions). You can select the latest workflow run and find the download links at the bottom of the page (you must be logged into GitHub).
+## IMPORTANT: As announced in the Beat Saber Modding Group Discord server on Aug. 2nd, 2021, ownership of Beat Saver has been changed from the Jellyfish to Top_Cat. Along with the handover, there were some major changes to the site and API. This is a breaking change for anything using Beat Saver. I will hopefully have an update to accommodate these changes soon. 
+
+## Some mostly working prerelease builds are available [Here](https://github.com/Zingabopp/BeatSync/actions). You can select the latest workflow run and find the download links at the bottom of the page (you must be logged into GitHub).
 
 Beat Saber plugin to automatically download beatmaps.
 The following sources and feeds are currently supported:
@@ -110,12 +112,7 @@ __BeatSync.json__
     * CreatePlaylist
     * PlaylistStyle
     * SeparateMapperPlaylists: If true (along with CreatePlaylist), create a playlist for each mapper in your FavoriteMappers.ini file.
-  * Hot: Get beatmaps using Beat Saver's "Hot" ordering.
-    * Enabled
-    * MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver.**
-    * CreatePlaylist
-    * PlaylistStyle
-  * Downloads: Get beatmaps by most downloaded from Beat Saver
+  * Latest: Get the most recently uploaded beatmaps.
     * Enabled
     * MaxSongs: **WARNING - Setting this to 0 will download every song on BeatSaver.**
     * CreatePlaylist
