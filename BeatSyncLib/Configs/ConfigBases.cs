@@ -142,21 +142,17 @@ namespace BeatSyncLib.Configs
     public abstract class FeedConfigBase
         : ConfigBase
     {
-
         public override void FillDefaults()
         {
             var _ = Enabled;
-            var __ = StartingPage;
-            var ___ = MaxSongs;
-            var ____ = CreatePlaylist;
-            var _____ = PlaylistStyle;
-            var ______ = FeedPlaylist;
+            var __ = MaxSongs;
+            var ___ = CreatePlaylist;
+            var ____ = PlaylistStyle;
+            var _____ = FeedPlaylist;
         }
 
         [JsonIgnore]
         private bool? _enabled;
-        [JsonIgnore]
-        private int? _startingPage;
         [JsonIgnore]
         private int? _maxSongs;
         [JsonIgnore]
@@ -168,8 +164,6 @@ namespace BeatSyncLib.Configs
 
         [JsonIgnore]
         protected abstract bool DefaultEnabled { get; }
-        [JsonIgnore]
-        protected int DefaultStartingPage { get; set; } = 1;
         [JsonIgnore]
         protected abstract int DefaultMaxSongs { get; }
         [JsonIgnore]
@@ -200,29 +194,6 @@ namespace BeatSyncLib.Configs
             }
         }
 
-        [JsonProperty(Order = -95, NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [DefaultValue(1)]
-        public int StartingPage
-        {
-            get
-            {
-                return _startingPage ?? DefaultStartingPage;
-            }
-            set
-            {
-                int newAdjustedVal = value;
-                if (value < 1)
-                {
-                    newAdjustedVal = DefaultStartingPage;
-                    SetInvalidInputFixed();
-                }
-                if (_startingPage == newAdjustedVal)
-                    return;
-                _startingPage = newAdjustedVal;
-                SetConfigChanged();
-            }
-        }
 
         [JsonProperty(Order = -90)]
         public int MaxSongs
@@ -334,6 +305,107 @@ namespace BeatSyncLib.Configs
             return true;
         }
     }
+
+
+    public abstract class PagedFeedConfigBase
+        : FeedConfigBase
+    {
+        [JsonIgnore]
+        private int? _startingPage;
+        [JsonIgnore]
+        protected int DefaultStartingPage { get; set; } = 1;
+
+        [JsonProperty(Order = -95, NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [DefaultValue(1)]
+        public int StartingPage
+        {
+            get
+            {
+                return _startingPage ?? DefaultStartingPage;
+            }
+            set
+            {
+                int newAdjustedVal = value;
+                if (value < 1)
+                {
+                    newAdjustedVal = DefaultStartingPage;
+                    SetInvalidInputFixed();
+                }
+                if (_startingPage == newAdjustedVal)
+                    return;
+                _startingPage = newAdjustedVal;
+                SetConfigChanged();
+            }
+        }
+
+        public override void FillDefaults()
+        {
+            base.FillDefaults();
+            var _ = StartingPage;
+        }
+
+    }
+
+
+    public abstract class DatedFeedConfigBase
+        : FeedConfigBase
+    {
+        [JsonIgnore]
+        private DateTime? _startBeforeDate;
+        [JsonIgnore]
+        private DateTime? _startAfterDate;
+        [JsonIgnore]
+        protected DateTime? DefaultStartBeforeDate { get; set; } = null;
+        [JsonIgnore]
+        protected DateTime? DefaultStartAfterDate { get; set; } = null;
+
+        [JsonProperty(Order = -95, NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [DefaultValue(1)]
+        public DateTime? StartBeforeDate
+        {
+            get
+            {
+                return _startBeforeDate ?? DefaultStartBeforeDate;
+            }
+            set
+            {
+                DateTime? newAdjustedVal = value;
+                if (_startBeforeDate == newAdjustedVal)
+                    return;
+                _startBeforeDate = newAdjustedVal;
+                SetConfigChanged();
+            }
+        }
+
+        [JsonProperty(Order = -95, NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [DefaultValue(1)]
+        public DateTime? StartAfterDate
+        {
+            get
+            {
+                return _startAfterDate ?? DefaultStartAfterDate;
+            }
+            set
+            {
+                DateTime? newAdjustedVal = value;
+                if (_startAfterDate == newAdjustedVal)
+                    return;
+                _startAfterDate = newAdjustedVal;
+                SetConfigChanged();
+            }
+        }
+
+        public override void FillDefaults()
+        {
+            base.FillDefaults();
+            var _ = StartBeforeDate;
+        }
+
+    }
+
 
     public enum PlaylistStyle
     {

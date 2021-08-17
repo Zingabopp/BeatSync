@@ -10,7 +10,7 @@ using BeatSyncLib.Playlists;
 
 namespace BeatSyncLib.Configs
 {
-    public class BeastSaberFollowings : FeedConfigBase
+    public class BeastSaberFollowings : PagedFeedConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => false;
@@ -34,7 +34,7 @@ namespace BeatSyncLib.Configs
         }
     }
 
-    public class BeastSaberBookmarks : FeedConfigBase
+    public class BeastSaberBookmarks : PagedFeedConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => true;
@@ -58,7 +58,7 @@ namespace BeatSyncLib.Configs
         }
     }
 
-    public class BeastSaberCuratorRecommended : FeedConfigBase
+    public class BeastSaberCuratorRecommended : PagedFeedConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => false;

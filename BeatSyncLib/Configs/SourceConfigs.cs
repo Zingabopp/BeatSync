@@ -11,10 +11,7 @@ namespace BeatSyncLib.Configs
     {
         [JsonIgnore]
         private BeatSaverFavoriteMappers? _favoriteMappers;
-        [JsonIgnore]
-        private BeatSaverHot? _hot;
-        [JsonIgnore]
-        private BeatSaverDownloads? _downloads;
+
         [JsonIgnore]
         private BeatSaverLatest? _latest;
 
@@ -35,46 +32,6 @@ namespace BeatSyncLib.Configs
                 if (_favoriteMappers == value)
                     return;
                 _favoriteMappers = value;
-                SetConfigChanged();
-            }
-        }
-        [JsonProperty(Order = -40)]
-        public BeatSaverHot Hot
-        {
-            get
-            {
-                if (_hot == null)
-                {
-                    _hot = new BeatSaverHot();
-                    SetConfigChanged();
-                }
-                return _hot;
-            }
-            set
-            {
-                if (_hot == value)
-                    return;
-                _hot = value;
-                SetConfigChanged();
-            }
-        }
-        [JsonProperty(Order = -30)]
-        public BeatSaverDownloads Downloads
-        {
-            get
-            {
-                if (_downloads == null)
-                {
-                    _downloads = new BeatSaverDownloads();
-                    SetConfigChanged();
-                }
-                return _downloads;
-            }
-            set
-            {
-                if (_downloads == value)
-                    return;
-                _downloads = value;
                 SetConfigChanged();
             }
         }
@@ -107,7 +64,8 @@ namespace BeatSyncLib.Configs
         {
             get
             {
-                return (base.ConfigChanged || FavoriteMappers.ConfigChanged || Hot.ConfigChanged || Downloads.ConfigChanged);
+                return (base.ConfigChanged || FavoriteMappers.ConfigChanged
+                    || Latest.ConfigChanged);
             }
             protected set => base.ConfigChanged = value;
         }
@@ -115,24 +73,20 @@ namespace BeatSyncLib.Configs
         public override void ResetConfigChanged()
         {
             FavoriteMappers.ResetConfigChanged();
-            Hot.ResetConfigChanged();
-            Downloads.ResetConfigChanged();
+            Latest.ResetConfigChanged();
             ConfigChanged = false;
         }
 
         public override void ResetFlags()
         {
             FavoriteMappers.ResetFlags();
-            Hot.ResetFlags();
-            Downloads.ResetFlags();
+            Latest.ResetFlags();
             base.ResetFlags();
         }
 
         public override void FillDefaults()
         {
             FavoriteMappers.FillDefaults();
-            Hot.FillDefaults();
-            Downloads.FillDefaults();
             Latest.FillDefaults();
             base.FillDefaults();
         }
@@ -145,9 +99,7 @@ namespace BeatSyncLib.Configs
                     return false;
                 if (!FavoriteMappers.ConfigMatches(castOther.FavoriteMappers))
                     return false;
-                if (!Hot.ConfigMatches(castOther.Hot))
-                    return false;
-                if (!Downloads.ConfigMatches(castOther.Downloads))
+                if (!Latest.ConfigMatches(castOther.Latest))
                     return false;
             }
             else

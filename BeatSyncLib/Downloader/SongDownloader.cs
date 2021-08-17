@@ -162,7 +162,7 @@ namespace BeatSyncLib.Downloader
                 return sourceStats;
 
             BeatSaverReader reader = new BeatSaverReader();
-            FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Hot, sourceConfig.Downloads, sourceConfig.Latest };
+            FeedConfigBase[] feedConfigs = new FeedConfigBase[] { sourceConfig.Latest };
             if (!(feedConfigs.Any(f => f.Enabled) || sourceConfig.FavoriteMappers.Enabled))
             {
                 Logger.log?.Info($"No feeds enabled for {reader.Name}");

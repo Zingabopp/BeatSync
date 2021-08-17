@@ -11,7 +11,7 @@ using SongFeedReaders.Readers.ScoreSaber;
 namespace BeatSyncLib.Configs
 {
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-    public abstract class ScoreSaberFeedConfigBase : FeedConfigBase
+    public abstract class ScoreSaberFeedConfigBase : PagedFeedConfigBase
     {
         public abstract ScoreSaberFeedName ScoreSaberFeed { get; }
         #region Defaults

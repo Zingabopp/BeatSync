@@ -6,7 +6,7 @@ using System;
 
 namespace BeatSyncLib.Configs
 {
-    public class BeatSaverFavoriteMappers : FeedConfigBase
+    public class BeatSaverFavoriteMappers : PagedFeedConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => true;
@@ -98,7 +98,7 @@ namespace BeatSyncLib.Configs
         }
     }
 
-    public class BeatSaverLatest : FeedConfigBase
+    public class BeatSaverLatest : DatedFeedConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => false;
@@ -114,86 +114,87 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Latest)
+            return new BeatSaverFeedSettings(BeatSaverFeedName.Latest)
             {
                 MaxSongs = this.MaxSongs,
-                StartingPage = this.StartingPage
+                StartBeforeDate = this.StartBeforeDate,
+                StartAfterDate = this.StartAfterDate
             };
         }
     }
 
-    public class BeatSaverHot : FeedConfigBase
-    {
-        #region Defaults
-        protected override bool DefaultEnabled => false;
+    //public class BeatSaverHot : FeedConfigBase
+    //{
+    //    #region Defaults
+    //    protected override bool DefaultEnabled => false;
 
-        protected override int DefaultMaxSongs => 20;
+    //    protected override int DefaultMaxSongs => 20;
 
-        protected override bool DefaultCreatePlaylist => true;
+    //    protected override bool DefaultCreatePlaylist => true;
 
-        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+    //    protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
 
-        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverHot;
-        #endregion
+    //    protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverHot;
+    //    #endregion
 
-        public override IFeedSettings ToFeedSettings()
-        {
-            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Hot)
-            {
-                MaxSongs = this.MaxSongs,
-                StartingPage = this.StartingPage
-            };
-        }
-    }
+    //    public override IFeedSettings ToFeedSettings()
+    //    {
+    //        return new BeatSaverFeedSettings((int)BeatSaverFeedName.Hot)
+    //        {
+    //            MaxSongs = this.MaxSongs,
+    //            StartingPage = this.StartingPage
+    //        };
+    //    }
+    //}
 
-    [Obsolete("Only has really old play data.")]
-    public class BeatSaverPlays : FeedConfigBase
-    {
-        #region Defaults
-        protected override bool DefaultEnabled => false;
+    //[Obsolete("Only has really old play data.")]
+    //public class BeatSaverPlays : FeedConfigBase
+    //{
+    //    #region Defaults
+    //    protected override bool DefaultEnabled => false;
 
-        protected override int DefaultMaxSongs => 20;
+    //    protected override int DefaultMaxSongs => 20;
 
-        protected override bool DefaultCreatePlaylist => true;
+    //    protected override bool DefaultCreatePlaylist => true;
 
-        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+    //    protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
 
-        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverPlays;
-        #endregion
+    //    protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverPlays;
+    //    #endregion
 
-        public override IFeedSettings ToFeedSettings()
-        {
-            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Plays)
-            {
-                MaxSongs = this.MaxSongs,
-                StartingPage = this.StartingPage
-            };
-        }
-    }
+    //    public override IFeedSettings ToFeedSettings()
+    //    {
+    //        return new BeatSaverFeedSettings((int)BeatSaverFeedName.Plays)
+    //        {
+    //            MaxSongs = this.MaxSongs,
+    //            StartingPage = this.StartingPage
+    //        };
+    //    }
+    //}
 
-    public class BeatSaverDownloads : FeedConfigBase
-    {
-        #region Defaults
-        protected override bool DefaultEnabled => false;
+    //public class BeatSaverDownloads : FeedConfigBase
+    //{
+    //    #region Defaults
+    //    protected override bool DefaultEnabled => false;
 
-        protected override int DefaultMaxSongs => 20;
+    //    protected override int DefaultMaxSongs => 20;
 
-        protected override bool DefaultCreatePlaylist => true;
+    //    protected override bool DefaultCreatePlaylist => true;
 
-        protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
+    //    protected override PlaylistStyle DefaultPlaylistStyle => PlaylistStyle.Append;
 
-        protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverDownloads;
-        #endregion
+    //    protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.BeatSaverDownloads;
+    //    #endregion
 
-        public override IFeedSettings ToFeedSettings()
-        {
-            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Downloads)
-            {
-                MaxSongs = this.MaxSongs,
-                StartingPage = this.StartingPage
-            };
-        }
-    }
+    //    public override IFeedSettings ToFeedSettings()
+    //    {
+    //        return new BeatSaverFeedSettings((int)BeatSaverFeedName.Downloads)
+    //        {
+    //            MaxSongs = this.MaxSongs,
+    //            StartingPage = this.StartingPage
+    //        };
+    //    }
+    //}
 
 
 }
