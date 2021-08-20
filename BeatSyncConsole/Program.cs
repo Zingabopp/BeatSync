@@ -289,7 +289,10 @@ namespace BeatSyncConsole
                 {
                     SongFeedReaders.WebUtils.Initialize(new WebUtilities.HttpClientWrapper.HttpClientWrapper());
                     SongFeedReaders.WebUtils.WebClient.SetUserAgent($"BeatSyncConsole/{version} ({RuntimeInformation.OSDescription}){VersionInfo.Description}");
-                    SongFeedReaders.WebUtils.SongInfoManager.AddProvider<AndruzzScrapedInfoProvider>("AndruzzScrapedInfo", 50);
+                    var andruzzProvider = SongFeedReaders.WebUtils.SongInfoManager.AddProvider<AndruzzScrapedInfoProvider>("AndruzzScrapedInfo", 50);
+                    andruzzProvider.FilePath = "songDetails";
+                    andruzzProvider.CacheToDisk = true;
+                    await andruzzProvider.GetSongByKeyAsync("b");
                     JobManager manager = new JobManager(config.BeatSyncConfig.MaxConcurrentDownloads);
                     manager.Start(CancellationToken.None);
                     IJobBuilder jobBuilder = await CreateJobBuilderAsync(config).ConfigureAwait(false);
