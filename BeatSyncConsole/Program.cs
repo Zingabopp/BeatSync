@@ -258,7 +258,11 @@ namespace BeatSyncConsole
                     .WithParsed(RunOptions)
                     .WithNotParsed(HandleParseErrors);
                 ConsoleLogWriter? consoleLogger = SetupLogging();
+                var ver = Assembly.GetExecutingAssembly().GetName();
                 string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+#if BETA
+                version = version + "-Beta";
+#endif
                 Logger.log.Info($"Starting BeatSyncConsole v{version} |{VersionInfo.Description}");
                 foreach (var msg in ArgErrorMsgs)
                 {
