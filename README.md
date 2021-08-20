@@ -1,8 +1,6 @@
+## IMPORTANT: As announced in the Beat Saber Modding Group Discord server on Aug. 2nd, 2021, ownership of Beat Saver has been changed from the Jellyfish to Top_Cat. Along with the handover, there were some major changes to the site and API. This is a breaking change for anything using Beat Saver. <br><br>A beta build has been posted in [Releases](https://github.com/Zingabopp/BeatSync/releases).
+
 <img src="https://github.com/Zingabopp/BeatSync/blob/master/BeatSyncLib/Icons/BeatSyncLogoBanner.png" height="150">
-
-## IMPORTANT: As announced in the Beat Saber Modding Group Discord server on Aug. 2nd, 2021, ownership of Beat Saver has been changed from the Jellyfish to Top_Cat. Along with the handover, there were some major changes to the site and API. This is a breaking change for anything using Beat Saver. I will hopefully have an update to accommodate these changes soon. 
-
-## Some mostly working prerelease builds are available [Here](https://github.com/Zingabopp/BeatSync/actions). You can select the latest workflow run and find the download links at the bottom of the page (you must be logged into GitHub).
 
 Beat Saber plugin to automatically download beatmaps.
 The following sources and feeds are currently supported:
@@ -106,7 +104,7 @@ __BeatSync.json__
 * BeatSaver
   * Enabled: If false, disables all feeds from this source.
   * MaxConcurrentPageChecks: Number of pages to check simultaneously when reading feeds.
-  * FavoriteMappers: Feed that downloads beatmaps from each mapper specified in FavoriteMappers.ini in the UserData folder.
+  * FavoriteMappers: Feed that downloads beatmaps from each mapper specified in FavoriteMappers.ini (one mapper username per line) in the UserData folder. You can also place FavoriteMappers.ini in BeatSyncConsole's `configs` folder.
     * Enabled
     * MaxSongs: Maximum number of songs to download from each mapper.
     * CreatePlaylist
