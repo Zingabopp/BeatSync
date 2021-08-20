@@ -344,7 +344,8 @@ namespace BeatSyncConsole
             string? inBeatSyncConfigPath = null;
             try
             {
-                string? beatSyncConfigDirectory = Path.GetDirectoryName(BeatSyncConfigPath);
+                string configPath = Paths.GetFullPath(BeatSyncConfigPath, PathRoot.AssemblyDirectory);
+                string? beatSyncConfigDirectory = Path.GetDirectoryName(configPath);
                 if (beatSyncConfigDirectory != null)
                     inBeatSyncConfigPath = Path.GetFullPath(Path.Combine(beatSyncConfigDirectory, fileName));
             }
