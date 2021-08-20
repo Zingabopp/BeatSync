@@ -63,7 +63,7 @@ namespace BeatSyncLib.History
                     HistoryFlag.Missing => false,
                     HistoryFlag.PreExisting => false,
                     HistoryFlag.Error => true,
-                    HistoryFlag.BeatSaverNotFound => false,
+                    HistoryFlag.BeatSaverNotFound => true,
                     _ => true
                 };
             }
