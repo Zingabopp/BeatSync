@@ -70,14 +70,6 @@
       <Project>{e2a07bdb-7085-48a3-aa50-b6e0856a7cca}</Project>
       <Name>BeatSyncLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj">
-      <Project>{460a61bc-c89a-433d-a9e2-37447694d76c}</Project>
-      <Name>SongFeedReaders</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj">
-      <Project>{34e8f435-5c5a-4971-8d6c-173e027e17ca}</Project>
-      <Name>WebUtilities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj">
       <Project>{e58d6ec9-193f-4328-bb11-86ec2a8ad1fa}</Project>
       <Name>BeatSaberPlaylistsLib</Name>
