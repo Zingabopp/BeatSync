@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SongFeedReaders.Readers;
-using SongFeedReaders.Readers.ScoreSaber;
+using SongFeedReaders.Feeds;
+using SongFeedReaders.Feeds.ScoreSaber;
 
 namespace BeatSyncLib.Configs
 {

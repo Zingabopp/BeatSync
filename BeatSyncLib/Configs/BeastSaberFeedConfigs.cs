@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BeatSaberPlaylistsLib;
-using SongFeedReaders.Readers;
-using SongFeedReaders.Readers.BeastSaber;
+using SongFeedReaders.Feeds;
+using SongFeedReaders.Feeds.BeastSaber;
 using BeatSyncLib.Playlists;
 
 namespace BeatSyncLib.Configs
@@ -26,7 +26,7 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeastSaberFeedSettings((int)BeastSaberFeedName.Following)
+            return new BeastSaberFollowsSettings()
             {
                 MaxSongs = this.MaxSongs,
                 StartingPage = this.StartingPage
@@ -50,7 +50,7 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeastSaberFeedSettings((int)BeastSaberFeedName.Bookmarks)
+            return new BeastSaberBookmarksSettings()
             {
                 MaxSongs = this.MaxSongs,
                 StartingPage = this.StartingPage
@@ -74,7 +74,7 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeastSaberFeedSettings((int)BeastSaberFeedName.CuratorRecommended)
+            return new BeastSaberCuratorSettings()
             {
                 StartingPage = this.StartingPage,
                 MaxSongs = this.MaxSongs

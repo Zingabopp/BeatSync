@@ -1,6 +1,6 @@
 ﻿using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
-using SongFeedReaders.Data;
+using SongFeedReaders.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading;

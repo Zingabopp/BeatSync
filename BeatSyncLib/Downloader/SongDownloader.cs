@@ -5,11 +5,11 @@ using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
-using SongFeedReaders.Data;
-using SongFeedReaders.Readers;
-using SongFeedReaders.Readers.BeastSaber;
-using SongFeedReaders.Readers.BeatSaver;
-using SongFeedReaders.Readers.ScoreSaber;
+using SongFeedReaders.Models;
+using SongFeedReaders.Feeds;
+using SongFeedReaders.Feeds.BeastSaber;
+using SongFeedReaders.Feeds.BeatSaver;
+using SongFeedReaders.Feeds.ScoreSaber;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,11 +46,11 @@ namespace BeatSyncLib.Downloader
             return CreateJobs(feedResult.Songs.Values, jobBuilder, jobManager, cancellationToken);
         }
 
-        public static IEnumerable<IJob> CreateJobs(IEnumerable<SongFeedReaders.Data.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
+        public static IEnumerable<IJob> CreateJobs(IEnumerable<SongFeedReaders.Models.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)
         {
             List<IJob> jobs = new List<IJob>(songs.Count());
 
-            foreach (SongFeedReaders.Data.ISong song in songs.Reverse())
+            foreach (SongFeedReaders.Models.ISong song in songs.Reverse())
             {
                 Job newJob = jobBuilder.CreateJob(song);
                 newJob.RegisterCancellationToken(cancellationToken);

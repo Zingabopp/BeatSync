@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using SongFeedReaders.Readers;
+using SongFeedReaders.Feeds;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Configs.Converters;
 using System.ComponentModel;

@@ -106,9 +106,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
     <ProjectReference Include="..\Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj" />
+    <ProjectReference Include="..\Libs\SongFeedReaders\SongFeedReaders\SongFeedReaders.csproj" />
+    <ProjectReference Include="..\Libs\SongFeedReaders\submodules\WebUtilities\WebUtilities\WebUtilities.csproj" />
   </ItemGroup>
 
 </Project>

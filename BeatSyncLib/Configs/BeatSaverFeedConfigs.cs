@@ -1,7 +1,7 @@
 ﻿using BeatSyncLib.Playlists;
 using Newtonsoft.Json;
-using SongFeedReaders.Readers;
-using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Feeds;
+using SongFeedReaders.Feeds.BeatSaver;
 using System;
 
 namespace BeatSyncLib.Configs
@@ -56,7 +56,7 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Author)
+            return new BeatSaverMapperSettings()
             {
                 MaxSongs = this.MaxSongs
             };
@@ -73,12 +73,11 @@ namespace BeatSyncLib.Configs
             mapperName = mapperName.Trim();
             if (string.IsNullOrEmpty(mapperName))
                 throw new ArgumentNullException(nameof(mapperName), "mapperName cannot be a null or empty string.");
-            var queryBuilder = new SearchQueryBuilder(BeatSaverSearchType.author, mapperName);
-            return new BeatSaverFeedSettings((int)BeatSaverFeedName.Author)
+            return new BeatSaverMapperSettings()
             {
                 MaxSongs = this.MaxSongs,
                 StartingPage = this.StartingPage,
-                SearchQuery = queryBuilder.GetQuery()
+                MapperName = mapperName
             };
 
         }
@@ -114,11 +113,11 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            return new BeatSaverFeedSettings(BeatSaverFeedName.Latest)
+            return new BeatSaverLatestSettings()
             {
                 MaxSongs = this.MaxSongs,
                 StartBeforeDate = this.StartBeforeDate,
-                StartAfterDate = this.StartAfterDate
+                StartingDate = this.StartAfterDate
             };
         }
     }

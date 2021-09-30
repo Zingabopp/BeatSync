@@ -146,7 +146,7 @@ namespace BeatSyncLib.Playlists
             return playlist;
         }
 
-        public static IPlaylistSong? Add(this IPlaylist playlist, SongFeedReaders.Data.ISong song)
+        public static IPlaylistSong? Add(this IPlaylist playlist, SongFeedReaders.Models.ISong song)
         {
             if (song?.Hash == null || song.Hash.Length == 0)
             {

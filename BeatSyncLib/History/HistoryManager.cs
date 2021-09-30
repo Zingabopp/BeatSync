@@ -1,4 +1,4 @@
-﻿using SongFeedReaders.Data;
+﻿using SongFeedReaders.Models;
 using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

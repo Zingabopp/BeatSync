@@ -2,7 +2,7 @@
 using BeatSyncLib.History;
 using BeatSaberPlaylistsLib;
 using BeatSyncLib.Utilities;
-using SongFeedReaders.Data;
+using SongFeedReaders.Models;
 using System;
 using System.IO;
 using System.Threading;

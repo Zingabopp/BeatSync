@@ -16,8 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BeatSyncConsole\BeatSyncConsole.csproj" />
     <ProjectReference Include="..\BeatSyncLib\BeatSyncLib.csproj" />
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\SongFeedReaders\SongFeedReaders.csproj" />
-    <ProjectReference Include="..\Libs\BeatSaberDataProvider\WebUtilities\WebUtilities.csproj" />
     <ProjectReference Include="..\Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj" />
   </ItemGroup>
 

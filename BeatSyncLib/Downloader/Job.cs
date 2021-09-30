@@ -1,8 +1,8 @@
 ﻿using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using SongFeedReaders;
-using SongFeedReaders.Data;
-using SongFeedReaders.Readers.BeatSaver;
+using SongFeedReaders.Models;
+using SongFeedReaders.Feeds.BeatSaver;
 using SongFeedReaders.Services;
 using System;
 using System.Collections.Generic;
