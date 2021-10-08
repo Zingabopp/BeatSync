@@ -38,12 +38,12 @@ namespace BeatSyncLib.Downloader
         {
             if (!feedResult.Successful)
                 return Array.Empty<IJob>();
-            if (feedResult.Songs.Count == 0)
+            if (feedResult.Count == 0)
             {
                 Logger.log?.Info("No songs");
                 return Array.Empty<IJob>();
             }
-            return CreateJobs(feedResult.Songs.Values, jobBuilder, jobManager, cancellationToken);
+            return CreateJobs(feedResult.GetSongs(), jobBuilder, jobManager, cancellationToken);
         }
 
         public static IEnumerable<IJob> CreateJobs(IEnumerable<SongFeedReaders.Models.ISong> songs, IJobBuilder jobBuilder, JobManager jobManager, CancellationToken cancellationToken)

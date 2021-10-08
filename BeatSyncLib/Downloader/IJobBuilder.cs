@@ -12,7 +12,6 @@ namespace BeatSyncLib.Downloader
     public interface IJobBuilder
     {
         IEnumerable<SongTarget> SongTargets { get; }
-        IJobBuilder SetDownloadJobFactory(IDownloadJobFactory downloadJobFactory);
         IJobBuilder AddTarget(SongTarget songTarget);
         IJobBuilder SetDefaultJobFinishedAsyncCallback(JobFinishedAsyncCallback jobFinishedCallback);
 

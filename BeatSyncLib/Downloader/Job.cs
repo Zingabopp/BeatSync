@@ -33,12 +33,12 @@ namespace BeatSyncLib.Downloader
 
         public JobStage JobStage { get; private set; }
         public JobState JobState { get; private set; }
-
+        private readonly ISongInfoManager _infoManager;
         private readonly IDownloadJob _downloadJob;
         private readonly SongTarget[] _targets;
         private JobFinishedAsyncCallback? JobFinishedAsyncCallback;
         private JobFinishedCallback? JobFinishedCallback;
-        private readonly IProgress<JobProgress> _progress;
+        private readonly IProgress<JobProgress>? _progress;
         public DownloadResult? DownloadResult { get; private set; }
         public IEnumerable<TargetResult> TargetResults { get; private set; } = Array.Empty<TargetResult>();
         private CancellationToken CancellationToken = CancellationToken.None;
@@ -62,9 +62,11 @@ namespace BeatSyncLib.Downloader
             JobFinishedAsyncCallback = null;
         }
 
-        private Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, IProgress<JobProgress> progress)
+        private Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets,
+            ISongInfoManager infoManager, IProgress<JobProgress>? progress)
         {
             Song = song;
+            _infoManager = infoManager ?? throw new ArgumentNullException(nameof(infoManager));
             _downloadJob = downloadJob;
             _targets = targets.ToArray();
             _progress = progress;
@@ -74,14 +76,16 @@ namespace BeatSyncLib.Downloader
             _stageIndex = 0;
 
         }
-        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, JobFinishedAsyncCallback jobFinishedAsyncCallback, IProgress<JobProgress> progress)
-            : this(song, downloadJob, targets, progress)
+        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets,
+            ISongInfoManager infoManager, JobFinishedAsyncCallback? jobFinishedAsyncCallback, IProgress<JobProgress>? progress)
+            : this(song, downloadJob, targets, infoManager, progress)
         {
             JobFinishedAsyncCallback = jobFinishedAsyncCallback;
         }
 
-        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets, JobFinishedCallback jobFinishedCallback, IProgress<JobProgress> progress)
-            : this(song, downloadJob, targets, progress)
+        public Job(ISong song, IDownloadJob downloadJob, IEnumerable<SongTarget> targets,
+            ISongInfoManager infoManager, JobFinishedCallback? jobFinishedCallback, IProgress<JobProgress>? progress)
+            : this(song, downloadJob, targets, infoManager, progress)
         {
             JobFinishedCallback = jobFinishedCallback;
         }
@@ -156,7 +160,7 @@ namespace BeatSyncLib.Downloader
                 cancellationToken.ThrowIfCancellationRequested();
                 if (string.IsNullOrEmpty(Song.Key) && Song.Hash != null && Song.Hash.Length > 0)
                 {
-                    SongInfoResponse? result = await WebUtils.SongInfoManager.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
+                    SongInfoResponse? result = await _infoManager.GetSongByHashAsync(Song.Hash, cancellationToken).ConfigureAwait(false);
                     if (result.Success)
                     {
                         Song.Key = result.Song?.Key;

@@ -4,32 +4,33 @@ using System.Runtime.CompilerServices;
 
 namespace BeatSyncLib.Logging
 {
-    public class BeatSyncFeedReaderLogger : FeedReaderLoggerBase
+    public class BeatSyncFeedReaderLogger : ILogger
     {
 #if DEBUG
         private const string MessagePrefix = "-SongFeedReaders-: ";
 #else
         private const string MessagePrefix = "";
 #endif
+        SongFeedReaders.Logging.LogLevel LogLevel { get; set; }
         private BeatSyncFeedReaderLogger()
         {
-            LoggerName = "BeatSync";
+
         }
 
-        public BeatSyncFeedReaderLogger(LoggingController controller)
-            : this()
-        {
-            LogController = controller;
-        }
-
-        public override void Log(string message, SongFeedReaders.Logging.LogLevel logLevel, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
+        public void Log(string message, SongFeedReaders.Logging.LogLevel logLevel,
+            [CallerFilePath] string file = "",
+            [CallerMemberName] string member = "",
+            [CallerLineNumber] int line = 0)
         {
             if (LogLevel > logLevel)
                 return;
             Logger.log?.Log(message, ConvertLogLevel(logLevel));
         }
 
-        public override void Log(string message, Exception e, SongFeedReaders.Logging.LogLevel logLevel, [CallerFilePath] string file = "", [CallerMemberName] string member = "", [CallerLineNumber] int line = 0)
+        public void Log(Exception e, SongFeedReaders.Logging.LogLevel logLevel
+            , [CallerFilePath] string file = "", 
+            [CallerMemberName] string member = "", 
+            [CallerLineNumber] int line = 0)
         {
             if (LogLevel > logLevel)
                 return;

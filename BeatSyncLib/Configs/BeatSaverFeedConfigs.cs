@@ -116,8 +116,8 @@ namespace BeatSyncLib.Configs
             return new BeatSaverLatestSettings()
             {
                 MaxSongs = this.MaxSongs,
-                StartBeforeDate = this.StartBeforeDate,
-                StartingDate = this.StartAfterDate
+                EndingDate = this.StartBeforeDate ?? DateTime.MaxValue,
+                StartingDate = this.StartAfterDate ?? DateTime.MinValue
             };
         }
     }

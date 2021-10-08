@@ -1,8 +1,10 @@
 ﻿using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
 using SongFeedReaders.Models;
+using SongFeedReaders.Services;
 using System;
 using System.Collections.Generic;
+using WebUtilities;
 
 namespace BeatSyncLib.Downloader
 {
@@ -10,9 +12,17 @@ namespace BeatSyncLib.Downloader
     {
         private List<SongTarget> _songTargets = new List<SongTarget>();
         private IDownloadJobFactory _downloadJobFactory;
-        private JobFinishedAsyncCallback _finishedCallback;
-
+        private JobFinishedAsyncCallback? _finishedCallback;
+        IWebClient _webClient;
+        ISongInfoManager _infoManager;
         public IEnumerable<SongTarget> SongTargets => _songTargets.ToArray();
+
+        public JobBuilder(IWebClient webClient, ISongInfoManager infoManager, IDownloadJobFactory jobFactory)
+        {
+            _webClient = webClient ?? throw new ArgumentNullException(nameof(webClient));
+            _infoManager = infoManager ?? throw new ArgumentNullException(nameof(infoManager));
+            _downloadJobFactory = jobFactory ?? throw new ArgumentNullException(nameof(jobFactory));
+        }
 
         public void EnsureValidState()
         {
@@ -36,7 +46,7 @@ namespace BeatSyncLib.Downloader
             {
                 songTargets.Add(songTarget);
             }
-            Job job = new Job(song, downloadJob, songTargets, finishedCallback, progress);
+            Job job = new Job(song, downloadJob, songTargets, _infoManager, finishedCallback, progress);
             return job;
         }
 
@@ -45,14 +55,6 @@ namespace BeatSyncLib.Downloader
             if (songTarget == null)
                 throw new ArgumentNullException(nameof(songTarget), $"{nameof(songTarget)} cannot be null for {nameof(AddTarget)}");
             _songTargets.Add(songTarget);
-            return this;
-        }
-
-        public IJobBuilder SetDownloadJobFactory(IDownloadJobFactory downloadJobFactory)
-        {
-            if (downloadJobFactory == null)
-                throw new ArgumentNullException(nameof(downloadJobFactory), $"{nameof(downloadJobFactory)} cannot be null for {nameof(SetDownloadJobFactory)}");
-            this._downloadJobFactory = downloadJobFactory;
             return this;
         }
 

@@ -1,10 +1,5 @@
 ﻿using BeatSyncLib.Playlists;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SongFeedReaders.Feeds;
 using SongFeedReaders.Feeds.ScoreSaber;
 
@@ -13,7 +8,6 @@ namespace BeatSyncLib.Configs
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public abstract class ScoreSaberFeedConfigBase : PagedFeedConfigBase
     {
-        public abstract ScoreSaberFeedName ScoreSaberFeed { get; }
         #region Defaults
         public virtual bool DefaultIncludeUnstarred => true;
         public virtual float DefaultMaxStars => 0;
@@ -103,10 +97,9 @@ namespace BeatSyncLib.Configs
 
         public override IFeedSettings ToFeedSettings()
         {
-            ScoreSaberFeedSettings feedSettings = new ScoreSaberFeedSettings(ScoreSaberFeed)
-            {
-                StartingPage = this.StartingPage
-            };
+            ScoreSaberFeedSettings feedSettings = GetSettings();
+            feedSettings.StartingPage = StartingPage;
+            feedSettings.MaxSongs = MaxSongs;
             if (!IncludeUnstarred || MinStars > 0 || MaxStars > 0)
             {
                 feedSettings.Filter = s =>
@@ -121,11 +114,12 @@ namespace BeatSyncLib.Configs
             return feedSettings;
         }
 
+        protected abstract ScoreSaberFeedSettings GetSettings();
+
     }
 
     public class ScoreSaberTrending : ScoreSaberFeedConfigBase
     {
-        public override ScoreSaberFeedName ScoreSaberFeed => ScoreSaberFeedName.Trending;
         #region Defaults
         protected override bool DefaultEnabled => false;
 
@@ -165,7 +159,7 @@ namespace BeatSyncLib.Configs
         public override void FillDefaults()
         {
             base.FillDefaults();
-            var _ = RankedOnly;
+            bool _ = RankedOnly;
         }
 
         public override bool ConfigMatches(ConfigBase other)
@@ -182,18 +176,12 @@ namespace BeatSyncLib.Configs
             return true;
         }
 
-        public override IFeedSettings ToFeedSettings()
-        {
-            ScoreSaberFeedSettings baseSettings = base.ToFeedSettings() as ScoreSaberFeedSettings ?? new ScoreSaberFeedSettings((int)ScoreSaberFeed);
-            baseSettings.MaxSongs = this.MaxSongs;
-            baseSettings.RankedOnly = this.RankedOnly;
-            return baseSettings;
-        }
+        protected override ScoreSaberFeedSettings GetSettings()
+            => new ScoreSaberTrendingSettings() { RankedOnly = RankedOnly };
     }
 
     public class ScoreSaberLatestRanked : ScoreSaberFeedConfigBase
     {
-        public override ScoreSaberFeedName ScoreSaberFeed => ScoreSaberFeedName.LatestRanked;
         #region Defaults
         protected override bool DefaultEnabled => true;
 
@@ -206,18 +194,13 @@ namespace BeatSyncLib.Configs
         protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.ScoreSaberLatestRanked;
         #endregion
 
-        public override IFeedSettings ToFeedSettings()
-        {
-            ScoreSaberFeedSettings baseSettings = base.ToFeedSettings() as ScoreSaberFeedSettings ?? new ScoreSaberFeedSettings((int)ScoreSaberFeed);
-            baseSettings.MaxSongs = this.MaxSongs;
-            baseSettings.RankedOnly = true;
-            return baseSettings;
-        }
+
+        protected override ScoreSaberFeedSettings GetSettings()
+            => new ScoreSaberLatestSettings() { RankedOnly = true };
     }
 
     public class ScoreSaberTopPlayed : ScoreSaberFeedConfigBase
     {
-        public override ScoreSaberFeedName ScoreSaberFeed => ScoreSaberFeedName.TopPlayed;
         #region Defaults
         protected override bool DefaultEnabled => false;
 
@@ -258,7 +241,7 @@ namespace BeatSyncLib.Configs
         public override void FillDefaults()
         {
             base.FillDefaults();
-            var _ = RankedOnly;
+            bool _ = RankedOnly;
         }
 
         public override bool ConfigMatches(ConfigBase other)
@@ -275,19 +258,12 @@ namespace BeatSyncLib.Configs
             return true;
         }
 
-        public override IFeedSettings ToFeedSettings()
-        {
-
-            ScoreSaberFeedSettings baseSettings = base.ToFeedSettings() as ScoreSaberFeedSettings ?? new ScoreSaberFeedSettings((int)ScoreSaberFeed);
-            baseSettings.MaxSongs = this.MaxSongs;
-            baseSettings.RankedOnly = this.RankedOnly;
-            return baseSettings;
-        }
+        protected override ScoreSaberFeedSettings GetSettings()
+            => new ScoreSaberTopPlayedSettings() { RankedOnly = RankedOnly };
     }
 
     public class ScoreSaberTopRanked : ScoreSaberFeedConfigBase
     {
-        public override ScoreSaberFeedName ScoreSaberFeed => ScoreSaberFeedName.TopRanked;
         #region Defaults
         protected override bool DefaultEnabled => true;
 
@@ -300,13 +276,7 @@ namespace BeatSyncLib.Configs
         protected override BuiltInPlaylist DefaultFeedPlaylist => BuiltInPlaylist.ScoreSaberTopRanked;
         #endregion
 
-        public override IFeedSettings ToFeedSettings()
-        {
-
-            ScoreSaberFeedSettings baseSettings = base.ToFeedSettings() as ScoreSaberFeedSettings ?? new ScoreSaberFeedSettings((int)ScoreSaberFeed);
-            baseSettings.MaxSongs = this.MaxSongs;
-            baseSettings.RankedOnly = true;
-            return baseSettings;
-        }
+        protected override ScoreSaberFeedSettings GetSettings()
+            => new ScoreSaberTopRankedSettings() { RankedOnly = true };
     }
 }

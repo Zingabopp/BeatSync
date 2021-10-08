@@ -7,17 +7,18 @@ using System.Threading.Tasks;
 using BeatSaberPlaylistsLib.Types;
 using SongFeedReaders;
 using SongFeedReaders.Models;
+using SongFeedReaders.Services;
 
 namespace BeatSyncLib.Utilities
 {
     public static class PlaylistSongExtensions
     {
-        public static async Task<bool> UpdateSongKeyAsync(this IPlaylistSong song, bool overwrite = false)
+        public static async Task<bool> UpdateSongKeyAsync(this IPlaylistSong song, ISongInfoManager infoManager, bool overwrite = false)
         {
             if (song?.Hash == null || string.IsNullOrEmpty(song.Hash) || (!overwrite && !string.IsNullOrEmpty(song.Key)))
                 return false;
 
-            var result = await WebUtils.SongInfoManager.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
+            var result = await infoManager.GetSongByHashAsync(song.Hash, CancellationToken.None).ConfigureAwait(false);
             var scrapedSong = result.Song;
             if (scrapedSong == null)
                 return false;

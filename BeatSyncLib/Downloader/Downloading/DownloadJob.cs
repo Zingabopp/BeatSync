@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities;
-using static SongFeedReaders.Utilities;
 using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Downloader.Downloading
@@ -129,13 +128,14 @@ namespace BeatSyncLib.Downloader.Downloading
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (Paused)
-                {
-                    Status = DownloadJobStatus.Paused;
-                    await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    Status = DownloadJobStatus.Downloading;
-                }
+                // TODO: Re-add pause capability
+                //if (Paused)
+                //{
+                //    Status = DownloadJobStatus.Paused;
+                //    //await WaitUntil(() => !Paused, cancellationToken).ConfigureAwait(false);
+                //    cancellationToken.ThrowIfCancellationRequested();
+                //    Status = DownloadJobStatus.Downloading;
+                //}
                 EventHandler<DownloadJobStartedEventArgs> jobStartedHandler = JobStarted;
                 jobStartedHandler?.Invoke(this, new DownloadJobStartedEventArgs(SongHash, SongKey, SongName, LevelAuthorName));
 
@@ -217,7 +217,7 @@ namespace BeatSyncLib.Downloader.Downloading
             try
             {
                 if (SongHash != null && SongHash.Length > 0)
-                    downloadUri = SongFeedReaders.WebUtils.GetDownloadUriByHash(SongHash);
+                    downloadUri = SongFeedReaders.Utilities.BeatSaverHelper.GetDownloadUriByHash(SongHash);
                 else
                     return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, 
                         "No SongHash provided to the DownloadJob.", 
