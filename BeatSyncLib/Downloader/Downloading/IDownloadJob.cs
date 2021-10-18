@@ -15,23 +15,20 @@ namespace BeatSyncLib.Downloader.Downloading
     {
         string? FileLocation { get; }
         string SongHash { get; }
-        string SongKey { get; }
-        string SongName { get; }
-        string LevelAuthorName { get; }
-        bool CanPause { get; }
+        string? SongKey { get; }
+        string? SongName { get; }
+        string? LevelAuthorName { get; }
         bool SupportsProgressUpdates { get; }
         DownloadJobStatus Status { get; }
-        DownloadResult DownloadResult { get; }
+        DownloadResult? DownloadResult { get; }
         Exception? Exception { get; }
 
-        event EventHandler<DownloadJobFinishedEventArgs> JobFinished;
-        event EventHandler<DownloadJobStartedEventArgs> JobStarted;
-        event EventHandler<DownloadJobProgressChangedEventArgs> JobProgressChanged;
-        event EventHandler<DownloadJobStatusChangedEventArgs> JobStatusChanged;
+        event EventHandler<DownloadJobFinishedEventArgs>? JobFinished;
+        event EventHandler<DownloadJobStartedEventArgs>? JobStarted;
+        event EventHandler<DownloadJobProgressChangedEventArgs>? JobProgressChanged;
+        event EventHandler<DownloadJobStatusChangedEventArgs>? JobStatusChanged;
 
         void AddDownloadFinishedCallback(DownloadFinishedCallback callback);
-        void Pause();
-        void Unpause();
 
         Task<DownloadResult> RunAsync();
         Task<DownloadResult> RunAsync(CancellationToken cancellationToken);

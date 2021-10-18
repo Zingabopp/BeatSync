@@ -15,13 +15,6 @@ namespace BeatSyncLib.Utilities
     public static class Util
     {
         public static readonly string Base64Prefix = "base64,";
-        public static bool Paused { get; set; }
-        public static async Task WaitForPause(CancellationToken cancellationToken)
-        {
-            if (!Paused)
-                return;
-            await SongFeedReaders.Utilities.WaitUntil(() => !Paused, 500, cancellationToken).ConfigureAwait(false);
-        }
 
         private static char[]? _invalidPathChars;
 

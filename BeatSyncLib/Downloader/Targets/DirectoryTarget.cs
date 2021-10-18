@@ -15,19 +15,22 @@ namespace BeatSyncLib.Downloader.Targets
     {
         public static Hasher Hasher = new Hasher();
         public override string TargetName => nameof(DirectoryTarget);
-        public ISongHashCollection SongHasher { get; protected set; }
-        public HistoryManager? HistoryManager { get; protected set; }
-        public PlaylistManager? PlaylistManager { get; protected set; }
-        public string SongsDirectory { get; protected set; }
-        public bool OverwriteTarget { get; protected set; }
-        public bool UnzipBeatmaps { get; protected set; } = true;
+        public FileIO FileIO { get; private set; }
+        public ISongHashCollection SongHasher { get; private set; }
+        public HistoryManager? HistoryManager { get; private set; }
+        public PlaylistManager? PlaylistManager { get; private set; }
+        public string SongsDirectory { get; private set; }
+        public bool OverwriteTarget { get; private set; }
+        public bool UnzipBeatmaps { get; private set; } = true;
 
 
-        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, ISongHashCollection songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, FileIO fileIO,
+            ISongHashCollection songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
             : base()
         {
             SongsDirectory = Path.GetFullPath(songsDirectory);
-            SongHasher = songHasher;
+            FileIO = fileIO ?? throw new ArgumentNullException(nameof(fileIO));
+            SongHasher = songHasher ?? throw new ArgumentNullException(nameof(songHasher));
             HistoryManager = historyManager;
             PlaylistManager = playlistManager;
             OverwriteTarget = overwriteTarget;

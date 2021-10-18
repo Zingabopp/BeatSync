@@ -1,4 +1,5 @@
 ﻿using BeatSyncLib.Downloader.Downloading;
+using SongFeedReaders.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,19 +13,41 @@ using WebUtilities.DownloadContainers;
 
 namespace BeatSyncLib.Utilities
 {
-    public static class FileIO
+    /// <summary>
+    /// Encapsulates file I/O operations.
+    /// </summary>
+    public sealed class FileIO
     {
-        //private const string PlaylistPath = @"Playlists";
-        public const int MaxFileSystemPathLength = 259;
+        /// <summary>
+        /// Maximum path length.
+        /// </summary>
+        private const int MaxFileSystemPathLength = 259;
+        private static readonly char[] InvalidTrailingPathChars = new char[] { ' ', '.', '-' };
+        private readonly ILogger? logger;
+        private readonly IWebClient webClient;
 
         /// <summary>
-        /// 
+        /// Creates a new <see cref="FileIO"/>.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="logFactory"></param>
+        public FileIO(IWebClient client, ILogFactory? logFactory = null)
+        {
+            logger = logFactory?.GetLogger(GetType().Name);
+            webClient = client;
+        }
+
+        /// <summary>
+        /// Reads text from the given <paramref name="path"/>. If a .bak file exists, attempts to recover it.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="IOException"></exception>
-        public static string LoadStringFromFile(string path)
+        public string LoadStringFromFile(string path)
         {
+            if (string.IsNullOrWhiteSpace(path))
+                throw new ArgumentNullException(nameof(path));
             string text;
             FileInfo? bakFile = new FileInfo(path + ".bak");
             if (bakFile.Exists) // .bak file should only exist if there was an error on the last write to path.
@@ -36,8 +59,8 @@ namespace BeatSyncLib.Utilities
                 }
                 catch (Exception ex)
                 {
-                    Logger.log?.Warn($"Error recovering {bakFile.FullName}: {ex.Message}");
-                    Logger.log?.Debug(ex.StackTrace);
+                    logger?.Warning($"Error recovering {bakFile.FullName}: {ex.Message}");
+                    logger?.Debug(ex.StackTrace);
                 }
             }
             text = File.ReadAllText(path);
@@ -45,12 +68,13 @@ namespace BeatSyncLib.Utilities
         }
 
         /// <summary>
-        /// 
+        /// Writes a string to file. If a file exists at the path, 
+        /// it is copied to a .bak file before being overwritten.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="text"></param>
         /// <exception cref="IOException">Thrown when there's a problem writing to the file.</exception>
-        public static void WriteStringToFile(string path, string text)
+        public void WriteStringToFile(string path, string text)
         {
             if (File.Exists(path))
             {
@@ -62,32 +86,6 @@ namespace BeatSyncLib.Utilities
         }
 
         /// <summary>
-        /// Gets the path to the provided playlist file name. TODO: This needs work
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        //public static string GetPlaylistFilePath(string fileName, bool getDisabled = false)
-        //{
-        //    if (File.Exists(fileName))
-        //        return Path.GetFullPath(fileName);
-        //    var path = Path.Combine(PlaylistManager.PlaylistPath, fileName);
-        //    if (File.Exists(path))
-        //        return Path.GetFullPath(path);
-        //    else if (!getDisabled)
-        //        return null;
-
-        //    path = Path.Combine(PlaylistManager.DisabledPlaylistsPath, fileName);
-        //    if (string.IsNullOrEmpty(path))
-        //        return null;
-        //    if (File.Exists(path))
-        //        return path;
-        //    return null;
-
-        //}
-
-
-
-        /// <summary>
         /// Downloads a file from the specified URI to the specified <see cref="DownloadContainer"/>.
         /// All exceptions are stored in the DownloadResult.
         /// </summary>
@@ -95,7 +93,7 @@ namespace BeatSyncLib.Utilities
         /// <param name="downloadContainer"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns> 
-        public static async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken)
+        public async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
             int statusCode = 0;
             if (downloadUri == null)
@@ -105,7 +103,7 @@ namespace BeatSyncLib.Utilities
             //    return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
             try
             {
-                using (IWebResponseMessage? response = await SongFeedReaders.WebUtils.GetBeatSaverAsync(downloadUri, cancellationToken, 30, 2).ConfigureAwait(false))
+                using (IWebResponseMessage? response = await webClient.GetAsync(downloadUri, cancellationToken).ConfigureAwait(false))
                 {
                     statusCode = response?.StatusCode ?? 0;
                     if (response == null) throw new WebClientException($"Response was null for '{downloadUri}'.");
@@ -113,7 +111,6 @@ namespace BeatSyncLib.Utilities
                     try
                     {
                         await downloadContainer.ReceiveDataAsync(response.Content, cancellationToken).ConfigureAwait(false);
-                        //actualPath = await response.Content.ReadAsFileAsync(target, overwriteExisting, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException ex)
                     {
@@ -154,17 +151,16 @@ namespace BeatSyncLib.Utilities
             return new DownloadResult(downloadContainer, DownloadResultStatus.Success, statusCode);
         }
 
-        public static char[] InvalidTrailingPathChars = new char[] {' ', '.', '-' };
 
         /// <summary>
-        /// 
+        /// Takes a directory path and, if needed, shortens it to account for the longest file name.
         /// </summary>
         /// <param name="extractDirectory"></param>
         /// <param name="longestEntryName"></param>
         /// <param name="padding"></param>
         /// <returns></returns>
         /// <exception cref="PathTooLongException">Thrown if shortening the path enough is impossible.</exception>
-        public static string GetValidPath(string extractDirectory, int longestEntryName, int padding = 0)
+        public string GetValidPath(string extractDirectory, int longestEntryName, int padding = 0)
         {
             int extLength = extractDirectory.Length;
             DirectoryInfo? dir = new DirectoryInfo(extractDirectory);
@@ -176,29 +172,27 @@ namespace BeatSyncLib.Utilities
 
                 if (dirName.Length + diff > 0)
                 {
-                    //Logger.log?.Warn($"{extractDirectory} is too long, attempting to shorten.");
+                    logger?.Debug($"'{extractDirectory}' is too long, attempting to shorten.");
                     extractDirectory = extractDirectory.Substring(0, minLength + dirName.Length + diff);
                 }
                 else
                 {
-                    //Logger.log?.Error($"{extractDirectory} is too long, couldn't shorten enough.");
+                    logger?.Error($"'{extractDirectory}' is too long, couldn't shorten enough.");
                     throw new PathTooLongException(extractDirectory);
                 }
             }
             return extractDirectory.TrimEnd(InvalidTrailingPathChars);
         }
 
-        public static ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)
+        public ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)
         {
             if (string.IsNullOrEmpty(zipPath))
                 throw new ArgumentNullException(nameof(zipPath));
             FileInfo zipFile = new FileInfo(zipPath);
             if (!zipFile.Exists)
                 throw new ArgumentException($"File at zipPath {zipFile.FullName} does not exist.", nameof(zipPath));
-            using (FileStream fs = zipFile.OpenRead())
-            {
-                return ExtractZip(fs, extractDirectory, overwriteTarget);
-            }
+            using FileStream fs = zipFile.OpenRead();
+            return ExtractZip(fs, extractDirectory, overwriteTarget);
         }
 
         /// <summary>
@@ -209,7 +203,7 @@ namespace BeatSyncLib.Utilities
         /// <param name="deleteZip">If true, deletes zip file after extraction</param>
         /// <param name="overwriteTarget">If true, overwrites existing files with the zip's contents</param>
         /// <returns></returns>
-        public static ZipExtractResult ExtractZip(Stream zipStream, string extractDirectory, bool overwriteTarget = true, string? sourcePath = null)
+        public ZipExtractResult ExtractZip(Stream zipStream, string extractDirectory, bool overwriteTarget = true, string? sourcePath = null)
         {
             if (zipStream == null)
                 throw new ArgumentNullException(nameof(zipStream));
@@ -218,7 +212,6 @@ namespace BeatSyncLib.Utilities
 
             ZipExtractResult result = new ZipExtractResult
             {
-                SourceZip = sourcePath ?? "Stream",
                 ResultStatus = ZipExtractResultStatus.Unknown
             };
 
@@ -284,32 +277,29 @@ namespace BeatSyncLib.Utilities
                             }
                             catch (InvalidDataException ex) // Entry is missing, corrupt, or compression method isn't supported
                             {
-                                Logger.log?.Error($"Error extracting {extractDirectory}, archive appears to be damaged.");
-                                Logger.log?.Error(ex);
+                                logger?.Error($"Error extracting {extractDirectory}, archive appears to be damaged.");
+                                logger?.Error(ex);
                                 result.Exception = ex;
                                 result.ResultStatus = ZipExtractResultStatus.SourceFailed;
-                                result.ExtractedFiles = createdFiles.ToArray();
                             }
                             catch (Exception ex)
                             {
-                                Logger.log?.Error($"Error extracting {extractDirectory}");
-                                Logger.log?.Error(ex);
+                                logger?.Error($"Error extracting {extractDirectory}");
+                                logger?.Error(ex);
                                 result.Exception = ex;
                                 result.ResultStatus = ZipExtractResultStatus.DestinationFailed;
-                                result.ExtractedFiles = createdFiles.ToArray();
 
                             }
                             if (result.Exception != null)
                             {
                                 foreach (string? file in createdFiles)
                                 {
-                                    TryDeleteAsync(file).Wait();
+                                    TryDelete(file);
                                 }
                                 return result;
                             }
                         }
                     }
-                    result.ExtractedFiles = createdFiles.ToArray();
                 }
                 result.ResultStatus = ZipExtractResultStatus.Success;
                 return result;
@@ -324,8 +314,8 @@ namespace BeatSyncLib.Utilities
             catch (Exception ex) // If exception is thrown here, it probably happened when the FileStream was opened.
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                Logger.log?.Error($"Error extracting zip from {sourcePath ?? "Stream"}");
-                Logger.log?.Error(ex);
+                logger?.Error($"Error extracting zip from {sourcePath ?? "Stream"}");
+                logger?.Error(ex);
                 try
                 {
                     if (!string.IsNullOrEmpty(createdDirectory))
@@ -343,7 +333,7 @@ namespace BeatSyncLib.Utilities
                 catch (Exception cleanUpException)
                 {
                     // Failed at cleanup
-                    Logger.log?.Debug($"Failed to clean up zip file: {cleanUpException.Message}");
+                    logger?.Debug($"Failed to clean up zip file: {cleanUpException.Message}");
                 }
 
                 result.Exception = ex;
@@ -351,7 +341,11 @@ namespace BeatSyncLib.Utilities
                 return result;
             }
         }
-
+        /// <summary>
+        /// Replaces any illegal directory path characters.
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <returns></returns>
         public static string GetSafeDirectoryPath(string directory)
         {
             StringBuilder retStr = new StringBuilder(directory);
@@ -361,7 +355,11 @@ namespace BeatSyncLib.Utilities
             }
             return retStr.ToString();
         }
-
+        /// <summary>
+        /// Replaces any illegal directory filename characters.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         public static string GetSafeFileName(string fileName)
         {
             StringBuilder retStr = new StringBuilder(fileName);
@@ -372,40 +370,51 @@ namespace BeatSyncLib.Utilities
             return retStr.ToString();
         }
 
-        public static Task<bool> TryDeleteAsync(string filePath)
+        /// <summary>
+        /// Attempts to delete a file at the given path.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public bool TryDelete(string filePath)
         {
-            CancellationTokenSource? timeoutSource = new CancellationTokenSource(3000);
-            CancellationToken timeoutToken = timeoutSource.Token;
-            return SongFeedReaders.Utilities.WaitUntil(() =>
+            try
             {
-                try
-                {
-                    File.Delete(filePath);
-                    timeoutSource.Dispose();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    timeoutSource.Dispose();
-                    throw;
-                }
-            }, timeoutToken);
+                File.Delete(filePath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger?.Error($"Failed to delete file at '{filePath}': {ex.Message}");
+            }
+            return false;
         }
     }
 
-
-
-
+    /// <summary>
+    /// Result of a zip extraction.
+    /// </summary>
     public class ZipExtractResult
     {
-        public string? SourceZip { get; set; }
+        /// <summary>
+        /// Zip extraction's output directory.
+        /// </summary>
         public string? OutputDirectory { get; set; }
+        /// <summary>
+        /// True if a directory was created during extraction.
+        /// </summary>
         public bool CreatedOutputDirectory { get; set; }
-        public string[]? ExtractedFiles { get; set; }
+        /// <summary>
+        /// Result of the extraction.
+        /// </summary>
         public ZipExtractResultStatus ResultStatus { get; set; }
+        /// <summary>
+        /// Any <see cref="System.Exception"/> that may have occurred during extraction.
+        /// </summary>
         public Exception? Exception { get; set; }
     }
-
+    /// <summary>
+    /// Status code for a zip extraction.
+    /// </summary>
     public enum ZipExtractResultStatus
     {
         /// <summary>

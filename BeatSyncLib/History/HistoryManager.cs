@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using BeatSyncLib.Configs.Converters;
 
 namespace BeatSyncLib.History
 {
@@ -16,6 +15,7 @@ namespace BeatSyncLib.History
         /// Path to the history json file.
         /// </summary>
         public string HistoryPath { get; private set; }
+        private readonly FileIO FileIO;
 
         /// <summary>
         /// Key: Hash (upper case), Value: HistoryEntry with PlaylistSong.ToString() and HistoryFlag
@@ -48,11 +48,12 @@ namespace BeatSyncLib.History
         /// </summary>
         /// <param name="historyPath"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public HistoryManager(string historyPath)
+        public HistoryManager(string historyPath, FileIO fileIO)
         {
             if (string.IsNullOrEmpty(historyPath))
                 throw new ArgumentNullException(nameof(historyPath), "historyPath cannot be null when creating a new HistoryManager.");
             HistoryPath = Path.GetFullPath(historyPath);
+            FileIO = fileIO ?? throw new ArgumentNullException(nameof(fileIO));
             SongHistory = new ConcurrentDictionary<string, HistoryEntry>();
         }
 
@@ -126,7 +127,7 @@ namespace BeatSyncLib.History
             File.Delete(HistoryPath + ".bak");
         }
 
-        public bool TryWriteToFile(out Exception exception)
+        public bool TryWriteToFile(out Exception? exception)
         {
             try
             {
@@ -146,8 +147,9 @@ namespace BeatSyncLib.History
             bool successful = TryWriteToFile(out var exception);
             if (!successful && logError)
             {
-                Logger.log?.Error($"Error writing history to file: {exception.Message}");
-                Logger.log?.Debug(exception);
+                Logger.log?.Error($"Error writing history to file: {exception?.Message}");
+                if (exception != null)
+                    Logger.log?.Debug(exception);
             }
             return successful;
         }

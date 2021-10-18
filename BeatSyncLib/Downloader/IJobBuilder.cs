@@ -23,9 +23,6 @@ namespace BeatSyncLib.Downloader
         event EventHandler? JobStarted;
         event EventHandler<JobProgress>? JobProgressChanged;
         event EventHandler<JobResult>? JobFinished;
-        bool CanPause { get; }
-        void Pause();
-        void Unpause();
         Exception? Exception { get; }
         ISong Song { get; }
         JobResult? Result { get; }

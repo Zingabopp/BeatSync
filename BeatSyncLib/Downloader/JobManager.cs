@@ -23,7 +23,6 @@ namespace BeatSyncLib.Downloader
         {
             get { return _completedDownloads.Values.ToList(); }
         }
-        public bool Paused { get; protected set; }
         private bool _acceptingJobs = false;
         private bool _running = false;
         private int _concurrentDownloads = 1;
@@ -32,24 +31,6 @@ namespace BeatSyncLib.Downloader
         //private Task[] _tasks;
         private Thread[] _threads;
         public int ActiveJobs => _activeJobs.Count;
-
-        public void Pause()
-        {
-            Paused = true;
-            foreach (var job in _activeJobs.Values.Where(j => j.CanPause).ToArray())
-            {
-                job.Pause();
-            }
-        }
-
-        public void Unpause()
-        {
-            Paused = false;
-            foreach (var job in _activeJobs.Values.Where(j => j.CanPause).ToArray())
-            {
-                job.Unpause();
-            }
-        }
 
         /// <summary>
         /// Number of simultaneous downloads.
@@ -222,8 +203,6 @@ namespace BeatSyncLib.Downloader
                     {
                         Logger.log?.Warn($"Couldn't add {job} to _activeJobs, this shouldn't happen.");
                     }
-                    if (Paused && job.CanPause)
-                        job.Pause();
                     await job.RunAsync(cancellationToken).ConfigureAwait(false);
                 }
                 _threadCompletionSource[taskId].TrySetResult(true);
