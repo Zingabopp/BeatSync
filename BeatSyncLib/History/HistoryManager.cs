@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.History
 {
@@ -15,7 +16,8 @@ namespace BeatSyncLib.History
         /// Path to the history json file.
         /// </summary>
         public string HistoryPath { get; private set; }
-        private readonly FileIO FileIO;
+        protected readonly FileIO FileIO;
+        protected readonly ILogger? Logger;
 
         /// <summary>
         /// Key: Hash (upper case), Value: HistoryEntry with PlaylistSong.ToString() and HistoryFlag
@@ -48,12 +50,13 @@ namespace BeatSyncLib.History
         /// </summary>
         /// <param name="historyPath"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public HistoryManager(string historyPath, FileIO fileIO)
+        public HistoryManager(string historyPath, FileIO fileIO, ILogFactory? logFactory = null)
         {
             if (string.IsNullOrEmpty(historyPath))
                 throw new ArgumentNullException(nameof(historyPath), "historyPath cannot be null when creating a new HistoryManager.");
             HistoryPath = Path.GetFullPath(historyPath);
             FileIO = fileIO ?? throw new ArgumentNullException(nameof(fileIO));
+            Logger = logFactory?.GetLogger(GetType().Name);
             SongHistory = new ConcurrentDictionary<string, HistoryEntry>();
         }
 
@@ -86,17 +89,17 @@ namespace BeatSyncLib.History
                         }
                         else
                         {
-                            Logger.log?.Warn($"Invalid HistoryEntry: {keyHash}");
+                            Logger.Warning($"Invalid HistoryEntry: {keyHash}");
                         }
                     }
                 }
                 else
-                    Logger.log?.Warn($"History file not found at {HistoryPath}");
+                    Logger?.Warning($"History file not found at {HistoryPath}");
             }
             catch (Exception ex)
             {
-                Logger.log?.Warn($"HistoryManager failed to initialize: {ex.Message}");
-                Logger.log?.Debug(ex.StackTrace);
+                Logger?.Warning($"HistoryManager failed to initialize: {ex.Message}");
+                Logger?.Debug(ex.StackTrace);
             }
             IsInitialized = true;
         }
@@ -147,9 +150,9 @@ namespace BeatSyncLib.History
             bool successful = TryWriteToFile(out var exception);
             if (!successful && logError)
             {
-                Logger.log?.Error($"Error writing history to file: {exception?.Message}");
+                Logger?.Error($"Error writing history to file: {exception?.Message}");
                 if (exception != null)
-                    Logger.log?.Debug(exception);
+                    Logger?.Debug(exception);
             }
             return successful;
         }
@@ -241,9 +244,10 @@ namespace BeatSyncLib.History
         /// <returns></returns>
         public bool TryUpdateFlag(ISong song, HistoryFlag flag)
         {
-            if (song == null)
+            string? songHash = song?.Hash;
+            if (songHash == null)
                 return false;
-            return TryUpdateFlag(song.Hash, flag);
+            return TryUpdateFlag(songHash, flag);
         }
 
         /// <summary>

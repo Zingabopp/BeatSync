@@ -1,16 +1,18 @@
-﻿using BeatSaber.SongHashing;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSaber.SongHashing;
+using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.Hashing
 {
     public class DirectoryHasher : ISongHashCollection
     {
-        protected IBeatmapHasher Hasher;
+        protected readonly IBeatmapHasher Hasher;
+        protected readonly ILogger? Logger;
         public event EventHandler<int>? CollectionRefreshed;
 
         private ConcurrentDictionary<string, HashResult> Hashes = new ConcurrentDictionary<string, HashResult>();
@@ -37,15 +39,11 @@ namespace BeatSyncLib.Hashing
             }
         }
 
-        public DirectoryHasher(string directoryPath)
+        public DirectoryHasher(string directoryPath, IBeatmapHasher hasher, ILogFactory? logFactory = null)
         {
             _directory = new DirectoryInfo(directoryPath ?? throw new ArgumentNullException(nameof(directoryPath)));
-            Hasher = new Hasher();
-        }
-        public DirectoryHasher(string directoryPath, IBeatmapHasher hasher)
-        {
-            _directory = new DirectoryInfo(directoryPath ?? throw new ArgumentNullException(nameof(directoryPath)));
-            Hasher = hasher;
+            Hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
+            Logger = logFactory?.GetLogger(GetType().Name);
         }
 
         public Task<int> RefreshHashesAsync(CancellationToken cancellationToken) => RefreshHashesAsync(false, null, CancellationToken.None);
@@ -56,7 +54,7 @@ namespace BeatSyncLib.Hashing
         {
             if (!_directory.Exists)
                 throw new HashingTargetNotFoundException($"Directory does not exist: {DirectoryPath}");
-            IBeatmapHasher hasher = Hasher;
+            BeatSaber.SongHashing.IBeatmapHasher hasher = Hasher;
             HashingState = HashingState.InProgress;
             HashResult[] dirResults = await HashWithTasksAsync(hasher, progress, cancellationToken).ConfigureAwait(false);
             HashingState = HashingState.Finished;
@@ -68,20 +66,20 @@ namespace BeatSyncLib.Hashing
         {
             int beatmapCount = TotalBeatmaps;
             int count = 0;
-            var dirTasks = _directory.EnumerateDirectories()
+            Task<HashResult>[]? dirTasks = _directory.EnumerateDirectories()
                 .Select(async dir =>
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return new HashResult(null, "The task was cancelled.", null);
                     HashResult hashResult = await Task.Run(() => hasher.HashDirectory(dir.FullName, cancellationToken)).ConfigureAwait(false);
                     if (hashResult.ResultType == HashResultType.Error)
-                        Logger.log?.Warn($"Unable to get hash for '{dir.Name}': {hashResult.Message}.");
+                        Logger?.Warning($"Unable to get hash for '{dir.Name}': {hashResult.Message}.");
                     else if (hashResult.ResultType == HashResultType.Warn)
-                        Logger.log?.Warn($"Hash warning for '{dir.Name}': {hashResult.Message}.");
+                        Logger?.Warning($"Hash warning for '{dir.Name}': {hashResult.Message}.");
                     if (hashResult.Hash != null && hashResult.Hash.Length > 0)
                     {
                         if (!Hashes.TryAdd(hashResult.Hash, hashResult))
-                            Logger.log?.Debug($"Duplicate beatmap: {dir.Name} | {hashResult.Hash}");
+                            Logger?.Debug($"Duplicate beatmap: {dir.Name} | {hashResult.Hash}");
                     }
                     if (progress != null)
                     {
@@ -91,20 +89,20 @@ namespace BeatSyncLib.Hashing
                     return hashResult;
                 }).ToArray();
 
-            var zipTasks = _directory.EnumerateFiles("*.zip")
+            Task<HashResult>[]? zipTasks = _directory.EnumerateFiles("*.zip")
                 .Select(async zipFile =>
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return new HashResult(null, "The task was cancelled.", null);
                     HashResult hashResult = await Task.Run(() => hasher.HashZippedBeatmap(zipFile.FullName, cancellationToken)).ConfigureAwait(false);
                     if (hashResult.ResultType == HashResultType.Error)
-                        Logger.log?.Warn($"Unable to get hash for '{zipFile.Name}': {hashResult.Message}.");
+                        Logger?.Warning($"Unable to get hash for '{zipFile.Name}': {hashResult.Message}.");
                     else if (hashResult.ResultType == HashResultType.Warn)
-                        Logger.log?.Warn($"Hash warning for '{zipFile.Name}': {hashResult.Message}.");
+                        Logger?.Warning($"Hash warning for '{zipFile.Name}': {hashResult.Message}.");
                     if (hashResult.Hash != null && hashResult.Hash.Length > 0)
                     {
                         if (!Hashes.TryAdd(hashResult.Hash, hashResult))
-                            Logger.log?.Debug($"Duplicate beatmap: {zipFile.Name} | {hashResult.Hash}");
+                            Logger?.Debug($"Duplicate beatmap: {zipFile.Name} | {hashResult.Hash}");
                     }
                     if (progress != null)
                     {
@@ -126,9 +124,9 @@ namespace BeatSyncLib.Hashing
 
                     HashResult hashResult = hasher.HashDirectory(dir.FullName, cancellationToken);
                     if (hashResult.ResultType == HashResultType.Error)
-                        Logger.log?.Warn($"Unable to get hash for '{dir.Name}': {hashResult.Message}.");
+                        Logger?.Warning($"Unable to get hash for '{dir.Name}': {hashResult.Message}.");
                     else if (hashResult.ResultType == HashResultType.Warn)
-                        Logger.log?.Warn($"Hash warning for '{dir.Name}': {hashResult.Message}.");
+                        Logger?.Warning($"Hash warning for '{dir.Name}': {hashResult.Message}.");
                     if (hashResult.Hash != null && hashResult.Hash.Length > 0)
                     {
                         Hashes[hashResult.Hash] = hashResult;

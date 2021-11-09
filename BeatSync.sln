@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29102.190
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSync", "BeatSync\BeatSync.csproj", "{E9536F87-B2DE-423A-95A5-C1E35B1B0DD5}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SongFeedReaders", "Libs\SongFeedReaders\SongFeedReaders\SongFeedReaders.csproj", "{32CF335B-9C8F-4FA4-97C6-1E3E8B3BF7F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebUtilities", "Libs\SongFeedReaders\submodules\WebUtilities\WebUtilities\WebUtilities.csproj", "{2FB14A8C-7714-42DD-8313-14104B5C36BD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebUtilities.Mock", "Libs\SongFeedReaders\submodules\WebUtilities\WebUtilities.Mock\WebUtilities.Mock.csproj", "{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -131,6 +133,18 @@ Global
 		{2FB14A8C-7714-42DD-8313-14104B5C36BD}.ModRelease|Any CPU.Build.0 = Release|Any CPU
 		{2FB14A8C-7714-42DD-8313-14104B5C36BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FB14A8C-7714-42DD-8313-14104B5C36BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ConsoleDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ConsoleDebug|Any CPU.Build.0 = Debug|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ConsoleRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ConsoleRelease|Any CPU.Build.0 = Release|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ModDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ModDebug|Any CPU.Build.0 = Debug|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ModRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.ModRelease|Any CPU.Build.0 = Release|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEDACEFF-54EC-4AE2-80D2-1C7EADA79F33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

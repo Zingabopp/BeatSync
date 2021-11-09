@@ -1,21 +1,28 @@
-﻿using BeatSyncLib.Logging;
-using BeatSyncLib;
+﻿using BeatSyncLib.Utilities;
 using SongFeedReaders.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WebUtilities;
+using WebUtilities.HttpClientWrapper;
 
 namespace BeatSyncLibTests
 {
     public static class TestSetup
     {
+        public static ILogFactory LogFactory { get; private set; } = null!;
+        public static IWebClient WebClient { get; private set; } = null!;
+        public static FileIO FileIO { get; private set; } = null!;
         public static void Initialize()
         {
-            if(Logger.log == null)
-                Logger.log = new BeatSyncConsoleLogger();
-            LoggingController.DefaultLogger = new BeatSyncFeedReaderLogger(LoggingController.DefaultLogController);
+            if (LogFactory == null)
+                LogFactory = new LogFactory(m => new FeedReaderLogger(new LoggerSettings()
+                {
+                    LogLevel = LogLevel.Debug,
+                    ModuleName = m,
+                    EnableTimeStamp = true,
+                    ShowModule = true
+                }));
+            if (WebClient == null)
+                WebClient = new HttpClientWrapper("BeatSyncLibTests/1.0.0");
+            FileIO = new FileIO(WebClient, LogFactory);
         }
     }
 }

@@ -9,7 +9,7 @@ using WebUtilities;
 using WebUtilities.DownloadContainers;
 using static BeatSyncLib.Utilities.Util;
 
-namespace BeatSyncLib.Downloader.Downloading
+namespace BeatSyncLib.Downloader
 {
     public interface IDownloadJob
     {

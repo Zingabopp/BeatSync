@@ -1,9 +1,13 @@
 ﻿using BeatSyncLib.History;
+using BeatSyncLib.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SongFeedReaders.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WebUtilities;
+using WebUtilities.Mock.MockClient;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
@@ -21,7 +25,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void ContainsKey_NotInitialized()
         {
-            HistoryManager historyManager = new HistoryManager(HistoryTestPathDir);
+            HistoryManager historyManager = new HistoryManager(HistoryTestPathDir, TestSetup.FileIO, TestSetup.LogFactory);
             string key = "LKSJDFLKJASDLFKJ";
             //string value = null;
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.ContainsKey(key));
@@ -31,7 +35,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void ContainsKey_DoesContainKey()
         {
             string path = Path.Combine(HistoryTestPathDir, "DoesntExist", "BeatSyncHistory.json");
-            HistoryManager historyManager = new HistoryManager(path);
+            HistoryManager historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (KeyValuePair<string, HistoryEntry> pair in TestCollection1)
             {
@@ -46,7 +50,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void ContainsKey_DoesntContainKey()
         {
             string path = Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json");
-            HistoryManager historyManager = new HistoryManager(path);
+            HistoryManager historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (KeyValuePair<string, HistoryEntry> pair in TestCollection1)
             {
@@ -61,7 +65,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void ContainsKey_EmptyKey()
         {
             string path = Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json");
-            HistoryManager historyManager = new HistoryManager(path);
+            HistoryManager historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (KeyValuePair<string, HistoryEntry> pair in TestCollection1)
             {
@@ -76,7 +80,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void ContainsKey_NullKey()
         {
             string path = Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json");
-            HistoryManager historyManager = new HistoryManager(path);
+            HistoryManager historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (KeyValuePair<string, HistoryEntry> pair in TestCollection1)
             {

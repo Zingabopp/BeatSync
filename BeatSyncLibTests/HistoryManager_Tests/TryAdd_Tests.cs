@@ -5,7 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
-using SongFeedReaders.Data;
+using SongFeedReaders.Models;
+using BeatSyncLib.Utilities;
+using SongFeedReaders.Logging;
+using WebUtilities.Mock.MockClient;
+using WebUtilities;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
 {
@@ -19,12 +23,11 @@ namespace BeatSyncLibTests.HistoryManager_Tests
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "HistoryManager"));
 
-
         [TestMethod]
         public void TryAdd_FileDoesntExist()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "DoesntExist", "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             var pairToInsert = TestCollection1.First();
             Assert.AreEqual(historyManager.Count, 0);
@@ -37,7 +40,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_Duplicate()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             var pairToInsert = TestCollection1.First();
             Assert.AreEqual(historyManager.Count, 0);
@@ -52,7 +55,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_EmptyKey()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string key = "";
             string value = "Song that should not be inserted";
@@ -65,7 +68,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_NullKey()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string key = null;
             string value = "Song that should not be inserted";
@@ -78,7 +81,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_EmptyValue()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string key = "LKSJDFLKJASDLFKJ";
             string value = "";
@@ -91,7 +94,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_NullValue()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string key = "LKSJDFLKJASDLFKJ";
             string value = null;
@@ -103,7 +106,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void TryAdd_NotInitialized()
         {
-            var historyManager = new HistoryManager(HistoryTestPathDir);
+            var historyManager = new HistoryManager(HistoryTestPathDir, TestSetup.FileIO, TestSetup.LogFactory);
             string key = "LKSJDFLKJASDLFKJ";
             string songName = null;
             string mapperName = null;
@@ -114,7 +117,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_NullSong()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             ISong nullSong = null;
             var success = historyManager.TryAdd(nullSong, 0);
@@ -126,7 +129,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void TryAdd_Song_NotInitialized()
         {
-            var historyManager = new HistoryManager(HistoryTestPathDir);
+            var historyManager = new HistoryManager(HistoryTestPathDir, TestSetup.FileIO, TestSetup.LogFactory);
             string hash = "LKSJDFLKJASDLFKJ";
             string songName = "TestName";
             string songKey = "aaaa";
@@ -139,7 +142,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_Song()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string hash = "LKSJDFLKJASDLFKJ";
             string songName = "TestName";
@@ -157,7 +160,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_Song_NullHash()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string hash = null;
             string songName = "TestName";
@@ -179,7 +182,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryAdd_Song_EmptyHash()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string hash = "";
             string songName = "TestName";

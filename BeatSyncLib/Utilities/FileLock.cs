@@ -1,29 +1,38 @@
-﻿using System;
+﻿using SongFeedReaders.Logging;
+using System;
 using System.IO;
 namespace BeatSyncLib.Utilities
 {
     /// <summary>
-    /// Used to indicate BeatSync is running in a directory (Synchronize access with SyncSaberConsole sometime in the future).
+    /// Used to indicate BeatSync is running in a directory (Synchronize access with BeatSyncConsole sometime in the future).
     /// </summary>
-    public class FileLock : IDisposable
+    public sealed class FileLock : IDisposable
     {
-        private const string DefaultName = "_beatSync.lck";
-        private string FileName = DefaultName;
-        private string DirectoryPath;
-        private FileStream FileHandle;
+        public const string LockFileName = "_beatSync.lck";
+        private readonly string DirectoryPath;
+        private FileStream? FileHandle;
+        private ILogger? Logger;
+
         public string LockFile
         {
-            get { return Path.Combine(DirectoryPath, FileName); }
+            get { return Path.Combine(DirectoryPath, LockFileName); }
         }
 
+        public bool IsLocked => FileHandle != null;
 
-        public FileLock(string directoryPath)
+
+        public FileLock(string directoryPath, ILogger? logger = null)
         {
             DirectoryPath = Path.GetFullPath(directoryPath);
+            Logger = logger;
         }
 
         public bool TryLock()
         {
+            if(FileHandle != null)
+            {
+                return true;
+            }
             try
             {
                 Directory.CreateDirectory(DirectoryPath);
@@ -34,35 +43,47 @@ namespace BeatSyncLib.Utilities
             }
             catch (Exception)
             {
+                FileHandle = null;
                 return false;
             }
         }
 
         public void Unlock()
         {
-            if(FileHandle != null)
+            if (FileHandle != null)
             {
-                FileHandle.Close();
+                FileHandle.Dispose();
+                FileHandle = null;
+                try
+                {
+                    File.Delete(LockFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger?.Debug($"Unable to delete lock file {LockFile}: {ex.Message}");
+                }
             }
         }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    FileHandle.Close();
+                    FileHandle?.Dispose();
+                    FileHandle = null;
                     try
                     {
                         File.Delete(LockFile);
-                    }catch(Exception ex)
+                    }
+                    catch(Exception ex)
                     {
-                        Logger.log?.Debug($"Unable to delete lock file {LockFile}: {ex.Message}");
+                        Logger?.Debug($"Unable to delete lock file {LockFile}: {ex.Message}");
                     }
                 }
 

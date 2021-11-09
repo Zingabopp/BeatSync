@@ -38,9 +38,8 @@ namespace BeatSyncLibTests.Utilities
         {
             string originalPath = @"K:\Oculus\Software\hyperbolic - magnetism - beat - saber\Beat Saber_Data\CustomLevels\4B48(Camellia(Feat.Nanahira) - Can I Friend You On Bassbook L- . - .- . - . - .- ";
             int longestFileName = @"Camellia (Feat. Nanahira) - Can I Friend You On Bassbook Lol [Bassline Yatteru LOL].egg".Length;
-
-            string validPath = FileIO.GetValidPath(originalPath, longestFileName);
-            Assert.IsFalse(FileIO.InvalidTrailingPathChars.Any(c => validPath.Last() == c));
+            string validPath = TestSetup.FileIO.GetValidPath(originalPath, longestFileName);
+            Assert.IsFalse(FileIO.InvalidTrailingPathChars().Any(c => validPath.Last() == c));
         }
 
         [TestMethod]

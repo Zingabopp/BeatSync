@@ -1,4 +1,5 @@
-﻿using SongFeedReaders.Models;
+﻿using SongFeedReaders.Logging;
+using SongFeedReaders.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +11,7 @@ namespace BeatSyncLib.Downloader.Targets
 {
     public abstract class SongTarget
     {
+        protected ILogger? Logger;
         private static object _idLock = new object();
         private static int _nextDestinationId = 0;
         protected static int GetNextDestinationId()
@@ -26,9 +28,10 @@ namespace BeatSyncLib.Downloader.Targets
         public int DestinationId { get; }
         public TargetResult? TargetResult { get; protected set; }
 
-        protected SongTarget()
+        protected SongTarget(ILogFactory? logFactory)
         {
             DestinationId = GetNextDestinationId();
+            Logger = logFactory?.GetLogger(GetType().Name);
         }
 
         public abstract Task<SongState> CheckSongExistsAsync(string songHash);

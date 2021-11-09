@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.Configs
 {
     public class FavoriteMappers
     {
         private static readonly string DefaultFilePath = Path.GetFullPath(Path.Combine("UserData", "FavoriteMappers.ini"));
+        protected readonly ILogger? Logger;
         public string FilePath { get; private set; }
         private List<string>? _mappers;
         public List<string> Mappers
@@ -22,11 +24,12 @@ namespace BeatSyncLib.Configs
             }
         }
 
-        public FavoriteMappers(string? filePath = null)
+        public FavoriteMappers(string? filePath = null, ILogFactory logFactory = null)
         {
             if (filePath == null || filePath == string.Empty)
                 filePath = DefaultFilePath;
             FilePath = filePath;
+            Logger = logFactory?.GetLogger(GetType().Name);
         }
 
         public void Initialize()
@@ -39,7 +42,7 @@ namespace BeatSyncLib.Configs
             var mapperList = new List<string>();
             if (!File.Exists(FilePath))
             {
-                Logger.log?.Debug($"Couldn't find {FilePath}, skipping");
+                Logger?.Debug($"Couldn't find {FilePath}, skipping");
                 return mapperList;
             }
             try
@@ -57,11 +60,11 @@ namespace BeatSyncLib.Configs
                         }
                     }
                 }
-                Logger.log?.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");
+                Logger?.Info($"Loaded {mapperList.Count} mappers from FavoriteMappers.ini");
             }
             catch (Exception ex)
             {
-                Logger.log?.Warn(ex);
+                Logger?.Warning(ex);
             }
             return mapperList;
         }

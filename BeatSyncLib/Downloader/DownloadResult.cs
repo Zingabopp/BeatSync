@@ -2,7 +2,7 @@
 using WebUtilities;
 using WebUtilities.DownloadContainers;
 
-namespace BeatSyncLib.Downloader.Downloading
+namespace BeatSyncLib.Downloader
 {
     public class DownloadResult
         : IDisposable

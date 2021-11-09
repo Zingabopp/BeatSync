@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BeatSaber.SongHashing;
+using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.Downloader.Targets
 {
@@ -25,8 +26,9 @@ namespace BeatSyncLib.Downloader.Targets
 
 
         public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, FileIO fileIO,
-            ISongHashCollection songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager)
-            : base()
+            ISongHashCollection songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager,
+            ILogFactory? logFactory = null)
+            : base(logFactory)
         {
             SongsDirectory = Path.GetFullPath(songsDirectory);
             FileIO = fileIO ?? throw new ArgumentNullException(nameof(fileIO));
@@ -44,9 +46,9 @@ namespace BeatSyncLib.Downloader.Targets
             if (SongHasher != null)
             {
                 if (SongHasher.HashingState == HashingState.NotStarted)
-                    Logger.log?.Warn($"SongHasher hasn't hashed any songs yet.");
+                    Logger?.Warning($"SongHasher hasn't hashed any songs yet.");
                 else if (SongHasher.HashingState == HashingState.InProgress)
-                    Logger.log?.Warn($"SongHasher hasn't finished hashing.");
+                    Logger?.Warning($"SongHasher hasn't finished hashing.");
                 //await SongHasher.InitializeAsync().ConfigureAwait(false);
                 if (SongHasher.HashExists(songHash))
                     state = SongState.Exists;
@@ -94,9 +96,9 @@ namespace BeatSyncLib.Downloader.Targets
                     {
                         var hashResult = await Task.Run(() => Hasher.HashDirectory(zipResult.OutputDirectory, cancellationToken)).ConfigureAwait(false);
                         if (hashResult.ResultType == HashResultType.Error)
-                            Logger.log?.Warn($"Unable to get hash for '{song}': {hashResult.Message}.");
+                            Logger?.Warning($"Unable to get hash for '{song}': {hashResult.Message}.");
                         else if (hashResult.ResultType == HashResultType.Warn)
-                            Logger.log?.Warn($"Hash warning for '{song}': {hashResult.Message}.");
+                            Logger?.Warning($"Hash warning for '{song}': {hashResult.Message}.");
                         else
                         {
                             string? hashAfterDownload = hashResult.Hash;

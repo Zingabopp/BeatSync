@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
+using BeatSyncLib.Utilities;
+using SongFeedReaders.Logging;
+using WebUtilities.Mock.MockClient;
+using WebUtilities;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
 {
@@ -18,11 +22,12 @@ namespace BeatSyncLibTests.HistoryManager_Tests
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "historyManager"));
 
+
         [TestMethod]
         public void TryRemove_Exists()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string key = "QWEMNRBQENMQBWERNBQWXCV";
             string value = "Song to remove";
@@ -44,7 +49,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryRemove_DoesntExist()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             string key = "QWEMNRBQENMQBWERNBQWXCV";
             string value = "Song to remove";
@@ -64,7 +69,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryRemove_NotInitialized()
         {
             var path = Path.Combine(Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json"));
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             string key = "QWEMNRBQENMQBWERNBQWXCV";
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryRemove(key, out var _));
         }

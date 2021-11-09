@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
+using BeatSyncLib.Utilities;
+using SongFeedReaders.Logging;
+using WebUtilities.Mock.MockClient;
+using WebUtilities;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
 {
@@ -18,11 +22,10 @@ namespace BeatSyncLibTests.HistoryManager_Tests
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "HistoryManager"));
 
-
         [TestMethod]
         public void TryGetValue_NotInitialized()
         {
-            var historyManager = new HistoryManager(HistoryTestPathDir);
+            var historyManager = new HistoryManager(HistoryTestPathDir, TestSetup.FileIO, TestSetup.LogFactory);
             string key = "LKSJDFLKJASDLFKJ";
             HistoryEntry value = null;
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.TryGetValue(key, out value));
@@ -32,7 +35,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryGetValue_DoesContainKey()
         {
             var path = Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json");
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {
@@ -50,7 +53,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         public void TryGetValue_DoesntContainKey()
         {
             var path = Path.Combine(HistoryTestPathDir, "BeatSyncHistory.json");
-            var historyManager = new HistoryManager(path);
+            var historyManager = new HistoryManager(path, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (var pair in TestCollection1)
             {

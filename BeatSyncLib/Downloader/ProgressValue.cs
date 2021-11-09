@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BeatSyncLib.Utilities;
-using static BeatSyncLib.Utilities.Util;
+﻿using static BeatSyncLib.Utilities.Util;
 
 namespace BeatSyncLib.Downloader
 {
     public struct ProgressValue
     {
-        public long? ExpectedMax;
-        public long TotalProgress;
-        public double? ProgressPercentage => ExpectedMax != null && ExpectedMax != 0 ? (double)TotalProgress / ExpectedMax : null;
+        public readonly long? ExpectedMax;
+        public readonly long TotalProgress;
+        public double? ProgressPercentage => ExpectedMax != null && ExpectedMax != 0
+                                                ? (double)TotalProgress / ExpectedMax
+                                                : null;
         public ProgressValue(long totalProgress, long? expectedMax)
         {
             TotalProgress = totalProgress;
@@ -19,19 +17,19 @@ namespace BeatSyncLib.Downloader
         }
         private ByteUnit ByteSize => ByteUnit.Megabyte;
 
-        private string _stringVal;
+        private string? _stringVal;
         private string stringVal
         {
             get
             {
-                if (!string.IsNullOrEmpty(_stringVal))
+                if (_stringVal != null && _stringVal.Length > 0)
                     return _stringVal;
-                if (ExpectedMax == null)
+                if (ExpectedMax == null || ProgressPercentage == null)
                     _stringVal = $"{ConvertByteValue(TotalProgress, ByteSize).ToString("N2")} MB/?";
                 else
                 {
-                    var value = ProgressPercentage.Value;
-                    _stringVal = $"({ProgressPercentage.Value.ToString("P2")}) {ConvertByteValue(TotalProgress, ByteSize).ToString("N2")} MB/{ConvertByteValue(ExpectedMax.Value, ByteSize).ToString("N2")} MB";
+                    double value = ProgressPercentage.Value;
+                    _stringVal = $"({value.ToString("P2")}) {ConvertByteValue(TotalProgress, ByteSize).ToString("N2")} MB/{ConvertByteValue(ExpectedMax.Value, ByteSize).ToString("N2")} MB";
                 }
                 return _stringVal;
             }

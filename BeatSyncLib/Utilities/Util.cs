@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.Utilities
 {
@@ -201,13 +202,13 @@ namespace BeatSyncLib.Utilities
                             Logger.log?.Debug($"Missing difficulty file {beatmapPath.Split('\\', '/').LastOrDefault()}");
                     }
                     else
-                        Logger.log?.Warn($"_beatmapFilename property is null in {infoFile}");
+                        Logger.log?.Warning($"_beatmapFilename property is null in {infoFile}");
                 }
             }
 
             string hash = CreateSha1FromBytes(combinedBytes.ToArray());
             if (!string.IsNullOrEmpty(existingHash) && existingHash != hash)
-                Logger.log?.Warn($"Hash doesn't match the existing hash for {songDirectory}");
+                Logger.log?.Warning($"Hash doesn't match the existing hash for {songDirectory}");
             return hash;
         }
 
@@ -367,14 +368,14 @@ namespace BeatSyncLib.Utilities
                 byte[] resource = GetResource(Assembly.GetCallingAssembly(), imagePath);
                 if (resource.Length == 0)
                 {
-                    Logger.log?.Warn($"Unable to load image from path: {imagePath}");
+                    Logger.log?.Warning($"Unable to load image from path: {imagePath}");
                     return string.Empty;
                 }
                 return Convert.ToBase64String(resource);
             }
             catch (Exception ex)
             {
-                Logger.log?.Warn($"Unable to load image from path: {imagePath}");
+                Logger.log?.Warning($"Unable to load image from path: {imagePath}");
                 Logger.log?.Debug(ex);
             }
             return string.Empty;

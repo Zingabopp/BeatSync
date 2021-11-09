@@ -6,6 +6,10 @@ using System.Linq;
 using System.IO;
 using Newtonsoft.Json;
 using static BeatSyncLibTests.HistoryManager_Tests.HistoryTestData;
+using BeatSyncLib.Utilities;
+using SongFeedReaders.Logging;
+using WebUtilities.Mock.MockClient;
+using WebUtilities;
 
 namespace BeatSyncLibTests.HistoryManager_Tests
 {
@@ -21,6 +25,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
 
         private static readonly string HistoryTestPathDir = Path.GetFullPath(Path.Combine("Output", "HistoryManager", "WriteTests"));
 
+
         [TestMethod]
         public void ExistingFile()
         {
@@ -30,7 +35,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
             Directory.CreateDirectory(dirPath);
             if (!File.Exists(filePath))
                 File.Copy(Path.Combine(@"Data\HistoryManager\", fileName), filePath);
-            var historyManager = new HistoryManager(filePath);
+            var historyManager = new HistoryManager(filePath, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 8);
             historyManager.WriteToFile();
@@ -53,7 +58,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
                 File.Copy(Path.Combine(@"Data\HistoryManager\", fileName), filePath);
             using (var fileLock = File.OpenRead(filePath))
             {
-                var historyManager = new HistoryManager(filePath);
+                var historyManager = new HistoryManager(filePath, TestSetup.FileIO, TestSetup.LogFactory);
                 historyManager.Initialize();
                 Assert.AreEqual(historyManager.Count, 8);
                 Assert.ThrowsException<IOException>(() => historyManager.WriteToFile());
@@ -71,7 +76,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
             var dirPath = Path.Combine(HistoryTestPathDir, "FileDoesntExist");
             var filePath = Path.Combine(dirPath, fileName);
             Assert.IsFalse(File.Exists(filePath));
-            var historyManager = new HistoryManager(filePath);
+            var historyManager = new HistoryManager(filePath, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             foreach (var item in TestCollection1)
             {
@@ -85,7 +90,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
         [TestMethod]
         public void NotInitialized()
         {
-            var historyManager = new HistoryManager(HistoryTestPathDir);
+            var historyManager = new HistoryManager(HistoryTestPathDir, TestSetup.FileIO, TestSetup.LogFactory);
             Assert.ThrowsException<InvalidOperationException>(() => historyManager.WriteToFile());
         }
 
@@ -97,7 +102,7 @@ namespace BeatSyncLibTests.HistoryManager_Tests
             if (Directory.Exists(dirPath))
                 Directory.Delete(dirPath, true);
             var filePath = Path.Combine(dirPath, fileName);
-            var historyManager = new HistoryManager(filePath);
+            var historyManager = new HistoryManager(filePath, TestSetup.FileIO, TestSetup.LogFactory);
             historyManager.Initialize();
             Assert.AreEqual(historyManager.Count, 0);
             foreach (var item in TestCollection1)

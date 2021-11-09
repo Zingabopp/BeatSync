@@ -1,4 +1,4 @@
-﻿using BeatSyncLib.Downloader.Downloading;
+﻿using BeatSyncLib.Downloader;
 using BeatSyncLib.Downloader.Targets;
 using SongFeedReaders.Models;
 using System;

@@ -1,4 +1,4 @@
-﻿using BeatSyncLib.Downloader.Downloading;
+﻿using BeatSyncLib.Downloader;
 using SongFeedReaders.Logging;
 using System;
 using System.Collections.Generic;
@@ -22,10 +22,10 @@ namespace BeatSyncLib.Utilities
         /// Maximum path length.
         /// </summary>
         private const int MaxFileSystemPathLength = 259;
-        private static readonly char[] InvalidTrailingPathChars = new char[] { ' ', '.', '-' };
+        private static readonly char[] invalidTrailingPathChars = new char[] { ' ', '.', '-' };
         private readonly ILogger? logger;
         private readonly IWebClient webClient;
-
+        public static char[] InvalidTrailingPathChars() => invalidTrailingPathChars.ToArray();
         /// <summary>
         /// Creates a new <see cref="FileIO"/>.
         /// </summary>
@@ -181,7 +181,7 @@ namespace BeatSyncLib.Utilities
                     throw new PathTooLongException(extractDirectory);
                 }
             }
-            return extractDirectory.TrimEnd(InvalidTrailingPathChars);
+            return extractDirectory.TrimEnd(invalidTrailingPathChars);
         }
 
         public ZipExtractResult ExtractZip(string zipPath, string extractDirectory, bool overwriteTarget = true)

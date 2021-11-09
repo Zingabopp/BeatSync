@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Text;
 using BeatSaberPlaylistsLib;
 using BeatSaberPlaylistsLib.Types;
+using BeatSyncLib.Utilities;
+using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.Playlists
 {
@@ -98,12 +100,12 @@ namespace BeatSyncLib.Playlists
             }
             catch(InvalidOperationException ex)
             {
-                Logger.log?.Warn($"Error reading existing {builtInPlaylist} playlist file,  creating a new one: {ex.Message}");
+                Logger.log?.Warning($"Error reading existing {builtInPlaylist} playlist file,  creating a new one: {ex.Message}");
                 Logger.log?.Debug(ex);
             }
             catch (PlaylistSerializationException ex)
             {
-                Logger.log?.Warn($"Error reading {builtInPlaylist} playlist file, creating a new one: {ex.Message}");
+                Logger.log?.Warning($"Error reading {builtInPlaylist} playlist file, creating a new one: {ex.Message}");
                 Logger.log?.Debug(ex);
             }
             return manager.CreateBuiltinPlaylist(builtInPlaylist);
@@ -133,12 +135,12 @@ namespace BeatSyncLib.Playlists
             }
             catch (InvalidOperationException ex)
             {
-                Logger.log?.Warn($"Error reading existing playlist file '{fileName}',  creating a new one: {ex.Message}");
+                Logger.log?.Warning($"Error reading existing playlist file '{fileName}',  creating a new one: {ex.Message}");
                 Logger.log?.Debug(ex);
             }
             catch (PlaylistSerializationException ex)
             {
-                Logger.log?.Warn($"Error reading playlist file '{fileName}', creating a new one: {ex.Message}");
+                Logger.log?.Warning($"Error reading playlist file '{fileName}', creating a new one: {ex.Message}");
                 Logger.log?.Debug(ex);
             }
             playlist = manager.CreatePlaylist(fileName, authorName, "BeatSync", PlaylistImageLoaders[BuiltInPlaylist.BeatSaverMapper], $"Beatmaps by {authorName}.");
