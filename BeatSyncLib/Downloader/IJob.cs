@@ -8,20 +8,19 @@ using SongFeedReaders.Models;
 
 namespace BeatSyncLib.Downloader
 {
+
+    /// <summary>
+    /// Represents checking if a beatmap is wanted by any targets, downloading, and delivering it to all appropriate targets.
+    /// </summary>
     public interface IJob
     {
         event EventHandler? JobStarted;
-        event EventHandler<JobProgress>? JobProgressChanged;
+        event EventHandler<JobStage>? JobStageChanged;
         event EventHandler<JobResult>? JobFinished;
-        Exception? Exception { get; }
-        ISong Song { get; }
-        JobResult? Result { get; }
+        ISong Beatmap { get; }
         JobStage JobStage { get; }
         JobState JobState { get; }
-        Task<JobResult> JobTask { get; }
-        DownloadResult? DownloadResult { get; }
-        IEnumerable<TargetResult> TargetResults { get; }
-        Task RunAsync(CancellationToken cancellationToken);
-        Task RunAsync();
+        Task<JobResult>? JobTask { get; }
+        Task<JobResult> RunAsync(CancellationToken cancellationToken);
     }
 }

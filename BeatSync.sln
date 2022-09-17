@@ -11,9 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncConsole", "BeatSync
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncLib", "BeatSyncLib\BeatSyncLib.csproj", "{E2A07BDB-7085-48A3-AA50-B6E0856A7CCA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSyncLibTests", "BeatSyncLibTests\BeatSyncLibTests.csproj", "{8BA75F87-831D-4420-915E-D7EC5F8953D3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSaberPlaylistsLib", "Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj", "{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncLibTests", "BeatSyncLibTests\BeatSyncLibTests.csproj", "{8BA75F87-831D-4420-915E-D7EC5F8953D3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSyncConsoleTests", "BeatSyncConsoleTests\BeatSyncConsoleTests.csproj", "{51698714-9658-49D5-9658-9C2CEE10B772}"
 EndProject
@@ -85,18 +83,6 @@ Global
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.ModRelease|Any CPU.Build.0 = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BA75F87-831D-4420-915E-D7EC5F8953D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ConsoleDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ConsoleDebug|Any CPU.Build.0 = Debug|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ConsoleRelease|Any CPU.ActiveCfg = Release|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ConsoleRelease|Any CPU.Build.0 = Release|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ModDebug|Any CPU.ActiveCfg = Release-BeatSaber|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ModDebug|Any CPU.Build.0 = Release-BeatSaber|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ModRelease|Any CPU.ActiveCfg = Release-BeatSaber|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.ModRelease|Any CPU.Build.0 = Release-BeatSaber|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E58D6EC9-193F-4328-BB11-86EC2A8AD1FA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{51698714-9658-49D5-9658-9C2CEE10B772}.ConsoleDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{51698714-9658-49D5-9658-9C2CEE10B772}.ConsoleDebug|Any CPU.Build.0 = Debug|Any CPU
 		{51698714-9658-49D5-9658-9C2CEE10B772}.ConsoleRelease|Any CPU.ActiveCfg = Release|Any CPU

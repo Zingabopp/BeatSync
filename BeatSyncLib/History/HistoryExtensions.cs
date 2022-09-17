@@ -24,7 +24,7 @@ namespace BeatSyncLib.History
                 entry.Flag = HistoryFlag.Downloaded;
             else
             {
-                if ((jobResult.DownloadResult?.Status ?? DownloadResultStatus.Unknown) == DownloadResultStatus.NetNotFound)
+                if (jobResult.DownloadResult.Status == DownloadResultStatus.NetNotFound)
                     entry.Flag = HistoryFlag.BeatSaverNotFound;
                 else
                     entry.Flag = HistoryFlag.Error;

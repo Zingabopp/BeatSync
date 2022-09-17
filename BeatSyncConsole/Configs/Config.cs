@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using BeatSyncConsole.Configs.Converters;
 using BeatSyncLib.Configs;
-using BeatSyncLib.Logging;
+using SongFeedReaders.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,26 +13,6 @@ namespace BeatSyncConsole.Configs
 {
     public class Config : ConfigBase
     {
-        private static readonly string DefaultBeatSyncConfigPath = Path.Combine("%CONFIG%", "BeatSync.json");
-        #region Private Fields
-        [JsonIgnore]
-        private BeatSyncConfig? _beatSyncConfig;
-        [JsonIgnore]
-        private List<BeatSaberInstallLocation>? _beatSaberInstallLocations;
-        [JsonIgnore]
-        private List<CustomSongLocation>? _customSongsPaths;
-        [JsonIgnore]
-        private string? _beatSyncConfigPath;
-        [JsonIgnore]
-        internal bool legacyValueChanged = false;
-
-        public static Config GetDefaultConfig()
-        {
-            Config config = new Config();
-            config.FillDefaults();
-            return config;
-        }
-        #endregion
         #region Public Properties
         [JsonProperty(nameof(BeatSyncConfigPath), Order = 10)]
         public string BeatSyncConfigPath
@@ -105,7 +85,6 @@ namespace BeatSyncConsole.Configs
             }
         }
 
-        private bool? _closeWhenFinished;
         [JsonProperty(nameof(CloseWhenFinished), Order = 30)]
         public bool CloseWhenFinished
         {
@@ -127,7 +106,6 @@ namespace BeatSyncConsole.Configs
             }
         }
 
-        private bool? _useSystemTemp;
         [JsonProperty("UseSystemTemp", Order = 35)]
         public bool UseSystemTemp {
             get
@@ -148,7 +126,6 @@ namespace BeatSyncConsole.Configs
             }
         }
 
-        private LogLevel? _consoleLogLevel;
         [JsonProperty(nameof(ConsoleLogLevel), Order = 100)]
         [JsonConverter(typeof(LogLevelConverter))]
         public LogLevel ConsoleLogLevel
@@ -180,6 +157,14 @@ namespace BeatSyncConsole.Configs
         }
 
         #endregion
+
+        public static Config GetDefaultConfig()
+        {
+            Config config = new Config();
+            config.FillDefaults();
+            return config;
+        }
+
         public override bool ConfigMatches(ConfigBase other)
         {
             if (other is Config config)
@@ -208,5 +193,22 @@ namespace BeatSyncConsole.Configs
         }
 
 
+        private static readonly string DefaultBeatSyncConfigPath = Path.Combine("%CONFIG%", "BeatSync.json");
+        #region Private Fields
+        [JsonIgnore]
+        private BeatSyncConfig? _beatSyncConfig;
+        [JsonIgnore]
+        private List<BeatSaberInstallLocation>? _beatSaberInstallLocations;
+        [JsonIgnore]
+        private List<CustomSongLocation>? _customSongsPaths;
+        [JsonIgnore]
+        private string? _beatSyncConfigPath;
+        [JsonIgnore]
+        internal bool legacyValueChanged = false;
+        private LogLevel? _consoleLogLevel;
+        private bool? _useSystemTemp;
+        private bool? _closeWhenFinished;
+
+        #endregion
     }
 }

@@ -13,13 +13,13 @@ namespace BeatSyncLibTests
         public static void Initialize()
         {
             if (LogFactory == null)
-                LogFactory = new LogFactory(m => new FeedReaderLogger(new LoggerSettings()
+                LogFactory = new LogFactory((m, s) => new FeedReaderLogger(m), new LoggerSettings()
                 {
                     LogLevel = LogLevel.Debug,
-                    ModuleName = m,
+                    ModuleName = "BeatSyncLibTests",
                     EnableTimeStamp = true,
                     ShowModule = true
-                }));
+                });
             if (WebClient == null)
                 WebClient = new HttpClientWrapper("BeatSyncLibTests/1.0.0");
             FileIO = new FileIO(WebClient, LogFactory);

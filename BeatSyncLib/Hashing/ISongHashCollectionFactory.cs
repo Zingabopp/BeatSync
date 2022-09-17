@@ -4,9 +4,8 @@ using System.Text;
 
 namespace BeatSyncLib.Hashing
 {
-    public interface ISongHashData
+    public interface ISongHashCollectionFactory
     {
-        long directoryHash { get; set; }
-        string? songHash { get; set; }
+        ISongHashCollection GetCollection(string path);
     }
 }

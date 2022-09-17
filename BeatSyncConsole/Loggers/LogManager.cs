@@ -1,5 +1,5 @@
 ﻿using BeatSyncLib;
-using BeatSyncLib.Logging;
+using SongFeedReaders.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

@@ -1,59 +1,81 @@
-﻿using BeatSyncLib.Hashing;
-using BeatSyncLib.History;
+﻿using BeatSaber.SongHashing;
 using BeatSaberPlaylistsLib;
+using BeatSaberPlaylistsLib.Types;
+using BeatSyncLib.Configs;
+using BeatSyncLib.Hashing;
+using BeatSyncLib.History;
+using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
+using SongFeedReaders.Feeds;
+using SongFeedReaders.Logging;
 using SongFeedReaders.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BeatSaber.SongHashing;
-using SongFeedReaders.Logging;
+using ISong = SongFeedReaders.Models.ISong;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public class DirectoryTarget : SongTarget, ITargetWithHistory, ITargetWithPlaylists
+    public class DirectoryTarget : BeatmapTarget
     {
-        public static Hasher Hasher = new Hasher();
+        public IBeatmapHasher Hasher { get; private set; }
         public override string TargetName => nameof(DirectoryTarget);
         public FileIO FileIO { get; private set; }
-        public ISongHashCollection SongHasher { get; private set; }
+        public ISongHashCollection SongHashCollection { get; private set; }
         public HistoryManager? HistoryManager { get; private set; }
         public PlaylistManager? PlaylistManager { get; private set; }
-        public string SongsDirectory { get; private set; }
+        public string SongsDirectory { get; private set; } = null!;
         public bool OverwriteTarget { get; private set; }
         public bool UnzipBeatmaps { get; private set; } = true;
 
 
-        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, FileIO fileIO,
-            ISongHashCollection songHasher, HistoryManager? historyManager, PlaylistManager? playlistManager,
+        public DirectoryTarget(FileIO fileIO, ISongHashCollection songHashCollection,
+            IBeatmapHasher hasher, HistoryManager? historyManager = null, PlaylistManager? playlistManager = null,
             ILogFactory? logFactory = null)
             : base(logFactory)
         {
-            SongsDirectory = Path.GetFullPath(songsDirectory);
             FileIO = fileIO ?? throw new ArgumentNullException(nameof(fileIO));
-            SongHasher = songHasher ?? throw new ArgumentNullException(nameof(songHasher));
+            SongHashCollection = songHashCollection ?? throw new ArgumentNullException(nameof(songHashCollection));
+            Hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
             HistoryManager = historyManager;
             PlaylistManager = playlistManager;
-            OverwriteTarget = overwriteTarget;
-            UnzipBeatmaps = unzipBeatmaps;
         }
 
-        public override Task<SongState> CheckSongExistsAsync(string songHash)
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, FileIO fileIO, ISongHashCollection songHashCollection,
+            IBeatmapHasher hasher, HistoryManager? historyManager = null, PlaylistManager? playlistManager = null,
+            ILogFactory? logFactory = null)
+            : this(fileIO, songHashCollection, hasher, historyManager, playlistManager, logFactory)
         {
-            SongState state = SongState.Wanted;
+            Configure(songsDirectory, overwriteTarget, unzipBeatmaps);
+        }
 
-            if (SongHasher != null)
+        public DirectoryTarget Configure(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps)
+        {
+            SongsDirectory = songsDirectory;
+            OverwriteTarget = overwriteTarget;
+            UnzipBeatmaps = unzipBeatmaps;
+            return this;
+        }
+
+        public override Task<BeatmapState> GetTargetSongStateAsync(string songHash, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(SongsDirectory))
+                throw new InvalidOperationException($"DirectoryTarget has not been configured with a valid path");
+            BeatmapState state = BeatmapState.Wanted;
+            if (SongHashCollection != null)
             {
-                if (SongHasher.HashingState == HashingState.NotStarted)
+                if (SongHashCollection.HashingState == HashingState.NotStarted)
                     Logger?.Warning($"SongHasher hasn't hashed any songs yet.");
-                else if (SongHasher.HashingState == HashingState.InProgress)
+                else if (SongHashCollection.HashingState == HashingState.InProgress)
                     Logger?.Warning($"SongHasher hasn't finished hashing.");
                 //await SongHasher.InitializeAsync().ConfigureAwait(false);
-                if (SongHasher.HashExists(songHash))
-                    state = SongState.Exists;
+                if (SongHashCollection.HashExists(songHash))
+                    state = BeatmapState.Exists;
             }
-            if (state == SongState.Wanted && HistoryManager != null)
+            if (state == BeatmapState.Wanted && HistoryManager != null)
             {
                 if (!HistoryManager.IsInitialized)
                     HistoryManager.Initialize();
@@ -61,7 +83,7 @@ namespace BeatSyncLib.Downloader.Targets
                 {
                     if (!entry.AllowRetry)
                     {
-                        state = SongState.NotWanted;
+                        state = BeatmapState.NotWanted;
                         entry.Flag = HistoryFlag.Deleted;
                     }
                 }
@@ -69,88 +91,200 @@ namespace BeatSyncLib.Downloader.Targets
             return Task.FromResult(state);
         }
 
-        public override async Task<TargetResult> TransferAsync(ISong song, Stream sourceStream, CancellationToken cancellationToken)
+        public override async Task<TargetResult> TransferAsync(ISong beatmap, Stream sourceStream, CancellationToken cancellationToken)
         {
-            if (song == null)
-                throw new ArgumentNullException(nameof(song), "Song cannot be null for TransferAsync.");
+            if (string.IsNullOrWhiteSpace(SongsDirectory))
+                throw new InvalidOperationException($"DirectoryTarget has not been configured with a valid path");
+            if (beatmap == null)
+                throw new ArgumentNullException(nameof(beatmap));
             string? directoryPath = null;
             ZipExtractResult? zipResult = null;
             string directoryName;
-            if (song.Name != null && song.LevelAuthorName != null)
-                directoryName = Util.GetSongDirectoryName(song.Key, song.Name, song.LevelAuthorName);
-            else if (song.Key != null)
-                directoryName = song.Key;
+            string? hashAfterDownload = null;
+            if (beatmap.Name != null && beatmap.LevelAuthorName != null)
+                directoryName = Util.GetSongDirectoryName(beatmap.Key, beatmap.Name, beatmap.LevelAuthorName);
+            else if (beatmap.Key != null)
+                directoryName = beatmap.Key;
             else
-                directoryName = song.Hash ?? Path.GetRandomFileName();
+                directoryName = beatmap.Hash ?? Path.GetRandomFileName();
             try
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return new TargetResult(this, SongState.Wanted, false, new OperationCanceledException());
+                cancellationToken.ThrowIfCancellationRequested();
                 directoryPath = Path.Combine(SongsDirectory, directoryName);
+                if (!Directory.Exists(SongsDirectory))
+                    throw new BeatmapTargetTransferException($"Parent directory doesn't exist: '{SongsDirectory}'");
                 if (UnzipBeatmaps)
                 {
-                    if (!Directory.Exists(SongsDirectory))
-                        throw new SongTargetTransferException($"Parent directory doesn't exist: '{SongsDirectory}'");
                     zipResult = await Task.Run(() => FileIO.ExtractZip(sourceStream, directoryPath, OverwriteTarget)).ConfigureAwait(false);
-                    if (!string.IsNullOrEmpty(song.Hash) && zipResult.OutputDirectory != null)
+                    if (!string.IsNullOrEmpty(beatmap.Hash) && zipResult.OutputDirectory != null)
                     {
-                        var hashResult = await Task.Run(() => Hasher.HashDirectory(zipResult.OutputDirectory, cancellationToken)).ConfigureAwait(false);
+#if ASYNC
+                        HashResult hashResult = await Hasher.HashDirectoryAsync(zipResult.OutputDirectory, cancellationToken).ConfigureAwait(false);
+#else
+                        HashResult hashResult = await Task.Run(() => Hasher.HashDirectory(zipResult.OutputDirectory, cancellationToken)).ConfigureAwait(false);
+#endif
                         if (hashResult.ResultType == HashResultType.Error)
-                            Logger?.Warning($"Unable to get hash for '{song}': {hashResult.Message}.");
+                            Logger?.Warning($"Unable to get hash for '{beatmap}': {hashResult.Message}.");
                         else if (hashResult.ResultType == HashResultType.Warn)
-                            Logger?.Warning($"Hash warning for '{song}': {hashResult.Message}.");
+                            Logger?.Warning($"Hash warning for '{beatmap}': {hashResult.Message}.");
                         else
                         {
-                            string? hashAfterDownload = hashResult.Hash;
-                            if (hashAfterDownload != song.Hash)
-                                throw new SongTargetTransferException($"Extracted song hash doesn't match expected hash: {song.Hash} != {hashAfterDownload}");
+                            hashAfterDownload = hashResult.Hash;
+                            if (hashAfterDownload != beatmap.Hash)
+                                throw new BeatmapTargetTransferException($"Extracted song hash doesn't match expected hash: {beatmap.Hash} != {hashAfterDownload}");
                         }
                     }
-                    TargetResult = new DirectoryTargetResult(this, SongState.Wanted, zipResult.ResultStatus == ZipExtractResultStatus.Success, zipResult, zipResult.Exception);
+                    TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, 
+                        zipResult.ResultStatus == ZipExtractResultStatus.Success, hashAfterDownload, 
+                        zipResult, zipResult.Exception);
                 }
                 else
                 {
                     string zipDestination = directoryPath + ".zip";
-                    using FileStream fs = File.Open(zipDestination, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                     try
                     {
-                        await sourceStream.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
-                        TargetResult = new DirectoryTargetResult(this, SongState.Wanted, true, null);
+                        using (FileStream fs = File.Open(zipDestination, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                        {
+                            await sourceStream.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
+                        }
+
+                        if (!string.IsNullOrEmpty(beatmap.Hash))
+                        {
+#if ASYNC
+                            HashResult hashResult = await Hasher.HashZippedBeatmapAsync(zipDestination, cancellationToken).ConfigureAwait(false);
+#else
+                            HashResult hashResult = await Task.Run(() => Hasher.HashZippedBeatmap(zipDestination, cancellationToken)).ConfigureAwait(false);
+#endif
+                            if (hashResult.ResultType == HashResultType.Error)
+                                Logger?.Warning($"Unable to get hash for '{beatmap}': {hashResult.Message}.");
+                            else if (hashResult.ResultType == HashResultType.Warn)
+                                Logger?.Warning($"Hash warning for '{beatmap}': {hashResult.Message}.");
+                            else
+                            {
+                                hashAfterDownload = hashResult.Hash;
+                                if (hashAfterDownload != beatmap.Hash)
+                                    throw new BeatmapTargetTransferException($"Extracted song hash doesn't match expected hash: {beatmap.Hash} != {hashAfterDownload}");
+                            }
+                        }
+
+                        TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, true, hashAfterDownload, null);
                     }
                     catch (OperationCanceledException ex)
                     {
-                        TargetResult = new DirectoryTargetResult(this, SongState.Wanted, false, ex);
+                        TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception ex)
                     {
-                        TargetResult = new DirectoryTargetResult(this, SongState.Wanted, false, ex);
+                        TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
                     }
 #pragma warning restore CA1031 // Do not catch general exception types
                     return TargetResult;
                 }
             }
+            catch (OperationCanceledException ex)
+            {
+                TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
+            }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                TargetResult = new DirectoryTargetResult(this, SongState.Wanted, false, zipResult, ex);
+                TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, zipResult, ex);
                 return TargetResult;
             }
 #pragma warning restore CA1031 // Do not catch general exception types
 
             return TargetResult;
         }
+
+        public override Task OnFeedJobsFinished(IEnumerable<JobResult> jobResults, BeatSyncConfig beatSyncConfig, FeedConfigBase? feedConfig, CancellationToken cancellationToken)
+        {
+            bool hasResults = jobResults.Any();
+            if (!hasResults)
+                return Task.CompletedTask;
+            PlaylistManager? playlistManager = PlaylistManager;
+
+            IPlaylist? playlist = null;
+            PlaylistStyle playlistStyle = PlaylistStyle.Append;
+            bool playlistSortAscending = true;
+            if (feedConfig != null && playlistManager != null && feedConfig.CreatePlaylist)
+            {
+                BuiltInPlaylist playlistType = feedConfig.FeedPlaylist;
+                playlistSortAscending = playlistType.IsSortAscending();
+                playlistStyle = feedConfig.PlaylistStyle;
+                ISong? first = jobResults.FirstOrDefault()?.Song;
+                if (playlistType == BuiltInPlaylist.BeatSaverFavoriteMappers
+                    && feedConfig is BeatSaverFavoriteMappers mappersConfig
+                    && mappersConfig.SeparateMapperPlaylists
+                    && first?.LevelAuthorName is string mapperName)
+                {
+                    // TODO: Better way to identify mapper
+                    playlist = playlistManager.GetOrCreateAuthorPlaylist(mapperName);
+                }
+                else
+                    playlist = playlistManager.GetOrAddPlaylist(playlistType);
+                if (playlistStyle == PlaylistStyle.Replace)
+                {
+                    playlist.Clear();
+                }
+            }
+
+
+            TimeSpan offset = new TimeSpan(0, 0, 0, 0, -1);
+            DateTime addedTime = DateTime.Now;
+
+            foreach (var result in jobResults)
+            {
+                ISong? beatmap = result.Song;
+                if (beatmap == null)
+                    continue;
+                DirectoryTarget? target = result.TargetResults
+                    .Where(tr => ReferenceEquals(this, tr.Target))
+                    .Select(tr => tr.Target)
+                    .FirstOrDefault() as DirectoryTarget;
+                if (target == null)
+                    continue;
+
+                HistoryManager? historyManager = HistoryManager;
+                if (historyManager != null)
+                {
+                    string? songHash = beatmap.Hash;
+                    if (songHash != null && songHash.Length > 0)
+                    {
+                        historyManager.AddOrUpdate(songHash, result.CreateHistoryEntry());
+                    }
+                }
+                if (playlist != null)
+                {
+                    IPlaylistSong? addedSong = playlist.Add(beatmap);
+                    if (addedSong != null)
+                    {
+                        addedSong.DateAdded = addedTime;
+                        addedTime += offset;
+                    }
+                }
+            }
+            if (playlist != null && playlistManager != null)
+            {
+                playlist.Sort();
+                playlist.RaisePlaylistChanged();
+                playlistManager.StorePlaylist(playlist);
+            }
+            return Task.CompletedTask;
+        }
     }
 
     public class DirectoryTargetResult : TargetResult
     {
         public ZipExtractResult? ZipExtractResult { get; protected set; }
-        public DirectoryTargetResult(SongTarget target, SongState songState, bool success, Exception? exception)
-            : base(target, songState, success, exception)
+        public DirectoryTargetResult(ISong beatmap, BeatmapTarget target, BeatmapState songState,
+            bool success, string? beatmapHash, Exception? exception)
+            : base(beatmap, target, songState, success, beatmapHash, exception)
         { }
 
-        public DirectoryTargetResult(SongTarget target, SongState songState, bool success, ZipExtractResult? zipExtractResult, Exception? exception)
-            : base(target, songState, success, exception)
+        public DirectoryTargetResult(ISong beatmap, BeatmapTarget target, BeatmapState songState,
+            bool success, string? beatmapHash, ZipExtractResult? zipExtractResult, Exception? exception)
+            : base(beatmap, target, songState, success, beatmapHash, exception)
         {
             ZipExtractResult = zipExtractResult;
         }

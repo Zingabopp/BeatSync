@@ -20,7 +20,8 @@ namespace BeatSyncLib.Downloader
         string? LevelAuthorName { get; }
         bool SupportsProgressUpdates { get; }
         DownloadJobStatus Status { get; }
-        DownloadResult? DownloadResult { get; }
+        DownloadResult DownloadResult { get; }
+        DownloadedContainer? DownloadedContainer { get; }
         Exception? Exception { get; }
 
         event EventHandler<DownloadJobFinishedEventArgs>? JobFinished;
@@ -30,8 +31,8 @@ namespace BeatSyncLib.Downloader
 
         void AddDownloadFinishedCallback(DownloadFinishedCallback callback);
 
-        Task<DownloadResult> RunAsync();
-        Task<DownloadResult> RunAsync(CancellationToken cancellationToken);
+        Task<DownloadedContainer> RunAsync();
+        Task<DownloadedContainer> RunAsync(CancellationToken cancellationToken);
     }
 
     public delegate Task DownloadFinishedCallback(IDownloadJob job);
@@ -68,10 +69,10 @@ namespace BeatSyncLib.Downloader
         public DownloadResultStatus DownloadResult { get; protected set; }
         public DownloadContainer? DownloadContainer { get; protected set; }
 
-        public DownloadJobFinishedEventArgs(string songHash, DownloadResult jobResult)
+        public DownloadJobFinishedEventArgs(string songHash, DownloadedContainer jobResult)
         {
             SongHash = songHash;
-            DownloadResult = jobResult.Status;
+            DownloadResult = jobResult.DownloadResult.Status;
             DownloadContainer = jobResult?.DownloadContainer;
         }
 

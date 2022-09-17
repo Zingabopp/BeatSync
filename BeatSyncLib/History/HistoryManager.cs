@@ -89,7 +89,7 @@ namespace BeatSyncLib.History
                         }
                         else
                         {
-                            Logger.Warning($"Invalid HistoryEntry: {keyHash}");
+                            Logger?.Warning($"Invalid HistoryEntry: {keyHash}");
                         }
                     }
                 }

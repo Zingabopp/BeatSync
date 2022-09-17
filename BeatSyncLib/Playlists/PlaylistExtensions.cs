@@ -58,6 +58,14 @@ namespace BeatSyncLib.Playlists
                 _ => throw new ArgumentException($"{builtInPlaylist} BuiltInPlaylist type is not supported.")
             };
         }
+        public static bool IsSortAscending(this BuiltInPlaylist playlistType)
+        {
+            return playlistType switch
+            {
+                BuiltInPlaylist.BeatSyncRecent => false,
+                _ => true
+            };
+        }
 
         private static IPlaylist CreateBuiltinPlaylist(this PlaylistManager manager, BuiltInPlaylist builtInPlaylist)
         {

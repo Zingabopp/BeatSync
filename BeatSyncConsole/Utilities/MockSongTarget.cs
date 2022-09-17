@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace BeatSyncConsole.Utilities
 {
-    public class MockSongTarget : SongTarget
+    public class MockSongTarget : BeatmapTarget
     {
-        protected static Task<SongState> State_NotWanted = Task.FromResult(SongState.NotWanted);
+        protected static Task<BeatmapState> State_NotWanted = Task.FromResult(BeatmapState.NotWanted);
         public override string TargetName => "MockSongTarget";
 
-        public override Task<SongState> CheckSongExistsAsync(string songHash) => State_NotWanted;
+        public override Task<BeatmapState> CheckSongExistsAsync(string songHash) => State_NotWanted;
 
         public override Task<TargetResult> TransferAsync(ISong song, Stream sourceStream, CancellationToken cancellationToken)
         {

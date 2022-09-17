@@ -21,10 +21,6 @@
       <Project>{e2a07bdb-7085-48a3-aa50-b6e0856a7cca}</Project>
       <Name>BeatSyncLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Libs\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib\BeatSaberPlaylistsLib.csproj">
-      <Project>{e58d6ec9-193f-4328-bb11-86ec2a8ad1fa}</Project>
-      <Name>BeatSaberPlaylistsLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Libs\SongFeedReaders\SongFeedReaders\SongFeedReaders.csproj">
       <Project>{32CF335B-9C8F-4FA4-97C6-1E3E8B3BF7F4}</Project>
       <Name>SongFeedReaders</Name>

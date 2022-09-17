@@ -9,7 +9,7 @@ using SongFeedReaders.Logging;
 
 namespace BeatSyncLib.Hashing
 {
-    public class DirectoryHasher : ISongHashCollection
+    public class DirectoryHashCollection : ISongHashCollection
     {
         protected readonly IBeatmapHasher Hasher;
         protected readonly ILogger? Logger;
@@ -39,7 +39,7 @@ namespace BeatSyncLib.Hashing
             }
         }
 
-        public DirectoryHasher(string directoryPath, IBeatmapHasher hasher, ILogFactory? logFactory = null)
+        public DirectoryHashCollection(string directoryPath, IBeatmapHasher hasher, ILogFactory? logFactory = null)
         {
             _directory = new DirectoryInfo(directoryPath ?? throw new ArgumentNullException(nameof(directoryPath)));
             Hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
@@ -71,7 +71,12 @@ namespace BeatSyncLib.Hashing
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return new HashResult(null, "The task was cancelled.", null);
+#if ASYNC
+                    HashResult hashResult = await hasher.HashDirectoryAsync(dir.FullName, cancellationToken).ConfigureAwait(false);
+#else
                     HashResult hashResult = await Task.Run(() => hasher.HashDirectory(dir.FullName, cancellationToken)).ConfigureAwait(false);
+#endif
+
                     if (hashResult.ResultType == HashResultType.Error)
                         Logger?.Warning($"Unable to get hash for '{dir.Name}': {hashResult.Message}.");
                     else if (hashResult.ResultType == HashResultType.Warn)
@@ -94,7 +99,13 @@ namespace BeatSyncLib.Hashing
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return new HashResult(null, "The task was cancelled.", null);
+
+#if ASYNC
+                    HashResult hashResult = await hasher.HashZippedBeatmapAsync(zipFile.FullName, cancellationToken).ConfigureAwait(false);
+#else
                     HashResult hashResult = await Task.Run(() => hasher.HashZippedBeatmap(zipFile.FullName, cancellationToken)).ConfigureAwait(false);
+#endif
+
                     if (hashResult.ResultType == HashResultType.Error)
                         Logger?.Warning($"Unable to get hash for '{zipFile.Name}': {hashResult.Message}.");
                     else if (hashResult.ResultType == HashResultType.Warn)

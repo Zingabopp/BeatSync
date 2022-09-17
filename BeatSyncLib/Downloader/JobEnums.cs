@@ -10,7 +10,8 @@ namespace BeatSyncLib.Downloader
         Downloading = 1,
         TransferringToTargets = 2,
         Finishing = 3,
-        Finished = 4
+        Finished = 4,
+        Paused = 5
     }
 
     public enum JobState
@@ -20,7 +21,8 @@ namespace BeatSyncLib.Downloader
         Running = 2,
         Finished = 3,
         Cancelled = 4,
-        Error = 5
+        Error = 5,
+        Paused = 6
     }
 
     public enum JobProgressType

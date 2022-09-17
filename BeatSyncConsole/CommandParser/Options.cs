@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BeatSyncConsole
+namespace BeatSyncConsole.CommandParser
 {
     public class Options
     {

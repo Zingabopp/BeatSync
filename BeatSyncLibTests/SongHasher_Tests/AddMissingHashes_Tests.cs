@@ -1,4 +1,5 @@
-﻿using BeatSyncLib.Hashing;
+﻿using BeatSaber.SongHashing;
+using BeatSyncLib.Hashing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -15,6 +16,8 @@ namespace BeatSyncLibTests.SongHasher_Tests
         private static readonly string TestCacheDir = Path.GetFullPath(Path.Combine("Data", "SongHashData"));
         private static readonly string TestSongsDir = Path.GetFullPath(Path.Combine("Data", "Songs"));
 
+        private static readonly IBeatmapHasher BeatmapHasher = new Hasher();
+
         static AddMissingHashes_Tests()
         {
             TestSetup.Initialize();
@@ -24,7 +27,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
         public async Task HashCacheDoesntExist()
         {
             string nonExistantCacheFile = Path.Combine(TestCacheDir, "DoesntExist.dat");
-            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir, TestSetup.LogFactory);
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir, BeatmapHasher, TestSetup.LogFactory);
             int newHashes = await hasher.HashDirectoryAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.AreEqual(newHashes, 7);
         }
@@ -32,7 +35,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
         [TestMethod]
         public async Task HashAllSongs()
         {
-            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir, TestSetup.LogFactory);
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(TestSongsDir, BeatmapHasher, TestSetup.LogFactory);
             int newHashes = await hasher.HashDirectoryAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.AreEqual(newHashes, 7);
         }
@@ -62,7 +65,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
             DirectoryInfo dInfo = new DirectoryInfo(emptyDir);
             dInfo.Create();
             Assert.AreEqual(0, dInfo.GetFiles().Count());
-            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(emptyDir, TestSetup.LogFactory);
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(emptyDir, BeatmapHasher, TestSetup.LogFactory);
             int newHashes = await hasher.HashDirectoryAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.AreEqual(0, newHashes);
 
@@ -87,7 +90,7 @@ namespace BeatSyncLibTests.SongHasher_Tests
             if (Directory.Exists(nonExistantDir))
                 Directory.Delete(nonExistantDir, true);
             Assert.IsFalse(Directory.Exists(nonExistantDir));
-            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(nonExistantDir, TestSetup.LogFactory);
+            SongHasher<SongHashData> hasher = new SongHasher<SongHashData>(nonExistantDir, BeatmapHasher, TestSetup.LogFactory);
             try
             {
                 await hasher.HashDirectoryAsync(CancellationToken.None).ConfigureAwait(false);

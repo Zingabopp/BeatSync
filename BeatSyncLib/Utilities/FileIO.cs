@@ -93,11 +93,11 @@ namespace BeatSyncLib.Utilities
         /// <param name="downloadContainer"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns> 
-        public async Task<DownloadResult> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken)
+        public async Task<DownloadedContainer> DownloadFileAsync(Uri downloadUri, DownloadContainer downloadContainer, CancellationToken cancellationToken)
         {
             int statusCode = 0;
             if (downloadUri == null)
-                return new DownloadResult(null, DownloadResultStatus.InvalidRequest, 0, "DownloadUri is null.",
+                return new DownloadedContainer(null, DownloadResultStatus.InvalidRequest, 0, "DownloadUri is null.",
                     new ArgumentException("DownloadUri is null.", nameof(downloadUri)));
             //if (!overwriteExisting && File.Exists(target))
             //    return new DownloadResult(null, DownloadResultStatus.IOFailed, 0);
@@ -115,12 +115,12 @@ namespace BeatSyncLib.Utilities
                     catch (IOException ex)
                     {
                         // Also catches DirectoryNotFoundException
-                        return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
+                        return new DownloadedContainer(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
                     }
                     catch (InvalidOperationException ex)
                     {
                         // File already exists and overwrite is false.
-                        return new DownloadResult(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
+                        return new DownloadedContainer(null, DownloadResultStatus.IOFailed, statusCode, response.ReasonPhrase, ex);
                     }
                     catch (OperationCanceledException)
                     {
@@ -128,7 +128,7 @@ namespace BeatSyncLib.Utilities
                     }
                     catch (Exception ex)
                     {
-                        return new DownloadResult(null, DownloadResultStatus.NetFailed, statusCode, response?.ReasonPhrase, ex);
+                        return new DownloadedContainer(null, DownloadResultStatus.NetFailed, statusCode, response?.ReasonPhrase, ex);
                     }
                 }
             }
@@ -138,17 +138,17 @@ namespace BeatSyncLib.Utilities
                 DownloadResultStatus downloadResultStatus = DownloadResultStatus.NetFailed;
                 if (faultedCode == 404)
                     downloadResultStatus = DownloadResultStatus.NetNotFound;
-                return new DownloadResult(null, downloadResultStatus, faultedCode, ex.Response?.ReasonPhrase, ex.Response?.Exception ?? ex);
+                return new DownloadedContainer(null, downloadResultStatus, faultedCode, ex.Response?.ReasonPhrase, ex.Response?.Exception ?? ex);
             }
             catch (OperationCanceledException ex)
             {
-                return new DownloadResult(null, DownloadResultStatus.Canceled, 0, ex?.Message, ex);
+                return new DownloadedContainer(null, DownloadResultStatus.Canceled, 0, ex?.Message, ex);
             }
             catch (Exception ex)
             {
-                return new DownloadResult(null, DownloadResultStatus.NetFailed, 0, ex?.Message, ex);
+                return new DownloadedContainer(null, DownloadResultStatus.NetFailed, 0, ex?.Message, ex);
             }
-            return new DownloadResult(downloadContainer, DownloadResultStatus.Success, statusCode);
+            return new DownloadedContainer(downloadContainer, DownloadResultStatus.Success, statusCode);
         }
 
 
