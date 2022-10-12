@@ -11,8 +11,8 @@ namespace BeatSyncLib.Consumers
     {
         private ILogger? _logger;
         private PauseToken _pauseToken = PauseToken.None;
-        private readonly List<IBeatmapFilter> _beatmapFilters = new List<IBeatmapFilter>();
-        private readonly List<IBeatmapTarget> _beatmapTargets = new List<IBeatmapTarget>();
+        private readonly HashSet<IBeatmapFilter> _beatmapFilters = new HashSet<IBeatmapFilter>();
+        private readonly HashSet<IBeatmapTarget> _beatmapTargets = new HashSet<IBeatmapTarget>();
 
         public FeedConsumerBuilder WithLogger(ILogger logger)
         {
@@ -24,14 +24,30 @@ namespace BeatSyncLib.Consumers
             _pauseToken = pauseToken;
             return this;
         }
+        public FeedConsumerBuilder WithGlobalFilter(IBeatmapFilter beatmapFilter)
+        {
+            _beatmapFilters.Add(beatmapFilter);
+            return this;
+        }
         public FeedConsumerBuilder WithGlobalFilters(params IBeatmapFilter[] beatmapFilters)
         {
-            _beatmapFilters.AddRange(beatmapFilters);
+            foreach (IBeatmapFilter filter in beatmapFilters)
+            {
+                WithGlobalFilter(filter);
+            }
+            return this;
+        }
+        public FeedConsumerBuilder WithTarget(IBeatmapTarget beatmapTarget)
+        {
+            _beatmapTargets.Add(beatmapTarget);
             return this;
         }
         public FeedConsumerBuilder WithTargets(params IBeatmapTarget[] beatmapTargets)
         {
-            _beatmapTargets.AddRange(beatmapTargets);
+            foreach (IBeatmapTarget target in beatmapTargets)
+            {
+                WithTarget(target);
+            }
             return this;
         }
         public FeedConsumer Build()
