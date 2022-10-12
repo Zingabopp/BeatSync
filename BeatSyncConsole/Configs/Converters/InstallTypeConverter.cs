@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BeatSyncConsole.Utilities;
-using BeatSyncLib.History;
 using Newtonsoft.Json;
 
 namespace BeatSyncConsole.Configs.Converters

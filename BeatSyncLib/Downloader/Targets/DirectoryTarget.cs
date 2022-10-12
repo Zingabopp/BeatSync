@@ -2,8 +2,6 @@
 using BeatSaberPlaylistsLib;
 using BeatSaberPlaylistsLib.Types;
 using BeatSyncLib.Configs;
-using BeatSyncLib.Hashing;
-using BeatSyncLib.History;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
 using SongFeedReaders.Feeds;
@@ -15,6 +13,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSyncLib.Filtering.Hashing;
+using BeatSyncLib.Filtering.History;
 using ISong = SongFeedReaders.Models.ISong;
 
 namespace BeatSyncLib.Downloader.Targets
@@ -60,7 +60,7 @@ namespace BeatSyncLib.Downloader.Targets
             return this;
         }
 
-        public override Task<BeatmapState> GetTargetSongStateAsync(string songHash, CancellationToken cancellationToken)
+        public override Task<BeatmapState> GetTargetBeatmapStateAsync(string beatmapHash, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(SongsDirectory))
                 throw new InvalidOperationException($"DirectoryTarget has not been configured with a valid path");
@@ -72,14 +72,14 @@ namespace BeatSyncLib.Downloader.Targets
                 else if (SongHashCollection.HashingState == HashingState.InProgress)
                     Logger?.Warning($"SongHasher hasn't finished hashing.");
                 //await SongHasher.InitializeAsync().ConfigureAwait(false);
-                if (SongHashCollection.HashExists(songHash))
+                if (SongHashCollection.HashExists(beatmapHash))
                     state = BeatmapState.Exists;
             }
             if (state == BeatmapState.Wanted && HistoryManager != null)
             {
                 if (!HistoryManager.IsInitialized)
                     HistoryManager.Initialize();
-                if (HistoryManager.TryGetValue(songHash, out HistoryEntry entry))
+                if (HistoryManager.TryGetValue(beatmapHash, out HistoryEntry entry))
                 {
                     if (!entry.AllowRetry)
                     {

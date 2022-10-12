@@ -13,10 +13,10 @@ namespace BeatSyncLib
     public class JobFactory : IJobFactory
     {
         private readonly ISongDownloader _songDownloader;
-        private readonly IBeatmapsTarget[] _targets;
+        private readonly IBeatmapTarget[] _targets;
         private readonly IPauseManager? _pauseManager;
         private readonly ILogFactory? _logFactory;
-        public JobFactory(ISongDownloader songDownloader, IEnumerable<IBeatmapsTarget> targets,
+        public JobFactory(ISongDownloader songDownloader, IEnumerable<IBeatmapTarget> targets,
             IPauseManager? pauseManager = null, ILogFactory? logFactory = null)
         {
             _songDownloader = songDownloader ?? throw new ArgumentNullException(nameof(songDownloader));

@@ -14,7 +14,7 @@ namespace BeatSyncLib.Downloader
 {
     public sealed class Job : IJob
     {
-        private readonly IBeatmapsTarget[] _targets;
+        private readonly IBeatmapTarget[] _targets;
         private readonly ISongDownloader _songDownloader;
         private readonly IPauseManager? _pauseManager;
         private readonly ILogger? _logger;
@@ -24,7 +24,7 @@ namespace BeatSyncLib.Downloader
         public event EventHandler<JobStage>? JobStageChanged;
         public event EventHandler<JobResult>? JobFinished;
 
-        public Job(ISong beatmap, ISongDownloader songDownloader, IEnumerable<IBeatmapsTarget> targets,
+        public Job(ISong beatmap, ISongDownloader songDownloader, IEnumerable<IBeatmapTarget> targets,
             IPauseManager? pauseManager = null, ILogFactory? logFactory = null)
         {
             Beatmap = beatmap ?? throw new ArgumentNullException(nameof(beatmap));
@@ -86,7 +86,7 @@ namespace BeatSyncLib.Downloader
                 SetStage(JobStage.TransferringToTargets);
                 for (int i = 0; i < _targets.Length; i++)
                 {
-                    IBeatmapsTarget target = _targets[i];
+                    IBeatmapTarget target = _targets[i];
                     if (container.TryGetResultStream(out Stream? stream, out Exception? exception)
                         && stream != null)
                     {

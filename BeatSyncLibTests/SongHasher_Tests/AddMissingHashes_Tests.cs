@@ -1,5 +1,4 @@
 ﻿using BeatSaber.SongHashing;
-using BeatSyncLib.Hashing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;

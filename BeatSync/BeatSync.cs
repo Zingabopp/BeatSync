@@ -2,8 +2,6 @@
 using BeatSyncLib.Downloader;
 using BeatSyncLib.Downloader.Downloading;
 using BeatSyncLib.Downloader.Targets;
-using BeatSyncLib.Hashing;
-using BeatSyncLib.History;
 using BeatSyncLib.Playlists;
 using BeatSaberPlaylistsLib;
 using System;

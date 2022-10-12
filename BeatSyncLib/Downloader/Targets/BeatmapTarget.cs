@@ -7,10 +7,11 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSyncLib.Filtering;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public abstract class BeatmapTarget : IBeatmapsTarget
+    public abstract class BeatmapTarget : IBeatmapTarget
     {
         protected readonly ILogger? Logger;
         private static object _idLock = new object();
@@ -35,8 +36,8 @@ namespace BeatSyncLib.Downloader.Targets
             Logger = logFactory?.GetLogger(GetType().Name);
         }
 
-        public abstract Task<TargetResult> TransferAsync(ISong song, Stream sourceStream, CancellationToken cancellationToken);
-        public abstract Task<BeatmapState> GetTargetSongStateAsync(string songHash, CancellationToken cancellationToken);
+        public abstract Task<TargetResult> TransferAsync(ISong beatmap, Stream sourceStream, CancellationToken cancellationToken);
+        public abstract Task<BeatmapState> GetTargetBeatmapStateAsync(string beatmapHash, CancellationToken cancellationToken);
         public abstract Task OnFeedJobsFinished(IEnumerable<JobResult> jobResults, BeatSyncConfig beatSyncConfig, FeedConfigBase? feedConfig, CancellationToken cancellationToken);
     }
 }

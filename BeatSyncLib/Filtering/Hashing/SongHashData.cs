@@ -1,4 +1,4 @@
-﻿namespace BeatSyncLib.Hashing
+﻿namespace BeatSyncLib.Filtering.Hashing
 {
     public class SongHashData
     {

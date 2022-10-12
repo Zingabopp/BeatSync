@@ -1,5 +1,4 @@
-﻿using BeatSyncLib.History;
-using BeatSyncLib.Utilities;
+﻿using BeatSyncLib.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SongFeedReaders.Logging;
 using System;

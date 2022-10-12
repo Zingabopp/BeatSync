@@ -7,13 +7,13 @@ namespace BeatSyncLib.Downloader.Targets
 {
     public class TargetResult
     {
-        public IBeatmapsTarget Target { get; }
+        public IBeatmapTarget Target { get; }
         public ISong Beatmap { get; }
         public bool Success { get; protected set; }
         public BeatmapState SongState { get; }
         public string? BeatmapHash { get; }
         public Exception? Exception { get; protected set; }
-        public TargetResult(ISong beatmap, IBeatmapsTarget target, BeatmapState songState, bool success, string? beatmapHash, Exception? exception)
+        public TargetResult(ISong beatmap, IBeatmapTarget target, BeatmapState songState, bool success, string? beatmapHash, Exception? exception)
         {
             Beatmap = beatmap;
             Target = target;

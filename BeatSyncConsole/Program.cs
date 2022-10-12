@@ -8,8 +8,6 @@ using SongFeedReaders.Logging;
 using BeatSyncConsole.Utilities;
 using BeatSyncLib.Downloader;
 using BeatSyncLib.Downloader.Targets;
-using BeatSyncLib.Hashing;
-using BeatSyncLib.History;
 using BeatSyncLib.Playlists;
 using BeatSyncLib.Utilities;
 using CommandLine;
@@ -27,6 +25,7 @@ using System.Threading.Tasks;
 using WebUtilities.DownloadContainers;
 using WebUtilities;
 using BeatSyncConsole.CommandParser;
+using BeatSyncLib.Filtering.History;
 
 namespace BeatSyncConsole
 {

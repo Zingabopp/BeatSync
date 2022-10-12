@@ -1,14 +1,14 @@
-﻿using SongFeedReaders.Models;
-using BeatSyncLib.Utilities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using BeatSyncLib.Utilities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SongFeedReaders.Logging;
+using SongFeedReaders.Models;
 
-namespace BeatSyncLib.History
+namespace BeatSyncLib.Filtering.History
 {
     public class HistoryManager
     {

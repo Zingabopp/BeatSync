@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BeatSyncLib.Hashing
+namespace BeatSyncLib.Filtering.Hashing
 {
     /// <summary>
     /// Represents a target location that contains beatmaps to be hashed.

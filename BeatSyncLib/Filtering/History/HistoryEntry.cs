@@ -1,12 +1,9 @@
-﻿using SongFeedReaders.Models;
-using System;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using BeatSyncLib.Configs.Converters;
-using BeatSyncLib.Utilities;
+using Newtonsoft.Json;
+using SongFeedReaders.Models;
 
-namespace BeatSyncLib.History
+namespace BeatSyncLib.Filtering.History
 {
     public class HistoryEntry
     {

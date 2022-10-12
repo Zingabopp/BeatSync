@@ -1,40 +1,44 @@
-﻿using BeatSyncLib.Configs;
+﻿using BeatSyncLib.Filtering;
 using SongFeedReaders.Models;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using SongFeedReaders.Feeds;
+using SongFeedReaders.Utilities;
 
 namespace BeatSyncLib.Downloader.Targets
 {
     /// <summary>
     /// Destination for beatmaps
     /// </summary>
-    public interface IBeatmapsTarget
+    public interface IBeatmapTarget
     {
         string TargetName { get; }
 
         /// <summary>
-        /// Checks the song state of the destination.
+        /// Checks the beatmap state of the destination.
         /// </summary>
-        /// <param name="songHash"></param>
+        /// <param name="beatmapHash"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<BeatmapState> GetTargetSongStateAsync(string songHash, CancellationToken cancellationToken);
+        Task<BeatmapState> GetTargetBeatmapStateAsync(string beatmapHash, CancellationToken cancellationToken);
+        /// <summary>
+        /// Checks the beatmap state of the destination.
+        /// </summary>
+        /// <param name="beatmap"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<BeatmapState> GetTargetBeatmapStateAsync(ISong beatmap, CancellationToken cancellationToken);
+
         /// <summary>
         /// Transfers a beatmap zip file to a target. Any exceptions are caught and returned in <see cref="TargetResult.Exception"/>
         /// </summary>
+        /// <param name="beatmap"></param>
         /// <param name="sourceStream"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<TargetResult> TransferAsync(ISong song, Stream sourceStream, CancellationToken cancellationToken);
+        Task<TargetResult> TransferAsync(ISong beatmap, Stream sourceStream, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Perform an action on completion of feed jobs(Adding beatmaps to playlists).
-        /// </summary>
-        /// <param name="jobResults"></param>
-        /// <returns></returns>
-        Task OnFeedJobsFinished(IEnumerable<JobResult> jobResults, BeatSyncConfig beatSyncConfig, FeedConfigBase? feedConfig, CancellationToken cancellationToken);
+        Task<TargetResult> ProcessFeedResult(FeedResult feedResult, PauseToken pauseToken, CancellationToken cancellationToken);
     }
 }

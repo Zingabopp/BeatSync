@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using BeatSaber.SongHashing;
 using SongFeedReaders.Logging;
 
-namespace BeatSyncLib.Hashing
+namespace BeatSyncLib.Filtering.Hashing
 {
     public class DirectoryHashCollection : ISongHashCollection
     {

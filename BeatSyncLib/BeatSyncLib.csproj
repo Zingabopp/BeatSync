@@ -115,6 +115,7 @@
 		<ProjectReference Include="..\Libs\SongFeedReaders\submodules\WebUtilities\WebUtilities\WebUtilities.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+		<Folder Include="Abstractions" />
 		<Folder Include="Abstractions\" />
 	</ItemGroup>
 

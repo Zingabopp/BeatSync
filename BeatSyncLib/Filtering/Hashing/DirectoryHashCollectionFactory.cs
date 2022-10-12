@@ -1,11 +1,9 @@
-﻿using BeatSaber.SongHashing;
-using SongFeedReaders.Logging;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
+using BeatSaber.SongHashing;
+using SongFeedReaders.Logging;
 
-namespace BeatSyncLib.Hashing
+namespace BeatSyncLib.Filtering.Hashing
 {
     public class DirectoryHashCollectionFactory : ISongHashCollectionFactory
     {

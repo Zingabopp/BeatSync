@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using BeatSyncLib.Hashing;
 using System.IO;
 using System.Threading.Tasks;
 using BeatSaber.SongHashing;

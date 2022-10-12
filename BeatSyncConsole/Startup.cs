@@ -27,11 +27,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUtilities;
 using WebUtilities.HttpClientWrapper;
-using BeatSyncLib.History;
-using BeatSyncLib.Hashing;
 using BeatSyncLib.Downloader.Targets;
 using static System.Net.WebRequestMethods;
 using BeatSaber.SongHashing;
+using BeatSyncLib.Filtering.Hashing;
+using BeatSyncLib.Filtering.History;
 
 namespace BeatSyncConsole
 {
@@ -131,7 +131,7 @@ namespace BeatSyncConsole
             }
         }
 
-        private async Task<IBeatmapsTarget> CreateTarget(ISongLocation location, FileIO fileIO, IBeatmapHasher hasher, ILogFactory? logFactory)
+        private async Task<IBeatmapTarget> CreateTarget(ISongLocation location, FileIO fileIO, IBeatmapHasher hasher, ILogFactory? logFactory)
         {
             bool overwriteTarget = false;
             bool unzipBeatmaps = true;
@@ -172,7 +172,7 @@ namespace BeatSyncConsole
             sw.Stop();
             TimeSpan ts = sw.Elapsed;
             Logger?.Info($"Hashed {hashedCount} beatmaps in {Paths.GetRelativeDirectory(songsDirectory)} in {FormatTimeSpan(ts)}.");
-            IBeatmapsTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, unzipBeatmaps, 
+            IBeatmapTarget songTarget = new DirectoryTarget(songsDirectory, overwriteTarget, unzipBeatmaps, 
                 fileIO, hashCollection, hasher, historyManager, playlistManager);
             return songTarget;
         }
