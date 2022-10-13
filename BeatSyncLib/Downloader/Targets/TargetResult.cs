@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using BeatSyncLib.Filtering;
 
 namespace BeatSyncLib.Downloader.Targets
 {
@@ -13,7 +14,8 @@ namespace BeatSyncLib.Downloader.Targets
         public BeatmapState SongState { get; }
         public string? BeatmapHash { get; }
         public Exception? Exception { get; protected set; }
-        public TargetResult(ISong beatmap, IBeatmapTarget target, BeatmapState songState, bool success, string? beatmapHash, Exception? exception)
+        public TargetResult(ISong beatmap, IBeatmapTarget target, BeatmapState songState, 
+            bool success, string? beatmapHash, Exception? exception)
         {
             Beatmap = beatmap;
             Target = target;

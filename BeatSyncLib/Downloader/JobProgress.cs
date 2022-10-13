@@ -42,12 +42,12 @@ namespace BeatSyncLib.Downloader
         public readonly ProgressValue TotalProgress;
         public readonly ProgressValue? StageProgress;
         public readonly IDownloadJob? DownloadJob;
-        public readonly BeatmapTarget? SongTarget;
+        public readonly IBeatmapTarget? SongTarget;
         public readonly DownloadedContainer? DownloadResult;
         public readonly TargetResult? TargetResult;
 
         public JobProgress(JobProgressType jobProgressType, JobStage jobStage, ProgressValue totalProgress, ProgressValue? stageProgress = null,
-            IDownloadJob? downloadJob = null, BeatmapTarget? songTarget = null, DownloadedContainer? downloadResult = null, TargetResult? targetResult = null)
+            IDownloadJob? downloadJob = null, IBeatmapTarget? songTarget = null, DownloadedContainer? downloadResult = null, TargetResult? targetResult = null)
         {
             JobProgressType = jobProgressType;
             JobStage = jobStage;

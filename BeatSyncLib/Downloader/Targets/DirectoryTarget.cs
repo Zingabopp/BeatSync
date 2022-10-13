@@ -13,41 +13,45 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSyncLib.Filtering;
 using BeatSyncLib.Filtering.Hashing;
 using BeatSyncLib.Filtering.History;
+using SongFeedReaders.Utilities;
 using ISong = SongFeedReaders.Models.ISong;
+using Util = BeatSyncLib.Utilities.Util;
 
 namespace BeatSyncLib.Downloader.Targets
 {
-    public class DirectoryTarget : BeatmapTarget
+    public class DirectoryTarget : IBeatmapTarget
     {
         public IBeatmapHasher Hasher { get; private set; }
-        public override string TargetName => nameof(DirectoryTarget);
+        private IBeatmapFilter[] _filters = Array.Empty<IBeatmapFilter>();
+        private readonly PlaylistManager? _playlistManager = null;
+        public string TargetName => nameof(DirectoryTarget);
         public FileIO FileIO { get; private set; }
-        public ISongHashCollection SongHashCollection { get; private set; }
-        public HistoryManager? HistoryManager { get; private set; }
-        public PlaylistManager? PlaylistManager { get; private set; }
         public string SongsDirectory { get; private set; } = null!;
         public bool OverwriteTarget { get; private set; }
         public bool UnzipBeatmaps { get; private set; } = true;
+        private readonly ILogger? _logger;
 
-
-        public DirectoryTarget(FileIO fileIO, ISongHashCollection songHashCollection,
-            IBeatmapHasher hasher, HistoryManager? historyManager = null, PlaylistManager? playlistManager = null,
+        public DirectoryTarget(FileIO fileIO, IEnumerable<IBeatmapFilter>? filters,
+            IBeatmapHasher hasher, PlaylistManager? playlistManager = null,
             ILogFactory? logFactory = null)
-            : base(logFactory)
         {
+            _logger = logFactory?.GetLogger();
             FileIO = fileIO ?? throw new ArgumentNullException(nameof(fileIO));
-            SongHashCollection = songHashCollection ?? throw new ArgumentNullException(nameof(songHashCollection));
+            if (filters != null)
+            {
+                _filters = filters.ToArray();
+            }
             Hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
-            HistoryManager = historyManager;
-            PlaylistManager = playlistManager;
+            _playlistManager = playlistManager;
         }
 
-        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, FileIO fileIO, ISongHashCollection songHashCollection,
-            IBeatmapHasher hasher, HistoryManager? historyManager = null, PlaylistManager? playlistManager = null,
+        public DirectoryTarget(string songsDirectory, bool overwriteTarget, bool unzipBeatmaps, FileIO fileIO, 
+            IEnumerable<IBeatmapFilter> filters, IBeatmapHasher hasher, PlaylistManager? playlistManager = null,
             ILogFactory? logFactory = null)
-            : this(fileIO, songHashCollection, hasher, historyManager, playlistManager, logFactory)
+            : this(fileIO, filters, hasher, playlistManager, logFactory)
         {
             Configure(songsDirectory, overwriteTarget, unzipBeatmaps);
         }
@@ -59,40 +63,48 @@ namespace BeatSyncLib.Downloader.Targets
             UnzipBeatmaps = unzipBeatmaps;
             return this;
         }
-
-        public override Task<BeatmapState> GetTargetBeatmapStateAsync(string beatmapHash, CancellationToken cancellationToken)
+        public async Task<BeatmapState> GetTargetBeatmapStateAsync(string beatmapHash, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(SongsDirectory))
                 throw new InvalidOperationException($"DirectoryTarget has not been configured with a valid path");
+            Task<BeatmapState>[] filterResults =
+                _filters.Select(f => f.GetBeatmapStateAsync(beatmapHash, cancellationToken)).ToArray();
+            await Task.WhenAll(filterResults);
             BeatmapState state = BeatmapState.Wanted;
-            if (SongHashCollection != null)
+            foreach (BeatmapState result in filterResults.Select(r => r.Result))
             {
-                if (SongHashCollection.HashingState == HashingState.NotStarted)
-                    Logger?.Warning($"SongHasher hasn't hashed any songs yet.");
-                else if (SongHashCollection.HashingState == HashingState.InProgress)
-                    Logger?.Warning($"SongHasher hasn't finished hashing.");
-                //await SongHasher.InitializeAsync().ConfigureAwait(false);
-                if (SongHashCollection.HashExists(beatmapHash))
-                    state = BeatmapState.Exists;
-            }
-            if (state == BeatmapState.Wanted && HistoryManager != null)
-            {
-                if (!HistoryManager.IsInitialized)
-                    HistoryManager.Initialize();
-                if (HistoryManager.TryGetValue(beatmapHash, out HistoryEntry entry))
+                // This depends on BeatmapState being ordered correctly
+                if (state < result)
                 {
-                    if (!entry.AllowRetry)
-                    {
-                        state = BeatmapState.NotWanted;
-                        entry.Flag = HistoryFlag.Deleted;
-                    }
+                    state = result;
                 }
             }
-            return Task.FromResult(state);
+
+            return state;
+        }
+        public async Task<BeatmapState> GetTargetBeatmapStateAsync(ISong beatmap, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(SongsDirectory))
+                throw new InvalidOperationException($"DirectoryTarget has not been configured with a valid path");
+            Task<BeatmapState>[] filterResults =
+                _filters.Select(f => f.GetBeatmapStateAsync(beatmap, cancellationToken)).ToArray();
+            await Task.WhenAll(filterResults);
+            BeatmapState state = BeatmapState.Wanted;
+            foreach (BeatmapState result in filterResults.Select(r => r.Result))
+            {
+                // This depends on BeatmapState being ordered correctly
+                if (state < result)
+                {
+                    state = result;
+                }
+            }
+
+            return state;
         }
 
-        public override async Task<TargetResult> TransferAsync(ISong beatmap, Stream sourceStream, CancellationToken cancellationToken)
+        public async Task<TargetResult> TransferAsync(ISong beatmap, Stream sourceStream, CancellationToken cancellationToken)
         {
+            // TODO: Cache this task and run post-processing for playlist updating for if more than one feed adds the same beatmapHash
             if (string.IsNullOrWhiteSpace(SongsDirectory))
                 throw new InvalidOperationException($"DirectoryTarget has not been configured with a valid path");
             if (beatmap == null)
@@ -124,9 +136,9 @@ namespace BeatSyncLib.Downloader.Targets
                         HashResult hashResult = await Task.Run(() => Hasher.HashDirectory(zipResult.OutputDirectory, cancellationToken)).ConfigureAwait(false);
 #endif
                         if (hashResult.ResultType == HashResultType.Error)
-                            Logger?.Warning($"Unable to get hash for '{beatmap}': {hashResult.Message}.");
+                            _logger?.Warning($"Unable to get hash for '{beatmap}': {hashResult.Message}.");
                         else if (hashResult.ResultType == HashResultType.Warn)
-                            Logger?.Warning($"Hash warning for '{beatmap}': {hashResult.Message}.");
+                            _logger?.Warning($"Hash warning for '{beatmap}': {hashResult.Message}.");
                         else
                         {
                             hashAfterDownload = hashResult.Hash;
@@ -134,7 +146,7 @@ namespace BeatSyncLib.Downloader.Targets
                                 throw new BeatmapTargetTransferException($"Extracted song hash doesn't match expected hash: {beatmap.Hash} != {hashAfterDownload}");
                         }
                     }
-                    TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, 
+                    return new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, 
                         zipResult.ResultStatus == ZipExtractResultStatus.Success, hashAfterDownload, 
                         zipResult, zipResult.Exception);
                 }
@@ -156,9 +168,9 @@ namespace BeatSyncLib.Downloader.Targets
                             HashResult hashResult = await Task.Run(() => Hasher.HashZippedBeatmap(zipDestination, cancellationToken)).ConfigureAwait(false);
 #endif
                             if (hashResult.ResultType == HashResultType.Error)
-                                Logger?.Warning($"Unable to get hash for '{beatmap}': {hashResult.Message}.");
+                                _logger?.Warning($"Unable to get hash for '{beatmap}': {hashResult.Message}.");
                             else if (hashResult.ResultType == HashResultType.Warn)
-                                Logger?.Warning($"Hash warning for '{beatmap}': {hashResult.Message}.");
+                                _logger?.Warning($"Hash warning for '{beatmap}': {hashResult.Message}.");
                             else
                             {
                                 hashAfterDownload = hashResult.Hash;
@@ -167,51 +179,55 @@ namespace BeatSyncLib.Downloader.Targets
                             }
                         }
 
-                        TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, true, hashAfterDownload, null);
+                        return new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, true, hashAfterDownload, null);
                     }
                     catch (OperationCanceledException ex)
                     {
-                        TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
+                        return new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception ex)
                     {
-                        TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
+                        return new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
                     }
 #pragma warning restore CA1031 // Do not catch general exception types
-                    return TargetResult;
+                    //return TargetResult;
                 }
             }
             catch (OperationCanceledException ex)
             {
-                TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
+                return new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, ex);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                TargetResult = new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, zipResult, ex);
-                return TargetResult;
+                return new DirectoryTargetResult(beatmap, this, BeatmapState.Wanted, false, hashAfterDownload, zipResult, ex);
             }
 #pragma warning restore CA1031 // Do not catch general exception types
-
-            return TargetResult;
         }
 
-        public override Task OnFeedJobsFinished(IEnumerable<JobResult> jobResults, BeatSyncConfig beatSyncConfig, FeedConfigBase? feedConfig, CancellationToken cancellationToken)
+        public async Task<TargetResult> ProcessFeedResult(FeedResult feedResult, PauseToken pauseToken, CancellationToken cancellationToken)
         {
-            bool hasResults = jobResults.Any();
-            if (!hasResults)
-                return Task.CompletedTask;
-            PlaylistManager? playlistManager = PlaylistManager;
+            throw new NotImplementedException();
+        }
+
+        public async Task OnFeedJobsFinished(IEnumerable<JobResult> jobResults, BeatSyncConfig beatSyncConfig, FeedConfigBase? feedConfig, CancellationToken cancellationToken)
+        {
+            JobResult[] results = jobResults.ToArray();
+            if (results.Length == 0)
+            {
+                return;
+            }
+
+            PlaylistManager? playlistManager = _playlistManager;
 
             IPlaylist? playlist = null;
-            PlaylistStyle playlistStyle = PlaylistStyle.Append;
             bool playlistSortAscending = true;
             if (feedConfig != null && playlistManager != null && feedConfig.CreatePlaylist)
             {
                 BuiltInPlaylist playlistType = feedConfig.FeedPlaylist;
                 playlistSortAscending = playlistType.IsSortAscending();
-                playlistStyle = feedConfig.PlaylistStyle;
+                PlaylistStyle playlistStyle = feedConfig.PlaylistStyle;
                 ISong? first = jobResults.FirstOrDefault()?.Song;
                 if (playlistType == BuiltInPlaylist.BeatSaverFavoriteMappers
                     && feedConfig is BeatSaverFavoriteMappers mappersConfig
@@ -233,27 +249,13 @@ namespace BeatSyncLib.Downloader.Targets
             TimeSpan offset = new TimeSpan(0, 0, 0, 0, -1);
             DateTime addedTime = DateTime.Now;
 
-            foreach (var result in jobResults)
+            foreach (JobResult result in results)
             {
                 ISong? beatmap = result.Song;
                 if (beatmap == null)
                     continue;
-                DirectoryTarget? target = result.TargetResults
-                    .Where(tr => ReferenceEquals(this, tr.Target))
-                    .Select(tr => tr.Target)
-                    .FirstOrDefault() as DirectoryTarget;
-                if (target == null)
-                    continue;
-
-                HistoryManager? historyManager = HistoryManager;
-                if (historyManager != null)
-                {
-                    string? songHash = beatmap.Hash;
-                    if (songHash != null && songHash.Length > 0)
-                    {
-                        historyManager.AddOrUpdate(songHash, result.CreateHistoryEntry());
-                    }
-                }
+                await Task.WhenAll(_filters.Select(f =>
+                    f.UpdateBeatmapStateAsync(beatmap, BeatmapState.Downloaded, cancellationToken)).ToList());
                 if (playlist != null)
                 {
                     IPlaylistSong? addedSong = playlist.Add(beatmap);
@@ -270,23 +272,7 @@ namespace BeatSyncLib.Downloader.Targets
                 playlist.RaisePlaylistChanged();
                 playlistManager.StorePlaylist(playlist);
             }
-            return Task.CompletedTask;
-        }
-    }
-
-    public class DirectoryTargetResult : TargetResult
-    {
-        public ZipExtractResult? ZipExtractResult { get; protected set; }
-        public DirectoryTargetResult(ISong beatmap, BeatmapTarget target, BeatmapState songState,
-            bool success, string? beatmapHash, Exception? exception)
-            : base(beatmap, target, songState, success, beatmapHash, exception)
-        { }
-
-        public DirectoryTargetResult(ISong beatmap, BeatmapTarget target, BeatmapState songState,
-            bool success, string? beatmapHash, ZipExtractResult? zipExtractResult, Exception? exception)
-            : base(beatmap, target, songState, success, beatmapHash, exception)
-        {
-            ZipExtractResult = zipExtractResult;
+            return;
         }
     }
 }
