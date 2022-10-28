@@ -24,7 +24,7 @@
 //        {
 //            var cachePath = Path.Combine(TestCacheDir, "SongHashData.dat");
 //            Assert.IsTrue(File.Exists(cachePath));
-//            var hasher = new SongHasher<SongHashData>(TestSongsDir, cachePath);
+//            var hasher = new SongHasher(TestSongsDir, cachePath);
 //            hasher.LoadCachedSongHashes();
 //            Assert.AreEqual(hasher.HashDictionary.Count, 8);
 //        }
@@ -34,7 +34,7 @@
 //        {
 //            var cachePath = Path.Combine(TestCacheDir, "SongHashData_DuplicateSong.dat");
 //            Assert.IsTrue(File.Exists(cachePath));
-//            var hasher = new SongHasher<SongHashData>(TestSongsDir, cachePath);
+//            var hasher = new SongHasher(TestSongsDir, cachePath);
 //            hasher.LoadCachedSongHashes();
 //            Assert.AreEqual(hasher.HashDictionary.Count, 9);
 //            int uniqueHashes = hasher.HashDictionary.Values.Select(h => h.songHash).Distinct().Count();
@@ -47,7 +47,7 @@
 //            // Completely ignores the duplicate entry.
 //            var cachePath = Path.Combine(TestCacheDir, "SongHashData_DuplicateEntries.dat");
 //            Assert.IsTrue(File.Exists(cachePath));
-//            var hasher = new SongHasher<SongHashData>(TestSongsDir, cachePath);
+//            var hasher = new SongHasher(TestSongsDir, cachePath);
 //            hasher.LoadCachedSongHashes();
 //            Assert.AreEqual(hasher.HashDictionary.Count, 8);
 //            int uniqueHashes = hasher.HashDictionary.Values.Select(h => h.songHash).Distinct().Count();
@@ -59,7 +59,7 @@
 //        {
 //            var nonExistantCacheFile = Path.Combine(TestCacheDir, "DoesntExist.dat");
 //            Assert.IsFalse(File.Exists(nonExistantCacheFile));
-//            var hasher = new SongHasher<SongHashData>(TestSongsDir, nonExistantCacheFile);
+//            var hasher = new SongHasher(TestSongsDir, nonExistantCacheFile);
 //            hasher.LoadCachedSongHashes();
 //            Assert.AreEqual(hasher.HashDictionary.Count, 0);
 //        }
@@ -70,7 +70,7 @@
 //            // Completely ignores the duplicate entry.
 //            var cachePath = Path.Combine(TestCacheDir, "TestSongsHashData.dat");
 //            Assert.IsTrue(File.Exists(cachePath));
-//            var hasher = new SongHasher<SongHashData>(TestSongsDir, cachePath);
+//            var hasher = new SongHasher(TestSongsDir, cachePath);
 //            hasher.LoadCachedSongHashes();
 //            Assert.AreEqual(hasher.HashDictionary.Count, 6);
 //            int uniqueHashes = hasher.HashDictionary.Values.Select(h => h.songHash).Distinct().Count();

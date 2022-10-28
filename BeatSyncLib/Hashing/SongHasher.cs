@@ -1,4 +1,5 @@
-﻿using BeatSyncLib.Utilities;
+﻿using BeatSaber.SongHashing;
+using BeatSyncLib.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -8,31 +9,47 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BeatSyncLib.Hashing
 {
-    public abstract class SongHasher
+    public class SongHasher
     {
         public Type SongHashType { get; protected set; }
         public bool Initialized { get; protected set; }
-        public ConcurrentDictionary<string, ISongHashData> HashDictionary;
+        public ConcurrentDictionary<string, SongHashData> HashDictionary;
         public ConcurrentDictionary<string, string> ExistingSongs;
-
+        public static IBeatmapHasher hasher = new Hasher();
         /// <summary>
         /// Directory where custom levels folders are.
         /// </summary>
         public string CustomLevelsPath { get; protected set; }
 
-        private Task<int> _initializingTask;
+        private Task<int>? _initializingTask;
         private object _initializingLock = new object();
+
+
+        /// <summary>
+        /// Creates a new SongHasher with the specified customLevelsPath.
+        /// </summary>
+        /// <param name="customLevelsPath"></param>
+        public SongHasher(string customLevelsPath)
+        {
+            SongHashType = typeof(SongHashData);
+            CustomLevelsPath = customLevelsPath;
+            HashDictionary = new ConcurrentDictionary<string, SongHashData>();
+            ExistingSongs = new ConcurrentDictionary<string, string>();
+        }
 
         public Task<int> InitializeAsync()
         {
             lock (_initializingLock)
             {
                 if (_initializingTask == null)
+                {
                     _initializingTask = HashDirectoryAsync();
+                }
             }
             return _initializingTask;
         }
@@ -48,12 +65,14 @@ namespace BeatSyncLib.Hashing
             sw.Start();
             DirectoryInfo songDir = new DirectoryInfo(CustomLevelsPath);
             if (!songDir.Exists)
+            {
                 throw new DirectoryNotFoundException($"Song Hasher's song directory doesn't exist: {songDir.FullName}");
+            }
             //Logger.log?.Info($"SongDir is {songDir.FullName}");
             int hashedSongs = 0;
             IEnumerable<Task>? directoryTasks = songDir.GetDirectories().Where(d => !HashDictionary.ContainsKey(d.FullName)).ToList().Select(async d =>
             {
-                ISongHashData? data = null;
+                SongHashData data = default;
                 try
                 {
                     data = await GetSongHashDataAsync(d.FullName);
@@ -79,20 +98,17 @@ namespace BeatSyncLib.Hashing
                     Logger.log?.Debug(ex);
                     return;
                 }
-
-                if (data == null)
-                {
-                    Logger.log?.Warn($"GetSongHashData({d.FullName}) returned null");
-                    return;
-                }
-                else if (data.songHash == null || data.songHash.Length == 0)
+                if (data.songHash == null || data.songHash.Length == 0)
                 {
                     Logger.log?.Warn($"GetSongHashData(\"{d.Name}\") returned a null string for hash (No info.dat?).");
                     return;
                 }
 
                 if (!ExistingSongs.TryAdd(data.songHash, d.FullName))
+                {
                     Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {d.Name}");
+                }
+
                 if (!HashDictionary.TryAdd(d.FullName, data))
                 {
                     Logger.log?.Warn($"Couldn't add {d.FullName} to HashDictionary");
@@ -107,10 +123,10 @@ namespace BeatSyncLib.Hashing
                 //}
             });
             await Task.WhenAll(directoryTasks).ConfigureAwait(false);
-            var files = songDir.GetFiles().Where(f => !HashDictionary.ContainsKey(f.FullName) && f.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase)).ToList();
+            List<FileInfo> files = songDir.GetFiles().Where(f => !HashDictionary.ContainsKey(f.FullName) && f.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase)).ToList();
             IEnumerable<Task>? fileTasks = files.Select(async f =>
             {
-                ISongHashData? data = null;
+                SongHashData data = default;
                 try
                 {
                     data = await GetZippedSongHashAsync(f.FullName).ConfigureAwait(false);
@@ -132,19 +148,17 @@ namespace BeatSyncLib.Hashing
                     return;
                 }
 
-                if (data == null)
-                {
-                    Logger.log?.Warn($"GetZippedSongHashAsync({f.FullName}) returned null");
-                    return;
-                }
-                else if (data.songHash == null || data.songHash.Length == 0)
+                if (data.songHash == null || data.songHash.Length == 0)
                 {
                     Logger.log?.Warn($"GetZippedSongHashAsync(\"{f.Name}\") returned a null string for hash (No info.dat?).");
                     return;
                 }
 
                 if (!ExistingSongs.TryAdd(data.songHash, f.FullName))
+                {
                     Logger.log?.Debug($"Duplicate song detected: {ExistingSongs[data.songHash]?.Split('\\', '/').LastOrDefault()} : {f.Name}");
+                }
+
                 if (!HashDictionary.TryAdd(f.FullName, data))
                 {
                     Logger.log?.Warn($"Couldn't add {f.FullName} to HashDictionary");
@@ -173,18 +187,32 @@ namespace BeatSyncLib.Hashing
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">Thrown when path is null or empty.</exception>
         /// <exception cref="DirectoryNotFoundException">Thrown when path's directory doesn't exist.</exception>
-        public static Task<ISongHashData> GetSongHashDataAsync(string songDirectory)
+        public static async Task<SongHashData> GetSongHashDataAsync(string songDirectory)
         {
-            return Task.Run<ISongHashData>(() => new SongHashData() { songHash = Util.GenerateHash(songDirectory) });
+#if NET6_0_OR_GREATER
+            HashResult result = await hasher.HashDirectoryAsync(songDirectory, CancellationToken.None);
+#else
+            HashResult result = await Task.Run<HashResult>(() => hasher.HashDirectory(songDirectory, CancellationToken.None));
+#endif
+
+            long directoryHash = hasher.QuickDirectoryHash(songDirectory);
+            return new SongHashData()
+            {
+                directoryHash = directoryHash,
+                songHash = result.Hash
+            };
         }
 
-        public static Task<ISongHashData> GetZippedSongHashAsync(string zipPath, string existingHash = "")
-            => Task.Run<ISongHashData>(() => new SongHashData() { songHash = GetZippedSongHash(zipPath) });
+        public static Task<SongHashData> GetZippedSongHashAsync(string zipPath, string existingHash = "")
+            => Task.Run<SongHashData>(() => new SongHashData() { songHash = GetZippedSongHash(zipPath) });
 
         public static string? GetZippedSongHash(string zipPath, string existingHash = "")
         {
             if (!File.Exists(zipPath))
+            {
                 return null;
+            }
+
             ZipArchive zip;
             try
             {
@@ -244,13 +272,18 @@ namespace BeatSyncLib.Hashing
                             }
                         }
                         else
+                        {
                             Logger.log?.Debug($"Missing difficulty file {beatmapFileName} in {zipPath}");
+                        }
                     }
                 }
                 zip.Dispose();
                 string hash = Util.CreateSha1FromBytes(combinedBytes.ToArray());
                 if (!string.IsNullOrEmpty(existingHash) && existingHash != hash)
+                {
                     Logger.log?.Warn($"Hash doesn't match the existing hash for {zipPath}");
+                }
+
                 return hash;
             }
             catch (Exception ex)
@@ -301,7 +334,10 @@ namespace BeatSyncLib.Hashing
                     hash1 = ((hash1 << 5) + hash1) ^ c;
                     c = src[s];
                     if (c == 0)
+                    {
                         break;
+                    }
+
                     hash2 = ((hash2 << 5) + hash2) ^ c;
                     s += 2;
                 }
@@ -329,31 +365,16 @@ namespace BeatSyncLib.Hashing
                         hash1 = ((hash1 << 5) + hash1) ^ c;
                         c = s[1];
                         if (c == 0)
+                        {
                             break;
+                        }
+
                         hash2 = ((hash2 << 5) + hash2) ^ c;
                         s += 2;
                     }
                     return hash1 + (hash2 * 1566083941);
                 }
             }
-        }
-    }
-
-    public class SongHasher<T>
-        : SongHasher
-        where T : ISongHashData, new()
-    {
-
-        /// <summary>
-        /// Creates a new SongHasher with the specified customLevelsPath.
-        /// </summary>
-        /// <param name="customLevelsPath"></param>
-        public SongHasher(string customLevelsPath)
-        {
-            SongHashType = typeof(T);
-            CustomLevelsPath = customLevelsPath;
-            HashDictionary = new ConcurrentDictionary<string, ISongHashData>();
-            ExistingSongs = new ConcurrentDictionary<string, string>();
         }
     }
 }
