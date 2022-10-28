@@ -1,16 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BeatSaberPlaylistsLib;
+﻿using BeatSyncLib.Playlists;
+using Newtonsoft.Json;
 using SongFeedReaders.Readers;
 using SongFeedReaders.Readers.BeastSaber;
-using BeatSyncLib.Playlists;
 
 namespace BeatSyncLib.Configs
 {
-    public class BeastSaberFollowings : PagedFeedConfigBase
+    public abstract class BeastSaberConfigBase : PagedFeedConfigBase
+    {
+
+        protected virtual int DefaultSongsPerPage => 50;
+        [JsonIgnore]
+        private int? _songsPerPage;
+        public int SongsPerPage
+        {
+            get
+            {
+                if (_songsPerPage == null || _songsPerPage <= 0)
+                {
+                    _songsPerPage = DefaultSongsPerPage;
+                    SetConfigChanged();
+                }
+                return _songsPerPage ??= DefaultSongsPerPage;
+            }
+            set
+            {
+                if (_songsPerPage == value)
+                {
+                    return;
+                }
+
+                _songsPerPage = value;
+                SetConfigChanged();
+            }
+        }
+
+        public override void FillDefaults()
+        {
+            base.FillDefaults();
+            _ = SongsPerPage;
+        }
+    }
+
+    public class BeastSaberFollowings : BeastSaberConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => false;
@@ -29,12 +60,13 @@ namespace BeatSyncLib.Configs
             return new BeastSaberFeedSettings((int)BeastSaberFeedName.Following)
             {
                 MaxSongs = this.MaxSongs,
-                StartingPage = this.StartingPage
+                StartingPage = this.StartingPage,
+                SongsPerPage = this.SongsPerPage
             };
         }
     }
 
-    public class BeastSaberBookmarks : PagedFeedConfigBase
+    public class BeastSaberBookmarks : BeastSaberConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => true;
@@ -53,12 +85,13 @@ namespace BeatSyncLib.Configs
             return new BeastSaberFeedSettings((int)BeastSaberFeedName.Bookmarks)
             {
                 MaxSongs = this.MaxSongs,
-                StartingPage = this.StartingPage
+                StartingPage = this.StartingPage,
+                SongsPerPage = this.SongsPerPage
             };
         }
     }
 
-    public class BeastSaberCuratorRecommended : PagedFeedConfigBase
+    public class BeastSaberCuratorRecommended : BeastSaberConfigBase
     {
         #region Defaults
         protected override bool DefaultEnabled => false;
@@ -77,7 +110,8 @@ namespace BeatSyncLib.Configs
             return new BeastSaberFeedSettings((int)BeastSaberFeedName.CuratorRecommended)
             {
                 StartingPage = this.StartingPage,
-                MaxSongs = this.MaxSongs
+                MaxSongs = this.MaxSongs,
+                SongsPerPage = this.SongsPerPage
             };
         }
     }
